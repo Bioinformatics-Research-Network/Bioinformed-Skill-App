@@ -3,23 +3,36 @@ import aiohttp
 
 from aiohttp import web
 
+from slack import WebClient
 from gidgethub import routing, sansio
 from gidgethub import aiohttp as gh_aiohttp
-
+import requests
+import json
+client = WebClient(token=os.environ['SLACK_KEY'])
 routes = web.RouteTableDef()
 
 router = routing.Router()
 ## test
 
+def post_message_to_slack(text, blocks = None):
+    return requests.post('https://slack.com/api/chat.postMessage', {
+        'token': os.environ['SLACK_KEY'],
+        'channel': '#project-review',
+        'text': text,
+        'blocks': json.dumps(blocks) if blocks else None
+    }).json()
+
+
 @router.register("issues", action="opened")
 async def issue_opened_event(event, gh, *args, **kwargs):
-    """
-    Whenever an issue is opened, greet the author and say thanks.
-    """
+
     url = event.data["issue"]["comments_url"]
     author = event.data["issue"]["user"]["login"]
-
-    message = f"Thanks for the report @{author}! I will look into it ASAP! (I'm a bot)."
+    author_url = event.data["issue"]["user"]["html_url"]
+    submitted_url = event.data["issue"]["body"]
+    post_message_to_slack(f"New <{submitted_url}|project> needs review. Author:<{author_url}|{author}>. "
+                          f"Please react to this message to be assigned as author")
+    message = f"Thank you for submitting your code for review @{author}. A reviewer will be assigned shortly."
     await gh.post(url, data={"body": message})
 
 @routes.post("/")
@@ -31,7 +44,7 @@ async def main(request):
 
     event = sansio.Event.from_http(request.headers, body, secret=secret)
     async with aiohttp.ClientSession() as session:
-        gh = gh_aiohttp.GitHubAPI(session, "mariatta",
+        gh = gh_aiohttp.GitHubAPI(session, "TestbotBRN",
                                   oauth_token=oauth_token)
         await router.dispatch(event, gh)
     return web.Response(status=200)

@@ -12,16 +12,8 @@ import json
 routes = web.RouteTableDef()
 
 router = routing.Router()
-## test
 
-def post_message_to_slack(text, blocks = None):
-    return requests.post('https://slack.com/api/chat.postMessage', {
-        'token': os.environ['SLACK_KEY'],
-        'channel': '#project-review',
-        'text': text,
-        'blocks': json.dumps(blocks) if blocks else None
-    }).json()
-
+client = WebClient(token=os.environ['SLACK_KEY'])
 
 @router.register("issues", action="opened")
 async def issue_opened_event(event, gh, *args, **kwargs):
@@ -30,8 +22,9 @@ async def issue_opened_event(event, gh, *args, **kwargs):
     author = event.data["issue"]["user"]["login"]
     author_url = event.data["issue"]["user"]["html_url"]
     submitted_url = event.data["issue"]["body"]
-    post_message_to_slack(f"New <{submitted_url}|project> needs review. Author:<{author_url}|{author}>. "
-                          f"Please react to this message to be assigned as author")
+    await client.chat_postMessage(channel='project-review',
+                                  text=f"New <{submitted_url}|project> needs review. Author:<{author_url}|{author}>. "
+                                       f"Please react to this message to be assigned as author")
     message = f"Thank you for submitting your code for review @{author}. A reviewer will be assigned shortly."
     await gh.post(url, data={"body": message})
 

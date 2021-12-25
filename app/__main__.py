@@ -22,7 +22,7 @@ async def issue_opened_event(event, gh, *args, **kwargs):
     author = event.data["issue"]["user"]["login"]
     author_url = event.data["issue"]["user"]["html_url"]
     submitted_url = event.data["issue"]["body"]
-    await client.chat_postMessage(channel='project-review',
+    client.chat_postMessage(channel='project-review',
                                   text=f"New <{submitted_url}|project> needs review. Author:<{author_url}|{author}>. "
                                        f"Please react to this message to be assigned as reviewer")
     message = f"Thank you for submitting your code for review @{author}. A reviewer will be assigned shortly."

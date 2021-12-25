@@ -8,7 +8,7 @@ from gidgethub import routing, sansio
 from gidgethub import aiohttp as gh_aiohttp
 import requests
 import json
-client = WebClient(token=os.environ['SLACK_KEY'])
+
 routes = web.RouteTableDef()
 
 router = routing.Router()

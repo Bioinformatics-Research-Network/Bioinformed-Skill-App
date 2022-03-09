@@ -1,7 +1,11 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
-  - init: pip install -e . # runs during prebuild
-    command: echo 'start script'
+  - name: Start up
+    init: |
+      curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+      source $HOME/.poetry/env
+      poetry install
+      pip install -e .
 
 # List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
 ports:
@@ -11,4 +15,3 @@ ports:
 vscode:
   extensions:
     - ms-python.python
-    

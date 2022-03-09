@@ -1,6 +1,6 @@
 # Developer notes
 
-![Build Status](https://github.com/Bioinformatics-Research-Network/Skill-cert-API/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API/branch/main/graph/badge.svg)](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API)
+![Build Status](https://github.com/Bioinformatics-Research-Network/Skill-cert-API/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API/branch/main/graph/badge.svg?token=MD2VSBJ141)](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API)
 
 This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
 

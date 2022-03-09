@@ -7,7 +7,7 @@ This README contains notes to aid contributors and maintainers for this repo. It
 All the work for this project has been modularized into relatively independent [issues](https://github.com/Bioinformatics-Research-Network/Skill-cert-API/issues). If you see one which you would like to complete and it has no assignees, feel free to just add yourself as an assignee and get started. 
 
 1. You are assigned an issue (or you self-assign)
-2. Set up your dev environment using [gitpod](https://www.gitpod.io/) (preferred) or locally using the steps in the description [below](#setting-up-the-dev-environment).
+2. Set up your dev environment using [gitpod](https://www.gitpod.io/) (preferred) or locally using the steps in the description [below](#setting-up-the-dev-environment-non-gitpod).
 3. Switch to your own branch (please do not work on the `main` branch)
 4. If developing new modules or functions, start by writing pytest unit tests in the `app/tests/` folder. It is good practice to write all unit tests prior to writing the modules which they test. That way, the expected behavior is clearly defined prior to writing the module code. 
 5. Commit changes to your branch and push to github. It is recommended to do this at the end of a coding session to avoid potentially losing your progress.

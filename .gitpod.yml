@@ -2,11 +2,17 @@
 tasks:
   - name: Start up
     init: |
-      pip install poetry && poetry config virtualenvs.create true && poetry config virtualenvs.in-project true && poetry env use python && poetry install
+      #pip install poetry && poetry config virtualenvs.create true && poetry config virtualenvs.in-project true && poetry env use python && poetry install
+      #poetry config virtualenvs.create true
+      #poetry config virtualenvs.in-project true
+      #poetry env use python
+      #poetry install
+
       # curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
       # source $HOME/.poetry/env
       # poetry install
-      # pip install -e .
+      pip install -e .
+      
 
 # List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
 ports:

@@ -1,5 +1,7 @@
 # Developer notes
 
+![Build Status](https://github.com/Bishop-Laboratory/RLPipes/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bishop-Laboratory/RLPipes/branch/main/graph/badge.svg)](https://codecov.io/gh/Bishop-Laboratory/RLPipes)
+
 This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
 
 ## Workflow for contributing:

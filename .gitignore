@@ -6,3 +6,4 @@ htmlcov
 .venv
 .env
 .pipenv
+codecov

@@ -18,8 +18,8 @@ class Users(Base):
 class Reviewers(Base):
     __tablename__ = "reviewers"
     id = Column(Integer, primary_key=True, unique=True, index=True)
-    user = relationship("User", back_populates="reviewers")
-    assessments_reviewing = relationship("User", back_populates="reviewers") # column to check assessment and reviewer relationship
+    user_id = Column(Integer, ForeignKey("users.id"))
+    assessments_reviewing = relationship("Assessment_Tracker", back_populates="reviewers") # column to check assessment and reviewer relationship
 
 
 class Assessment_Tracker(Base):

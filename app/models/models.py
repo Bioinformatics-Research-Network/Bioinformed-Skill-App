@@ -24,9 +24,9 @@ class Assessment_Tracker(Base):
     last_updated = Column(DateTime)
     latest_commit = Column(String, nullable=False, unique=True)
     reviewer = relationship("Reviewers")
-    # Log
+    # Log    # Working on it
     #     JSON containing full log of review process, including timestamps
 
-class Assessments(Base):
+class Assessments(Base): # working on it
     __tablename__ = "assessments"
     id = Column(Integer, primary_key=True, unique=True, index=True)

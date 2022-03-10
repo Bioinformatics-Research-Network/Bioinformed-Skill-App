@@ -12,7 +12,7 @@ class Users(Base):
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String, unique=True, index=True)
-    assessments_completed_id = relationship("Assessments") # ID of assessments completed
+    assessments_completed_id = Column(Integer, ForeignKey("assessments.id")) # ID of assessments completed
     ongoing_assessments = relationship("Assessment_Tracker", back_populates="user") # column to check on ongoing assessments
 
 class Reviewers(Base):

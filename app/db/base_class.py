@@ -8,5 +8,5 @@ class Base:
     __name__: str
     # create __tablename__ automatically for new tables
     @declared_attr
-    def __tablename__(cls) -> str: 
+    def __tablename__(cls) -> str:
         return cls.__name__.lower()

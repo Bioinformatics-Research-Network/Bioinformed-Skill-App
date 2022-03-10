@@ -2,6 +2,8 @@
 
 ![Build Status](https://github.com/Bioinformatics-Research-Network/Skill-cert-API/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API/branch/main/graph/badge.svg?token=MD2VSBJ141)](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-API)
 
+Primary maintainer: Henry Miller
+
 This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
 
 ## Workflow for contributing:
@@ -10,7 +12,7 @@ All the work for this project has been modularized into relatively independent [
 
 1. You are assigned an issue (or you self-assign)
 2. Set up your dev environment using [gitpod](https://www.gitpod.io/) (preferred) or locally using the steps in the description [below](#setting-up-the-dev-environment-non-gitpod).
-3. Switch to your own branch (please do not work on the `main` branch)
+3. Switch to your own branch (please do not work on the `main` branch unless you are the primary maintainer)
 4. If developing new modules or functions, start by writing pytest unit tests in the `app/tests/` folder. It is good practice to write all unit tests prior to writing the modules which they test. That way, the expected behavior is clearly defined prior to writing the module code. 
 5. Commit changes to your branch and push to github. It is recommended to do this at the end of a coding session to avoid potentially losing your progress.
 6. Once your feature / module is ready, submit a pull request to pull your branch into `main`. The maintainer will review your code prior to merging it. 

@@ -3,7 +3,7 @@ from pydantic import BaseModel, validator, EmailStr, Json
 from schemas import users, assessment_tracker
 
 
-class Reviewers(BaseModel):
+class Reviewers(BaseModel): # to be modified for functions
     id: str
     user_id: int
     user: users.User

@@ -3,7 +3,7 @@ from pydantic import BaseModel, Json
 from datetime import datetime
 from schemas import users, reviewers
 
-class Assessment_Tracker(BaseModel):
+class Assessment_Tracker(BaseModel): # to be modified for functions
     entry_id: int
     user_id: int
     user: users.User

@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import BaseModel, validator, EmailStr, Json
 from schemas import assessments
 
-class Users(BaseModel):
+class Users(BaseModel): # to be modified for functions
     id: int
     github_username: str
     first_name: str

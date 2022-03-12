@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Json
 from schemas import assessments
 
-class Assessments(BaseModel):
+class Assessments(BaseModel): # to be modified for functions
     id: int
     name: str
     version_number: Optional[str] = None

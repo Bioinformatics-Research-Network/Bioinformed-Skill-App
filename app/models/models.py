@@ -14,12 +14,12 @@ class Users(Base):
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String, unique=True, index=True)
-    assessments_completed_id = Column(
-        Integer, ForeignKey("assessments.id")
-    )  # ID of assessments completed
-    ongoing_assessments = relationship(
+    assessments_id = Column(Integer, ForeignKey("assessment_tracker.entry_id"))
+    assessments = relationship(
         "Assessment_Tracker", back_populates="user"
     )  # column to check on ongoing assessments
+
+
 
 
 class Reviewers(Base):
@@ -34,12 +34,14 @@ class Reviewers(Base):
 class Assessment_Tracker(Base):
     __tablename__ = "assessment_tracker"
     entry_id = Column(Integer, primary_key=True, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="ongoing_assessments")
     assessment_id = Column(Integer, ForeignKey("assessments.id"))
     status = Column(String)
     last_updated = Column(DateTime)
     latest_commit = Column(String, nullable=False, unique=True)
-    reviewer = relationship("Reviewers", back_populates="user")
+    reviewer_id = Column(Integer, ForeignKey("reviewers.id"))
+    reviewers = relationship("Reviewers", back_populates="assessments_reviewing")
     log = Column(JSON, nullable=False)
 
 
@@ -53,5 +55,5 @@ class Assessments(Base):
     pre_requisites_id = Column(
         Integer, ForeignKey("assessments.id")
     )  # divided pre_requisites into '_id' and '_name'
-    pre_requisites_name = relationship("Assessments", remote_side=[id])
+    pre_requisites_name = relationship("Assessments", remote_side=[name])
     goals = Column(String)

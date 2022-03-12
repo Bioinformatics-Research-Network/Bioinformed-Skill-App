@@ -26,6 +26,7 @@ class Reviewers(Base):
     __tablename__ = "reviewers"
     id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User")
     assessments_reviewing = relationship(
         "Assessment_Tracker", back_populates="reviewers"
     )  # column to check assessment and reviewer relationship
@@ -55,5 +56,5 @@ class Assessments(Base):
     pre_requisites_id = Column(
         Integer, ForeignKey("assessments.id")
     )  # divided pre_requisites into '_id' and '_name'
-    pre_requisites_name = relationship("Assessments", remote_side=[name])
+    pre_requisites = relationship("Assessments", remote_side=[name])
     goals = Column(String)

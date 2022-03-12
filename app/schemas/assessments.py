@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, Json
-from schemas import assessments
+
 
 class Assessments(BaseModel): # to be modified for functions
     id: int
@@ -9,7 +9,7 @@ class Assessments(BaseModel): # to be modified for functions
     change_log: Optional[Json] = None
     description: Optional[str] = None
     pre_requisites_id: Optional[int] = None
-    pre_requisites: Optional[List[assessments.Assessments]] = None
+    pre_requisites: Optional[List['Assessments']] = None # self referencing models
     goals: Optional[str]
 
     class Config:

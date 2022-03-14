@@ -1,17 +1,45 @@
 from typing import Optional, List
 from pydantic import BaseModel, Json
+from sqlalchemy import true
 
-
-class Assessments(BaseModel): # to be modified for functions
-    id: int
+# Shared properties
+class AssessmentBase(BaseModel): 
     name: str
     version_number: Optional[str] = None
     change_log: Optional[Json] = None
     description: Optional[str] = None
-    pre_requisites_id: Optional[int] = None
-    pre_requisites: Optional[List['Assessments']] = None # self referencing models
+    pre_requisites_id: Optional[List[int]] = None
     goals: Optional[str]
 
-    class Config:
-        orm_mode = True
+class AssessmentCreate(AssessmentBase):
+    name: str
+    version_number: Optional[str] = "1"
+    description: str
+    pre_reqisites_id: List[int]
+    goals: str
 
+class AssessmentUpdate(AssessmentBase):
+    version_number: Optional[str] = "1"
+    description: Optional[str] = None
+    pre_reqisites_id: Optional[List[int]] = None
+    goals: Optional[str]
+
+class AssessmentLogUpdate(AssessmentBase):
+    change_log: Optional[Json] = None
+
+# Properties shared by models stored in DB
+class AssessmentInDBBase(AssessmentBase):
+    assessment_id: int
+    name: str
+
+    class Config:
+        orm_mode: True
+
+class Assessment(AssessmentInDBBase):
+    pass
+
+# additional properties stored in DB
+class AssessmentInDB(AssessmentInDBBase):
+    pass
+
+# can add more custom response model for security

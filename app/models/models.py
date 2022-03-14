@@ -1,5 +1,6 @@
 from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
 from sqlalchemy.orm import relationship
+from app.schemas import assessments
 from db.base_class import Base
 
 
@@ -7,16 +8,16 @@ class Users(Base):
     """
     Shared with Airtable
     """
-
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, unique=True, index=True)
+
+    user_id = Column(Integer, primary_key=True, unique=True, index=True)
     github_username = Column(String, unique=True, index=True)
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String, unique=True, index=True)
-    assessments_id = Column(Integer, ForeignKey("assessment_tracker.entry_id"))
+    assessments_id = Column(ARRAY[Integer], ForeignKey("assessment_tracker.entry_id"))
     assessments = relationship(
-        "Assessment_Tracker", back_populates="user"
+        "Assessment_Tracker", back_populates="user_info"
     )  # column to check on ongoing assessments
 
 
@@ -24,31 +25,36 @@ class Users(Base):
 
 class Reviewers(Base):
     __tablename__ = "reviewers"
-    id = Column(Integer, primary_key=True, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User")
-    assessments_reviewing = relationship(
-        "Assessment_Tracker", back_populates="reviewers"
+
+    reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    user_info = relationship("User")
+    assessments_reviewing_id = Column(int, ForeignKey("assessment_tracker.entry_id"))
+    assessments_reviewing_info = relationship(
+        "Assessment_Tracker", back_populates="reviewers_info"
     )  # column to check assessment and reviewer relationship
 
 
 class Assessment_Tracker(Base):
     __tablename__ = "assessment_tracker"
+
     entry_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", back_populates="ongoing_assessments")
+    user_info = relationship("User", back_populates="assessments")
     assessment_id = Column(Integer, ForeignKey("assessments.id"))
+    assessment_info = relationship("Assessments")
     status = Column(String)
     last_updated = Column(DateTime)
     latest_commit = Column(String, nullable=False, unique=True)
-    reviewer_id = Column(Integer, ForeignKey("reviewers.id"))
-    reviewers = relationship("Reviewers", back_populates="assessments_reviewing")
+    reviewer_ids = Column(Integer, ForeignKey("reviewers.id"))
+    reviewers_info = relationship("Reviewers", back_populates="assessments_reviewing_info")
     log = Column(JSON, nullable=False)
 
 
 class Assessments(Base):
     __tablename__ = "assessments"
-    id = Column(Integer, primary_key=True, unique=True, index=True)
+
+    assessment_id = Column(Integer, primary_key=True, unique=True, index=True)
     name = Column(String)
     version_number = Column(String)
     change_log = Column(JSON)
@@ -56,5 +62,5 @@ class Assessments(Base):
     pre_requisites_id = Column(
         Integer, ForeignKey("assessments.id")
     )  # divided pre_requisites into '_id' and '_name'
-    pre_requisites = relationship("Assessments", remote_side=[name])
+    pre_requisites_info = relationship("Assessments", remote_side=[name])
     goals = Column(String)

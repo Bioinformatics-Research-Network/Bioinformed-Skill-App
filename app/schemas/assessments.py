@@ -11,6 +11,8 @@ class AssessmentBase(BaseModel):
     pre_requisites_id: Optional[List[int]] = None
     goals: Optional[str]
 
+
+# create new training requirements,  used in creating fake data
 class AssessmentCreate(AssessmentBase):
     name: str
     version_number: Optional[str] = "1"
@@ -18,12 +20,14 @@ class AssessmentCreate(AssessmentBase):
     pre_reqisites_id: List[int]
     goals: str
 
+# to maintain and update training requirements
 class AssessmentUpdate(AssessmentBase):
     version_number: Optional[str] = "1"
     description: Optional[str] = None
     pre_reqisites_id: Optional[List[int]] = None
     goals: Optional[str]
 
+# update Log after each update
 class AssessmentLogUpdate(AssessmentBase):
     change_log: Optional[Json] = None
 
@@ -35,11 +39,12 @@ class AssessmentInDBBase(AssessmentBase):
     class Config:
         orm_mode: True
 
+# finding assignment in the DB
 class Assessment(AssessmentInDBBase):
     pass
 
 # additional properties stored in DB
-class AssessmentInDB(AssessmentInDBBase):
-    pass
+# class AssessmentInDB(AssessmentInDBBase):
+#     pass
 
 # can add more custom response model for security

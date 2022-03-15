@@ -1,6 +1,6 @@
 from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
 from sqlalchemy.orm import relationship
-from db.base_class import Base
+from db.session import Base
 
 
 class Users(Base):

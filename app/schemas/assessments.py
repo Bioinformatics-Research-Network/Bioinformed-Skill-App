@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, Json
-from sqlalchemy import true
+
 
 # Shared properties
 class AssessmentBase(BaseModel): 

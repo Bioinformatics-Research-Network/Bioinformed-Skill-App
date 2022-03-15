@@ -1,7 +1,6 @@
-from typing import Optional, List
-from pydantic import BaseModel, validator, EmailStr, Json
-from app.schemas import assessmenttracker
-from schemas import users
+from typing import Optional
+from pydantic import BaseModel
+
 
 # Shared properties
 class ReviewerBase(BaseModel): # to be modified for functions
@@ -12,7 +11,7 @@ class ReviewerBase(BaseModel): # to be modified for functions
 class ReviewerCreate(ReviewerBase):
     user_id: int
 
-# to assign assignments to reviewers
+# to assign assessments to reviewers
 class ReviewerUpdate(ReviewerBase):
     assessments_reviewing_id: int
 

@@ -1,6 +1,6 @@
 from typing import Optional, List
-from pydantic import BaseModel, validator, EmailStr, Json
-from app.schemas import assessmenttracker
+from pydantic import BaseModel, EmailStr
+
 
 # Shared properties
 class UserBase(BaseModel): # to be modified for functions

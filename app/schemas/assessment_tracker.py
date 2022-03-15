@@ -1,7 +1,6 @@
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel, Json
 from datetime import datetime
-from schemas import users, reviewers
 
 # Shared properties
 class Assessment_TrackerBase(BaseModel): # to be modified for functions
@@ -13,7 +12,7 @@ class Assessment_TrackerBase(BaseModel): # to be modified for functions
     reviewer_id: Optional[int] = None
     log: Optional[Json] = None
 
-# to create new assignments using user_id/username and assignment ID
+# to create new assessments using user_id/username and assignment ID
 class Assessment_TrackerCreate(Assessment_TrackerBase):
     user_id: int
     assessment_id: int
@@ -28,7 +27,7 @@ class Assessment_TrackerUpdate(Assessment_TrackerBase):
     latest_commit: str
     reviewer_id: Optional[int] = None
 
-# update the log for assignments being tracked
+# update the log for assessments being tracked
 class Assessment_TrackerLogUpdate(Assessment_TrackerBase):
     log: Optional[Json] = None
 
@@ -43,7 +42,7 @@ class Assessment_TrackerInDBBase(Assessment_TrackerBase):
     class Config:
         orm_mode: True
 
-# to check for the assignment in process or completed by users in DB, 
+# to check for the assessment in process or completed by users in DB, 
 class Assessment_Tracker(Assessment_TrackerInDBBase):
     pass
 

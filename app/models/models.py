@@ -1,6 +1,5 @@
 from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
 from sqlalchemy.orm import relationship
-from app.schemas import assessments
 from db.base_class import Base
 
 

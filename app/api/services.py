@@ -1,5 +1,7 @@
 from app.db import base_class, session
-
+from app.db.base_class import Base  
+from app.models.models import Users, Reviewers, Assessment_Tracker, Assessments 
+from app.db import base
 
 # to get local DB
 def get_db():
@@ -9,6 +11,5 @@ def get_db():
     finally:
         db.close()
 
-# create database
 def create_database():
-    return base_class.Base.metadata.create_all(bind=session.engine)
+    return Base.metadata.create_all(bind=session.engine)

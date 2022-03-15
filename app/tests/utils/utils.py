@@ -1,7 +1,4 @@
 import random
-import string
-from app.db import base_class, session
-
 
 # lists to create random names
 first_list=['Alison' 'Ashley' 'Barbara' 'Benjamin' 'Bernice' 'Betsy' 'Bonnie'
@@ -36,14 +33,6 @@ def random_email(username):
 def random_username(first,last):
     return f"{first}_{last}{random.randint(0,100)}"
 
-# for fake data, can be incorporated into app.utils instead 
-def create_database():
-    return base_class.Base.metadata.create_all(bind=session.engine)
 
-# to get local DB
-def get_db():
-    db = session.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
+

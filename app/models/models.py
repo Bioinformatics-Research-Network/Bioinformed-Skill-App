@@ -14,10 +14,9 @@ class Users(Base):
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String, unique=True, index=True)
-    assessments_submitted_id = Column(ARRAY[Integer], ForeignKey("assessment_tracker.entry_id"))
 
     assessments_submitted = relationship(
-        "Assessment_Tracker"
+        "Assessment_Tracker", back_populates="user_info" 
     )  # column to check on ongoing assessments
 
 
@@ -32,7 +31,7 @@ class Reviewers(Base):
      ForeignKey("assessment_tracker.entry_id")
      )
 
-    user_info = relationship("User")
+    user_info = relationship("User", back_populates="assessments_submitted")
     assessments_reviewing_info = relationship(
         "Assessment_Tracker"
     )  # column to check assessment and reviewer relationship

@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 # URL for fake data, will be changed as per requirements
 SQLALCHEMY_DATABASE_URL = "sqlite:///./fake_skill_cert.db" 
@@ -10,5 +9,3 @@ engine = create_engine( # connect_args is required for SQLite
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) 
-
-Base = declarative_base()

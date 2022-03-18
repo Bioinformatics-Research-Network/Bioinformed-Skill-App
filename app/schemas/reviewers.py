@@ -1,35 +1,28 @@
 from typing import Optional
 from pydantic import BaseModel
+from .users import User
+from .assessment_tracker import Assessment_Tracker
 
-
+# Reviewers is Update and read: https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
 # Shared properties
 class ReviewerBase(BaseModel): # to be modified for functions
     user_id: int
-    assessments_reviewing_id: Optional[int] = None
+    assessment_reviewing_id: Optional[int] = None
 
-# create new reviewers, helps in creating fake data
-class ReviewerCreate(ReviewerBase):
-    user_id: int
 
 # to assign assessments to reviewers
 class ReviewerUpdate(ReviewerBase):
-    assessments_reviewing_id: int
+    assessment_reviewing_id: int
 
-# Properties shared by models stored in DB
+# additional properties shared by reviewers stored in DB
 class ReviewerInDBBase(ReviewerBase):
-    reviewer_id: Optional[int] = None
-    user_id: Optional[int] = None
-    assessments_reviewing_id: Optional[int] = None
+    reviewer_id: int
+    user_info: User
+    assessment_reviewing_info: Optional[Assessment_Tracker] = None
 
     class Config:
         orm_mode: True
 
-# to check if the user is a reviewer
+# get reviewer data from DB.
 class Reviewer(ReviewerInDBBase):
     pass
-
-# additional properties stored in DB
-# class ReviewerInDB(ReviewerInDBBase):
-#     pass
-
-# can add more custom response model for security

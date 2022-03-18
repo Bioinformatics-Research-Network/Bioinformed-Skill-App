@@ -1,7 +1,12 @@
 from typing import Optional
 from pydantic import BaseModel, Json
 from datetime import datetime
+from .users import User
+from .reviewers import Reviewer
+from .assessments import Assessment
 
+
+# assessment tracker used for create: /api/init , update and read
 # Shared properties
 class Assessment_TrackerBase(BaseModel): # to be modified for functions
     user_id: int
@@ -13,6 +18,7 @@ class Assessment_TrackerBase(BaseModel): # to be modified for functions
     log: Optional[Json] = None
 
 # to create new assessments using user_id/username and assignment ID
+# /app/init: https://github.com/Bioinformatics-Research-Network/Skill-cert-API/issues/3
 class Assessment_TrackerCreate(Assessment_TrackerBase):
     user_id: int
     assessment_id: int
@@ -27,27 +33,20 @@ class Assessment_TrackerUpdate(Assessment_TrackerBase):
     latest_commit: str
     reviewer_id: Optional[int] = None
 
-# update the log for assessments being tracked
+# update the log for assessments being tracked : app.crud.update_assessment_log
 class Assessment_TrackerLogUpdate(Assessment_TrackerBase):
     log: Optional[Json] = None
 
-# Properties shared by models stored in DB
+# additional properties shared by model in DB
 class Assessment_TrackerInDBBase(Assessment_TrackerBase):
     entry_id: int
-    user_id: int
-    assessment_id: int
-    status: str
-    latest_commit: str
+    user_info: User
+    assessment_info: Assessment
+    reviewer_info: Reviewer
 
     class Config:
         orm_mode: True
 
-# to check for the assessment in process or completed by users in DB, 
+# to read assessment_tracker from DB
 class Assessment_Tracker(Assessment_TrackerInDBBase):
     pass
-
-# additional properties stored in DB
-# class Assessment_TrackerInDB(Assessment_TrackerInDBBase):
-#     pass
-
-# can add more custom response model for security

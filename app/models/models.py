@@ -27,12 +27,12 @@ class Reviewers(Base):
 
     reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    assessments_reviewing_id = Column(int,
+    assessment_reviewing_id = Column(int,
      ForeignKey("assessment_tracker.entry_id")
      )
 
     user_info = relationship("User", back_populates="assessments_submitted")
-    assessments_reviewing_info = relationship(
+    assessment_reviewing_info = relationship(
         "Assessment_Tracker"
     )  # column to check assessment and reviewer relationship
 

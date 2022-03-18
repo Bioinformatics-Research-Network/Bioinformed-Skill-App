@@ -1,40 +1,26 @@
-from typing import Optional, List
+from typing import List
 from pydantic import BaseModel, Json
 
-
+# Assessments are read only: https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
 # Shared properties
 class AssessmentBase(BaseModel): 
     name: str
-    version_number: Optional[str] = None
-    change_log: Optional[Json] = None
-    description: Optional[str] = None
-    pre_requisites_id: Optional[List[int]] = None
-    goals: Optional[str]
-
-
-# create new training requirements,  used in creating fake data
-class AssessmentCreate(AssessmentBase):
-    name: str
-    version_number: Optional[str] = "1"
+    version_number: str
+    change_log: Json
     description: str
-    pre_reqisites_id: List[int]
+    pre_requisites_id: List[int]
     goals: str
 
-# to maintain and update training requirements
-class AssessmentUpdate(AssessmentBase):
-    version_number: Optional[str] = "1"
-    description: Optional[str] = None
-    pre_reqisites_id: Optional[List[int]] = None
-    goals: Optional[str]
 
-# update Log after each update
-class AssessmentLogUpdate(AssessmentBase):
-    change_log: Optional[Json] = None
+# update Log, not mentioned in workflow, but left undeleted for timebeing
+# class AssessmentLogUpdate(AssessmentBase):
+#     change_log: Optional[Json] = None
+
 
 # Properties shared by models stored in DB
 class AssessmentInDBBase(AssessmentBase):
     assessment_id: int
-    name: str
+    pre_requisites_info: List['Assessment']
 
     class Config:
         orm_mode: True
@@ -43,8 +29,3 @@ class AssessmentInDBBase(AssessmentBase):
 class Assessment(AssessmentInDBBase):
     pass
 
-# additional properties stored in DB
-# class AssessmentInDB(AssessmentInDBBase):
-#     pass
-
-# can add more custom response model for security

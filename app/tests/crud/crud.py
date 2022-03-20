@@ -2,7 +2,7 @@
 from sqlalchemy.orm import Session
 from app.models.models import *
 from app.tests.utils import utils
-
+import random
 
 def create_random_user( random_users: int, # number of random users to create
      db: Session): # commit random users in DB
@@ -24,9 +24,18 @@ def create_random_user( random_users: int, # number of random users to create
 
     return db_obj
 
-# def create_random_reviewers(random_reviewers: int,
-#         db: Session):
-    
-    
+def create_random_reviewers(random_reviewers:int ,
+        db: Session):
+    user_id_list = utils.random_user_id(random_reviewers)
 
-    
+    for i in range(random_reviewers):
+        userid = user_id_list[i] 
+        db_obj = Reviewers(
+            user_id=userid
+        )
+
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+
+    return db_obj

@@ -3,10 +3,11 @@
 
 import fastapi
 from app.api import services
+from app.db.init_db import init
 
 app = fastapi.FastAPI()
 
-services.create_database()
-# initiializing database
+init()
+
 
 

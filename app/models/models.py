@@ -1,6 +1,6 @@
 from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
 from sqlalchemy.orm import relationship
-from db.session import Base
+from app.db.base_class import Base
 
 
 class Users(Base):
@@ -27,7 +27,7 @@ class Reviewers(Base):
 
     reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    assessment_reviewing_id = Column(int,
+    assessment_reviewing_id = Column(Integer,
      ForeignKey("assessment_tracker.entry_id")
      )
 

@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+    .venv/
+    __pycache__/
+    .pytest_cache/
+

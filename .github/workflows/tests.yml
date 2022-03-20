@@ -46,7 +46,8 @@ jobs:
         run: |
           source .venv/bin/activate
           python -m coverage run -m pytest
-          python -m coverage report -m
+          echo $?
+          python -m coverage report -m --fail-under=85
           python -m coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

@@ -21,11 +21,11 @@ email_list=['gmail','hotmail','yahoo','protonmail','outlook','aol','zoho','iclou
 
 # random name
 def random_name():
-    return (random.choices(first_list), random.choises(last_list))
+    return (random.choice(first_list), random.choice(last_list))
 
 # random generators for fake data
 def random_generator(random_list: list):
-    return "".join(random.choices(random_list))
+    return "".join(random.choice(random_list))
 
 def random_email(username):
     return f"{username}@{random_generator(email_list)}.com"

@@ -8,6 +8,7 @@ from app.db import session, base
 def init_db(db: Session):
     base.Base.metadata.create_all(bind=session.engine)
 
+
 # initiate local db in main
 def init():
     db = session.SessionLocal()

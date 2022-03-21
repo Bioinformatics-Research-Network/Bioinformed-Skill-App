@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 @pytest.fixture(scope="session")
 def test_init() -> Generator:
     db = TestingSessionLocal()
-    test_init_db(db)
+    test_init_db()
 
 
 @pytest.fixture(scope="module")

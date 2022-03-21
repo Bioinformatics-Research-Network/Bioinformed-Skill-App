@@ -2,7 +2,6 @@
 # See https://github.com/tiangolo/full-stack-fastapi-postgresql/blob/master/%7B%7Bcookiecutter.project_slug%7D%7D/backend/app/app/db/init_db.py
 from app.db import session, base
 
-
 # initialize database database
 def init_db():
     base.Base.metadata.create_all(bind=session.engine)
@@ -11,4 +10,4 @@ def init_db():
 # initiate local db in main
 def init():
     db = session.SessionLocal()
-    init_db(db)
+    init_db()

@@ -3,8 +3,6 @@ from tests.conftest import *
 from fastapi import Depends
 from tests.crud.crud import *
 
-client = client()
-test_init()
 
 def test_random_data(
     client: TestClient,

@@ -7,3 +7,4 @@ htmlcov
 .env
 .pipenv
 codecov
+tests/*.db

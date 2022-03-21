@@ -4,12 +4,12 @@
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
-from app.db.session import SessionLocal
+from tests.utils.test_db import TestingSessionLocal
 from app.main import app
 
 @pytest.fixture(scope="session")
 def db() -> Generator:
-    yield SessionLocal()
+    yield TestingSessionLocal()
 
 
 @pytest.fixture(scope="module")

@@ -40,8 +40,8 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     return db_obj
 
 
-def create_assessments(db: Session):
-    for i in range(10):
+def create_assessments(db: Session, random_assessments: int):
+    for i in range(random_assessments):
         name = utils.assessments_name[i]
         desc = utils.assessment_desc[i]
         pre_req = utils.pre_requisite_id[i]
@@ -60,17 +60,16 @@ def create_assessments(db: Session):
 
     return db_obj
 
-
-def create_random_assessment_tracker(db: Session):
-    for i in range(10):
-        res = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
+def create_random_assessment_tracker(db: Session, random_assessment_tracker: int):
+    for i in range(random_assessment_tracker):
+        commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
 
         db_obj = Assessment_Tracker(
             user_id=random.randint(1, 100),
             assessment_id=random.randint(1, 10),
             status="Created",
             last_updated=datetime.now(),
-            latest_commit=res,
+            latest_commit=commit,
             log={"Created": str(datetime.now())},
         )
         db.add(db_obj)

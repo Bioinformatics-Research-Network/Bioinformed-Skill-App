@@ -8,7 +8,7 @@ import string
 
 
 def create_random_user(
-    random_users: int, db: Session  # number of random users to create
+    random_users: int, db: Session # number of random users to create
 ):  # commit random users in DB
 
     for i in range(random_users):
@@ -29,7 +29,9 @@ def create_random_user(
     assert db_obj.email == email
 
 
-def create_random_reviewers(random_reviewers: int, db: Session):
+def create_random_reviewers(random_reviewers: int, 
+ db: Session
+  ):
     user_id_list = utils.random_user_id(random_reviewers)
 
     for i in range(random_reviewers):
@@ -43,7 +45,9 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     assert db_obj.user_id == userid
 
 
-def create_assessments(db: Session, random_assessments: int):
+def create_assessments(random_assessments: int, 
+ db: Session
+ ):
     for i in range(random_assessments):
         name = utils.assessments_name[i]
         desc = utils.assessment_desc[i]
@@ -67,7 +71,9 @@ def create_assessments(db: Session, random_assessments: int):
     assert db_obj.pre_requisites_ids == pre_req
     assert db_obj.version_number == "1"
 
-def create_random_assessment_tracker(db: Session, random_assessment_tracker: int):
+def create_random_assessment_tracker(random_assessment_tracker: int, 
+db: Session
+ ):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
         userid = random.randint(1, 100)

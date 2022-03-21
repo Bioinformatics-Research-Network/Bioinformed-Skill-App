@@ -4,19 +4,19 @@
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
-from tests.utils.test_db import TestingSessionLocal
+from tests.utils.test_db import *
 from app.main import app
 from tests.utils.test_db import *
 from sqlalchemy.orm import Session
 
 @pytest.fixture(scope="session")
-def test_init() -> Generator:
+def test_get_db() -> Generator:
     db = TestingSessionLocal()
-    test_init_db()
-
-@pytest.fixture(scope="session")
-def db() -> Generator:
-    yield TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
 
 @pytest.fixture(scope="module")
 def client() -> Generator:

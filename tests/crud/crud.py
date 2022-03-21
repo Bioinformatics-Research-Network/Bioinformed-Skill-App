@@ -1,8 +1,11 @@
 # to create random data and test other crud utils
+from fastapi import Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
+from app.api.services import get_db
 from app.models.models import *
 from tests.utils import utils
+from tests.api.test_services import override_get_db
 import random
 import string
 
@@ -26,7 +29,7 @@ def create_random_user(
     return db_obj
 
 
-def create_random_reviewers(random_reviewers: int, db: Session):
+def create_random_reviewers(random_reviewers: int,  db: Session):
     user_id_list = utils.random_user_id(random_reviewers)
 
     for i in range(random_reviewers):
@@ -40,7 +43,7 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     return db_obj
 
 
-def create_assessments(db: Session, random_assessments: int):
+def create_assessments(random_assessments: int, db: Session):
     for i in range(random_assessments):
         name = utils.assessments_name[i]
         desc = utils.assessment_desc[i]
@@ -60,7 +63,7 @@ def create_assessments(db: Session, random_assessments: int):
 
     return db_obj
 
-def create_random_assessment_tracker(db: Session, random_assessment_tracker: int):
+def create_random_assessment_tracker( random_assessment_tracker: int,  db: Session):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
 

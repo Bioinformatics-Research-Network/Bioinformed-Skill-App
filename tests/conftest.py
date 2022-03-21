@@ -10,12 +10,8 @@ from tests.utils.test_db import *
 from sqlalchemy.orm import Session
 
 @pytest.fixture(scope="session")
-def test_get_db() -> Generator:
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def db() -> Generator:
+    yield TestingSessionLocal()
         
 
 @pytest.fixture(scope="module")

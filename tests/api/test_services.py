@@ -1,8 +1,8 @@
 from tests.utils.test_db import *
 
 def override_get_db():
-    db = TestingSessionLocal()
     try:
+        db = TestingSessionLocal()
         yield db
     finally:
         db.close()

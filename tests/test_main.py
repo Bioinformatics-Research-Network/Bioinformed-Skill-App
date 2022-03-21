@@ -4,10 +4,12 @@ from fastapi import Depends
 from tests.crud.crud import *
 from tests.utils.test_db import TestingSessionLocal
 from sqlalchemy.orm import Session
+from app.api import services
+
 
 def test_random_data(
     client: TestClient,
-    db: Session = Depends(override_get_db)
+    db: Session
 ) -> None:
     user = create_random_user(db=db, random_users=1)
     reviewer = create_random_reviewers(db=db, random_reviewers=1)

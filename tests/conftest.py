@@ -14,6 +14,9 @@ def test_init() -> Generator:
     db = TestingSessionLocal()
     test_init_db()
 
+@pytest.fixture(scope="session")
+def db() -> Generator:
+    yield TestingSessionLocal()
 
 @pytest.fixture(scope="module")
 def client() -> Generator:

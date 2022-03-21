@@ -6,14 +6,14 @@ from tests.crud.crud import *
 
 def test_random_data(
     client: TestClient,
-    db: Session = Depends(override_get_db)
+    db: Session 
 ) -> None:
-    user = create_random_user(1,db=db)
-    reviewer = create_random_reviewers(1,db=db)
-    assessment = create_assessments(1, db=db)
-    assessment_tracker = create_random_assessment_tracker(1, db=db)
+    user = create_random_user(db=db, random_users=1)
+    reviewer = create_random_reviewers(db=db, random_reviewers=1)
+    assessment = create_assessments(db=db, random_assessments=1)
+    assessment_tracker = create_random_assessment_tracker(db=db, random_assessment_tracker=1)
     r = client.get("/")
-    assert r.status_code == 400
+    assert r.status_code == 200
     assert user
     assert reviewer
     assert assessment

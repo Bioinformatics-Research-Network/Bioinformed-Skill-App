@@ -4,7 +4,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.db.init_db import init
-from api.services import get_db
+from app.api.services import get_db
 
 app = FastAPI()
 

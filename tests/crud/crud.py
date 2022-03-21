@@ -2,7 +2,7 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models.models import *
-from app.tests.utils import utils
+from tests.utils import utils
 import random
 import string
 

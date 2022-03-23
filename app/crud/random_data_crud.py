@@ -1,20 +1,22 @@
 # to create random data and test other crud utils
+from fastapi import Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
+from app.api.services import get_db
 from app.models.models import *
-from tests.utils import utils
+from app.utils import random_data_utils
 import random
 import string
 
 
 def create_random_user(
-    random_users: int, db: Session # number of random users to create
+    random_users: int, db: Session  # number of random users to create
 ):  # commit random users in DB
 
     for i in range(random_users):
-        first, last = utils.random_name()
-        username = utils.random_username(first, last)
-        email = utils.random_email(username)
+        first, last = random_data_utils.random_name()
+        username = random_data_utils.random_username(first, last)
+        email = random_data_utils.random_email(username)
 
         db_obj = Users(
             email=email, github_username=username, first_name=first, last_name=last
@@ -23,16 +25,11 @@ def create_random_user(
         db.commit()
         db.refresh(db_obj)
 
-    assert db_obj.first_name == first
-    assert db_obj.last_name == last
-    assert db_obj.github_username == username
-    assert db_obj.email == email
+    return db_obj
 
 
-def create_random_reviewers(random_reviewers: int, 
- db: Session
-  ):
-    user_id_list = utils.random_user_id(random_reviewers)
+def create_random_reviewers(random_reviewers: int,  db: Session):
+    user_id_list = random_data_utils.random_user_id(random_reviewers)
 
     for i in range(random_reviewers):
         userid = user_id_list[i]
@@ -42,16 +39,14 @@ def create_random_reviewers(random_reviewers: int,
         db.commit()
         db.refresh(db_obj)
 
-    assert db_obj.user_id == userid
+    return db_obj
 
 
-def create_assessments(random_assessments: int, 
- db: Session
- ):
+def create_assessments(random_assessments: int, db: Session):
     for i in range(random_assessments):
-        name = utils.assessments_name[i]
-        desc = utils.assessment_desc[i]
-        pre_req = utils.pre_requisite_id[i]
+        name = random_data_utils.assessments_name[i]
+        desc = random_data_utils.assessment_desc[i]
+        pre_req = random_data_utils.pre_requisite_id[i]
 
         db_obj = Assessments(
             name=name,
@@ -65,22 +60,15 @@ def create_assessments(random_assessments: int,
         db.commit()
         db.refresh(db_obj)
 
-    assert db_obj.name == name
-    assert db_obj.description == desc
-    assert db_obj.goals == desc
-    assert db_obj.pre_requisites_ids == pre_req
-    assert db_obj.version_number == "1"
+    return db_obj
 
-def create_random_assessment_tracker(random_assessment_tracker: int, 
-db: Session
- ):
+def create_random_assessment_tracker( random_assessment_tracker: int,  db: Session):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
-        userid = random.randint(1, 100)
-        assessmentid = random.randint(1, 10)
+
         db_obj = Assessment_Tracker(
-            user_id=userid,
-            assessment_id=assessmentid,
+            user_id=random.randint(1, 100),
+            assessment_id=random.randint(1, 10),
             status="Created",
             last_updated=datetime.now(),
             latest_commit=commit,
@@ -90,7 +78,4 @@ db: Session
         db.commit()
         db.refresh(db_obj)
 
-    assert db_obj.status == "Created"
-    assert db_obj.latest_commit == commit
-    assert db_obj.assessment_id == assessmentid
-    assert db_obj.user_id == userid
+    return db_obj

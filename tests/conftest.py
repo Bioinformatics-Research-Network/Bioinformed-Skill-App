@@ -6,7 +6,7 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from tests.utils.test_db import *
 from app.main import app
-from tests.utils.test_db import *
+from app.utils.random_data_utils import *
 from sqlalchemy.orm import Session
 
 @pytest.fixture(scope="session")

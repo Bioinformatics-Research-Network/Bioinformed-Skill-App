@@ -3,14 +3,14 @@
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from app.db.init_db import init_db
+from app.db.initiate_db import init_db
 from app.api.services import get_db
 from app.crud.random_data_crud import *
 from app.db import base
 
 app = FastAPI()
 
-# initialize database : used here to initialize fke database
+# initialize database : used here to initialize fake data in database
 init_db()
 
 # root was created to test if the api works

@@ -7,7 +7,4 @@ def init_db():
     return base.Base.metadata.create_all(bind=session.engine)
 
 
-# initiate local db in main
-def init():
-    db = session.SessionLocal()
-    init_db()
+

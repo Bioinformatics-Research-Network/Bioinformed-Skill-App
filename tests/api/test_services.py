@@ -1,6 +1,7 @@
 import pytest
-from tests.utils.test_db import TestingSessionLocal
+from app.api.services import get_db
 
 def test_get_db():
-     assert True
+    db = get_db()
+    assert db.__class__.__name__ == 'generator'
 

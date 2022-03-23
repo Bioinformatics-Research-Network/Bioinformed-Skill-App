@@ -2,6 +2,7 @@ from random import randint
 from typing import Any
 
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from app.db.base_class import Base
 
 
 @as_declarative()
@@ -19,4 +20,6 @@ class test_Base:
     __name__: str = "TESTNAME"
 
     def __tablename__(cls) -> str:
-        assert cls.__name__.lower() == "testname"
+
+        assert cls.__tablename__() == "tableclass"
+

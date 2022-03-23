@@ -16,8 +16,6 @@ from app.db.base_class import Base
 
 
 class test_Base:
-    id: Any
-    __name__: str
-    # Generate __tablename__ automatically
-    def __tablename__(cls) -> str:
-        assert cls.__name__.lower()
+    test_Base = Base
+    assert type(test_Base) == type(Base)
+    assert type(test_Base.__tablename__) == str

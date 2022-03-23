@@ -1,10 +1,9 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.db.base import Base
 from app.main import app
 from app.api.services import get_db
-import pytest
+from sqlalchemy.ext.declarative import declarative_base
 
 TEST_URL = "sqlite:///./tests/test.db"
 
@@ -13,8 +12,11 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+Base = declarative_base()
 
-Base.metadata.create_all(bind=engine)
+
+def init_db():
+     return Base.metadata.create_all(bind=engine)
 
 def override_get_db():
     try:
@@ -26,3 +28,6 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
+def init():
+     db = TestingSessionLocal()
+     init_db()

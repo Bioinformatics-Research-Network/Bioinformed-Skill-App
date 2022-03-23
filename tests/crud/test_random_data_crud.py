@@ -8,7 +8,7 @@ import string
 
 
 def test_create_random_user(
-    db: Session, random_users: int = 100  # number of random users to create
+    db: Session, random_users: int = 1  # number of random users to create
 ):  # commit random users in DB
 
     for i in range(random_users):
@@ -29,7 +29,7 @@ def test_create_random_user(
     assert db_obj.email == email
 
 
-def test_create_random_reviewers(db: Session, random_reviewers: int = 20):
+def test_create_random_reviewers(db: Session, random_reviewers: int = 1):
     user_id_list = random_data_utils.random_user_id(random_reviewers)
 
     for i in range(random_reviewers):
@@ -45,7 +45,7 @@ def test_create_random_reviewers(db: Session, random_reviewers: int = 20):
 
 def test_create_assessments(
     db: Session,
-    random_assessments: int = 10,
+    random_assessments: int = 1,
 ):
     for i in range(random_assessments):
         name = random_data_utils.assessments_name[i]
@@ -72,7 +72,7 @@ def test_create_assessments(
 
 
 def test_create_random_assessment_tracker(
-    db: Session, random_assessment_tracker: int = 10
+    db: Session, random_assessment_tracker: int = 1
 ):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))

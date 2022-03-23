@@ -65,10 +65,11 @@ def create_assessments(random_assessments: int, db: Session):
 def create_random_assessment_tracker( random_assessment_tracker: int,  db: Session):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
-
+        userid = random.randint(1, 100)
+        assessmentid = random.randint(1, 10)
         db_obj = Assessment_Tracker(
-            user_id=random.randint(1, 100),
-            assessment_id=random.randint(1, 10),
+            user_id=userid,
+            assessment_id=assessmentid,
             status="Created",
             last_updated=datetime.now(),
             latest_commit=commit,

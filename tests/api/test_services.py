@@ -1,8 +1,6 @@
-from tests.utils.test_db import *
+from app.api.services import get_db
 
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
+def test_get_db():
+    db=get_db()
+    assert db.__class__.__name__ == "generator"
+        

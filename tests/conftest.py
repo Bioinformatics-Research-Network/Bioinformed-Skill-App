@@ -13,6 +13,12 @@ from sqlalchemy.orm import Session
 def db() -> Generator:
     yield TestingSessionLocal()
         
+@pytest.fixture()
+def test_db():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture(scope="module")
 def client() -> Generator:

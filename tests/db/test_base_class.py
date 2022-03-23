@@ -18,4 +18,4 @@ class test_Base:
     __name__: str = "TESTNAME"
     def __tablename__(cls) -> str:
         cls.__name__.lower()
-        assert cls.islower()
+        assert cls == "testname"

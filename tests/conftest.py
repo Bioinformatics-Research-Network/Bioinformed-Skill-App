@@ -6,13 +6,11 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from tests.utils.test_db import *
 from app.main import app
-from app.utils.random_data_utils import *
-from sqlalchemy.orm import Session
 
 @pytest.fixture(scope="session")
 def db() -> Generator:
     yield TestingSessionLocal()
-        
+
 @pytest.fixture(scope="module")
 def client() -> Generator:
     with TestClient(app) as client:

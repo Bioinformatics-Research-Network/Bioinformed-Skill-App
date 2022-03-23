@@ -3,6 +3,7 @@ from fastapi import Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.api.services import get_db
+from app.db import base
 from app.models.models import *
 from app.utils import random_data_utils
 import random

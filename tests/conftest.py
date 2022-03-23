@@ -7,9 +7,11 @@ from fastapi.testclient import TestClient
 from tests.utils.test_db import *
 from app.main import app
 
+
 @pytest.fixture(scope="session")
 def db() -> Generator:
     yield TestingSessionLocal()
+
 
 @pytest.fixture(scope="module")
 def client() -> Generator:

@@ -9,12 +9,8 @@ from tests.api import test_services
 import pytest
 
 
-def test_random_data(
-    client: TestClient,
-    db: Session
-) -> None:
+def test_random_data(client: TestClient, db: Session) -> None:
 
     r = client.get("/create_random_data")
     assert r.status_code == 200
     assert r.json() == ["Working"]
-    

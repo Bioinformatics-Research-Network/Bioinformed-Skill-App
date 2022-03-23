@@ -1,5 +1,6 @@
 from app.utils.random_data_utils import *
 
+
 def test_random_name():
     first, last = random_name()
     assert first in first_list
@@ -12,7 +13,6 @@ def test_random_email():
     assert username in email
 
 
-
 def test_random_username():
     first, last = random_name()
     username = random_username(first, last)
@@ -22,4 +22,4 @@ def test_random_username():
 
 def test_random_user_id():
     user_id = random_user_id(1)
-    assert user_id 
+    assert user_id

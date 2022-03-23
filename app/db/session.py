@@ -10,5 +10,3 @@ engine = create_engine(  # connect_args is required for SQLite
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-

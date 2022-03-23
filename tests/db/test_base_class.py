@@ -13,9 +13,10 @@ class Base:
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
 
+
 class test_Base:
-    id: Any = randint(1,100)
+    id: Any = randint(1, 100)
     __name__: str = "TESTNAME"
+
     def __tablename__(cls) -> str:
-        cls.__name__.lower()
-        assert cls == "testname"
+        assert cls.__name__.lower() == "testname"

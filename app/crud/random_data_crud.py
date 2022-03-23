@@ -29,7 +29,7 @@ def create_random_user(
     return db_obj
 
 
-def create_random_reviewers(random_reviewers: int,  db: Session):
+def create_random_reviewers(random_reviewers: int, db: Session):
     user_id_list = random_data_utils.random_user_id(random_reviewers)
 
     for i in range(random_reviewers):
@@ -63,7 +63,8 @@ def create_assessments(random_assessments: int, db: Session):
 
     return db_obj
 
-def create_random_assessment_tracker( random_assessment_tracker: int,  db: Session):
+
+def create_random_assessment_tracker(random_assessment_tracker: int, db: Session):
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
         userid = random.randint(1, 100)

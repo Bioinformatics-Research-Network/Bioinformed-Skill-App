@@ -5,6 +5,3 @@ from app.db import session, base
 # initialize database database
 def init_db():
     return base.Base.metadata.create_all(bind=session.engine)
-
-
-

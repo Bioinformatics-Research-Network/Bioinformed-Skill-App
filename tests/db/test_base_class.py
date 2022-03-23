@@ -16,9 +16,8 @@ from app.db.base_class import Base
 
 
 class test_Base:
-    id: Any 
-    __name__: str 
+    id: Any
+    __name__: str
     # Generate __tablename__ automatically
     def __tablename__(cls) -> str:
-        assert cls.__name__.lower() 
-
+        assert cls.__name__.lower()

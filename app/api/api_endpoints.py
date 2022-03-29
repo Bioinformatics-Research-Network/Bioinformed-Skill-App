@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 # /api/init-assessment : needs gitusername and assessment_tracker details
-# uses: 
+# uses: invoked by bot.assessment_init
 # app.crud.verify_member # takes in username returns bool # returns userid
 # app.crud.initialize_assessment_tracker:
 #     initialize assessment , uses username/userid and assessment data like assessment id and commit

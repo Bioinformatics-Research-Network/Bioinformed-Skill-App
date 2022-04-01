@@ -22,6 +22,8 @@ router = APIRouter(
 # app.crud.initialize_assessment_tracker:
 # initialize assessment, uses username/userid and assessment data like assessment id and commit
 # returns bool : True if member verified and assessment initialized
+
+# updates required: app.crud.check_pre_req
 @router.post("/init_assessment")
 def init_assessment(*,
     db: Session = Depends(get_db),
@@ -43,14 +45,20 @@ def init_assessment(*,
     
      # bool signifies if the assessment tracker was initialized
      # as well as that the member is valid
-    return bool(check_user)
+    return bool(check_user) 
 
 # /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it.
 #        not needed necessarly can be replaced by app.crud.verify_member
 
 # /api/init-check: 
+# invoked by bot.check
+# uses:
+#   1. app.crud.verify_member
+#   2. app.utils.runGHA
+# will make later when app.utils are made
 
-# /api/update
+# /api/update:
+# invoked by bot.check
 # /api/approve-assessment
 # /api/assign-reviewers
 # /api/confirm-reviewer

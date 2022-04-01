@@ -3,7 +3,7 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 
 # make schemas user_check for `/api/init_assessment' endpoint
 # take in gitusername 
@@ -15,5 +15,13 @@ class user_check(BaseModel):
 # to create new assessment_tracker entry
 # takes in assessment info 
 class assessment_tracker_init(BaseModel):
-    assessment_id: Optional(int) == None
+    assessment_id: Optional[int] = None
     name: str
+    latest_commit: str
+
+    @validator('*', pre=True)
+    def blank_strings(cls, v):
+        print(v)
+        if v == "":
+            return None
+        return v

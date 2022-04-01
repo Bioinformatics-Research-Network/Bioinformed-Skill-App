@@ -13,21 +13,23 @@ def verify_member(db: Session, username: str):
     return db.query(models.Users).filter(models.Users.github_username == username)\
         .with_entities(models.Users.user_id).first()
 
-# create app.crud.init_assessment_tracker_entry
+# create app.crud.init_assessment_tracker
 # takes in assessment info and create an entry in assessment_tracker table
-def init_assessment_tracker_entry(
+def init_assessment_tracker(
     db: Session,
     assessment_tracker: schemas.assessment_tracker_init,
     user_id: int
     ):
     if(assessment_tracker.assessment_id == None):
-        assessment_tracker.assessment_id = int(db.query(models.Assessments).filter(models.Assessments.name == assessment_tracker.name)\
-        .with_entities(models.Assessments.assessment_id).first())
+        assessment_tracker.assessment_id = db.query(models.Assessments).filter(models.Assessments.name == assessment_tracker.name)\
+        .with_entities(models.Assessments.assessment_id).scalar()
 
     db_obj = models.Assessment_Tracker(
         assessment_id=assessment_tracker.assessment_id,
-        user_id= user_id, 
-        last_updated= datetime.now()
+        user_id= user_id,
+        latest_commit=assessment_tracker.latest_commit,
+        last_updated= datetime.now(),
+        log={"Initiated": str(datetime.now())} 
         )
     db.add(db_obj)
     db.commit()

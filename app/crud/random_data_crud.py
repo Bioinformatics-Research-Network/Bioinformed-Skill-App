@@ -52,7 +52,7 @@ def create_assessments(random_assessments: int, db: Session):
         db_obj = Assessments(
             name=name,
             version_number="1",
-            change_log={"Created": str(datetime.now())},
+            change_log={"Initiated": str(datetime.now())},
             description=desc,
             pre_requisites_ids=pre_req,
             goals=desc,
@@ -72,10 +72,10 @@ def create_random_assessment_tracker(random_assessment_tracker: int, db: Session
         db_obj = Assessment_Tracker(
             user_id=userid,
             assessment_id=assessmentid,
-            status="Created",
+            status="Initiated",
             last_updated=datetime.now(),
             latest_commit=commit,
-            log={"Created": str(datetime.now())},
+            log={"Initiated": str(datetime.now())},
         )
         db.add(db_obj)
         db.commit()

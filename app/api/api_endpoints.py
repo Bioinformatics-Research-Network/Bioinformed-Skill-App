@@ -20,30 +20,33 @@ router = APIRouter(
 # uses: invoked by bot.assessment_init
 # app.crud.verify_member # takes in username returns bool # returns userid
 # app.crud.initialize_assessment_tracker:
-#  initialize assessment, uses username/userid and assessment data like assessment id and commit
+# initialize assessment, uses username/userid and assessment data like assessment id and commit
 # returns bool : True if member verified and assessment initialized
 @router.post("/init_assessment")
 def init_assessment(*,
     db: Session = Depends(get_db),
     # for app.crud.verify_member
-    # make schemas which accepts gitusername
-    user: schemas.user_check, 
+    # make request schemas which accepts gitusername
+    user: schemas.user_check,
     # for app.crud.init_assessment_tracker
     # make schemas which takes in commit, assessment detail
-    assessment_tracker: schemas.assessment_tracker_init 
+    assessment_tracker: schemas.assessment_tracker_init
     ):
-    check_user = crud.verify_member(user) # returns bool
+    check_user = crud.verify_member(db=db, username=user.github_username) # returns data of the user
 
-    if (check_user):
-        crud.init_assessment_tracker(assessment_tracker)
+    if (check_user!= None):
+        crud.init_assessment_tracker(
+            db=db,
+            assessment_tracker=assessment_tracker,
+            user_id=check_user.user_id
+            )
     
      # bool signifies if the assessment tracker was initialized
      # as well as that the member is valid
-    return check_user
+    return bool(check_user)
 
 # /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it.
 #        not needed necessarly can be replaced by app.crud.verify_member
-
 
 # /api/init-check: 
 

@@ -44,7 +44,7 @@ def test_create_random_assessment_tracker(
 ):
     db_obj=create_random_assessment_tracker(db=db, random_assessment_tracker=1)
 
-    assert db_obj.status == "Created"
+    assert db_obj.status == "Initiated"
     assert type(db_obj.latest_commit) == str
     assert type(db_obj.assessment_id) == int
     assert type(db_obj.user_id) == int

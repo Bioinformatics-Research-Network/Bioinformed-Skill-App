@@ -9,3 +9,4 @@ htmlcov
 codecov
 tests/*.db
 *.db
+.vscode

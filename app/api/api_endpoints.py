@@ -1,5 +1,6 @@
 # starting with api endpoints : these may be divided into different files when needed.
 from fastapi import APIRouter, Depends
+from pydantic import Json
 from sqlalchemy.orm import Session
 from .services import get_db
 from app.crud import crud
@@ -36,18 +37,19 @@ def init_assessment(*,
     ):
     check_user = crud.verify_member(db=db, username=user.github_username) # returns data of the user
 
-    if (check_user!= None):
-        crud.init_assessment_tracker(
+    if (check_user == None):
+        return{"Initiated": False, "User_first_name":"User Not Found"}
+    
+    crud.init_assessment_tracker(
             db=db,
             assessment_tracker=assessment_tracker,
             user_id=check_user.user_id
-            )
-    
+    )
      # bool signifies if the assessment tracker was initialized
      # as well as that the member is valid
-    return bool(check_user) 
+    return {"Initiated": True, "User_first_name":check_user.first_name}
 
-# /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it.
+# /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it. And it is not explicitly used anywhere.
 #        not needed necessarly can be replaced by app.crud.verify_member
 
 # /api/init-check: 
@@ -55,11 +57,50 @@ def init_assessment(*,
 # uses:
 #   1. app.crud.verify_member
 #   2. app.utils.runGHA
+#   3. /api/update: api.update()
 # will make later when app.utils are made
+# working
+@router.post("/init_check")
+def init_check(*,
+    db: Session = Depends(get_db),
+    user: schemas.user_check,
+    GHAartifacts: Json 
+    ):
+    return {"check"}
 
 # /api/update:
 # invoked by bot.check
+# uses: app.crud.update_assessment_log
+# working
+@router.post("/update")
+def update(*,
+    db: Session = Depends(get_db),
+    GHAartifacts = Json
+    ):
+    return {"Update"}
+
 # /api/approve-assessment
+# invoked by bot.approve
+# uses: crud.approve_assessment : update status and log
+# working
+@router.post("/approve_assessment")
+def approve_assessment(*,
+    db: Session = Depends(get_db),
+    approve_assessment: schemas.approve_assessment
+    ):
+    user = crud.verify_member(db=db, username=approve_assessment.member_username)
+    reviewer = crud.verify_reviewer(db=db, reviewer_username=approve_assessment.reviewer_username)
+    if(user == None or reviewer == None):
+        return {"User or Reviewer not found in database"}
+    
+    assessment_status = crud.approve_assessment(
+        db=db,
+        user_id=user.user_id,
+        reviewer_id=reviewer.reviewer_id 
+     )
+
+
+
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

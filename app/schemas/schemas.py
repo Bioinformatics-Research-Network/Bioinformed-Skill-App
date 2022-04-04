@@ -15,13 +15,10 @@ class user_check(BaseModel):
 # to create new assessment_tracker entry
 # takes in assessment info 
 class assessment_tracker_init(BaseModel):
-    assessment_id: Optional[int] = None
-    name: str
+    assessment_name: str
     latest_commit: str
 
-    @validator('*', pre=True)
-    def blank_strings(cls, v):
-        print(v)
-        if v == "":
-            return None
-        return v
+class approve_assessment(BaseModel):
+    reviewer_username: str
+    member_username: str # username of the member whose assessment is to be approved
+    assessment_name: str

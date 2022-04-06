@@ -67,6 +67,7 @@ def init_assessment_tracker(
 
 # crud.approve_assessment
 # update status and log
+
 def approve_assessment(
     db: Session,
     user_id: int,
@@ -76,5 +77,14 @@ def approve_assessment(
     assessment_id = assessment_id_tracker(
         db=db,
         assessment_name= assessment_name
+        )
+    
+    db_obj = models.Assessment_Tracker( 
+        assessment_id=assessment_id,
+        user_id= user_id,
+
+        last_updated= datetime.now(),
+        status="Initiated",
+        log={"Initiated": str(datetime.now())} 
         )
     

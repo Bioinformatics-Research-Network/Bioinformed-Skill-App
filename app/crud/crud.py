@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from sqlalchemy.orm import Session
 from app.models import models
 from app.schemas import schemas
@@ -55,9 +56,9 @@ def init_assessment_tracker(
         assessment_id=assessment_id,
         user_id= user_id,
         latest_commit=assessment_tracker.latest_commit,
-        last_updated= datetime.now(),
+        last_updated= datetime.utcnow(),
         status="Initiated",
-        log={"Initiated": str(datetime.now())} 
+        log=[{"Status":"Initiated","Updated":str(datetime.utcnow()), "Commit":assessment_tracker.latest_commit}] 
         )
     db.add(db_obj)
     db.commit()
@@ -79,12 +80,23 @@ def approve_assessment(
         assessment_name= assessment_name
         )
     
-    db_obj = models.Assessment_Tracker( 
-        assessment_id=assessment_id,
-        user_id= user_id,
+    # first read the data which is to be updated
 
-        last_updated= datetime.now(),
-        status="Initiated",
-        log={"Initiated": str(datetime.now())} 
-        )
-    
+    approve_assessment_data = reviewer_info = db.query(models.Assessment_Tracker)\
+        .filter(models.Assessment_Tracker.user_id == user_id, 
+        models.Assessment_Tracker.reviewer_id == reviewer_id, 
+        models.Assessment_Tracker.assessment_id == assessment_id)\
+        .with_entities(models.Reviewers.reviewer_id).first()
+        
+    if approve_assessment_data is None:
+        return None
+
+    approve_assessment_data.status = "Approved"
+    approve_assessment_data.last_updated = datetime.utcnow()
+    log = {"Updated": datetime.utcnow(), "Status" : "Approved"}
+    approve_assessment_data.log.append(log)
+
+    db.add(approve_assessment_data)
+    db.commit()
+    db.refresh(approve_assessment_data)
+    return approve_assessment_data

@@ -1,4 +1,5 @@
 # starting with api endpoints : these may be divided into different files when needed.
+from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from pydantic import Json
 from sqlalchemy.orm import Session
@@ -38,7 +39,7 @@ def init_assessment(*,
     check_user = crud.verify_member(db=db, username=user.github_username) # returns data of the user
 
     if (check_user == None):
-        return{"Initiated": False, "User_first_name":"User Not Found"}
+        raise HTTPException(status_code=404, detail="User not found")
     
     crud.init_assessment_tracker(
             db=db,
@@ -83,7 +84,7 @@ def update(*,
 # invoked by bot.approve
 # uses: crud.approve_assessment : update status and log
 # working
-@router.post("/approve_assessment")
+@router.patch("/approve_assessment")
 def approve_assessment(*,
     db: Session = Depends(get_db),
     approve_assessment: schemas.approve_assessment
@@ -91,13 +92,20 @@ def approve_assessment(*,
     user = crud.verify_member(db=db, username=approve_assessment.member_username)
     reviewer = crud.verify_reviewer(db=db, reviewer_username=approve_assessment.reviewer_username)
     if(user == None or reviewer == None):
-        return {"User or Reviewer not found in database"}
+        raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
     
     assessment_status = crud.approve_assessment(
         db=db,
         user_id=user.user_id,
-        reviewer_id=reviewer.reviewer_id 
+        reviewer_id=reviewer.reviewer_id, 
+        assessment_name=approve_assessment.assessment_name
      )
+    if assessment_status == None:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    
+    # app.utils.sync_badger 
+
+    return {"Assessment Approved"}
 
 
 

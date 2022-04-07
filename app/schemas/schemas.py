@@ -3,7 +3,7 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, Json, validator
 
 # make schemas user_check for `/api/init_assessment' endpoint
 # take in gitusername 
@@ -22,3 +22,13 @@ class approve_assessment(BaseModel):
     reviewer_username: str
     member_username: str # username of the member whose assessment is to be approved
     assessment_name: str
+
+class check_update(BaseModel):
+    github_username: str
+    assessment_name: str
+    commit: str
+    # other info required by GHA can be entered here
+
+# logs schemas is used so as logs are not enterd as parameter rather as request body
+class logs(BaseModel):
+    logs: Json

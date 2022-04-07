@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from .services import get_db
 from app.crud import crud
 from app.schemas import schemas
+from app.utils import utils
 
 router = APIRouter(
     prefix="/api",
@@ -60,31 +61,50 @@ def init_assessment(*,
 #   2. app.utils.runGHA
 #   3. /api/update: api.update()
 # will make later when app.utils are made
-# working
-# @router.post("/init_check")
-# def init_check(*,
-#     db: Session = Depends(get_db),
-#     user: schemas.user_check,
-#     GHAartifacts: Json 
-#     ):
-#     return {"check"}
+# working on it
+@router.post("/init_check")
+def init_check(*,
+    db: Session = Depends(get_db),
+    asses_track_info: schemas.check_update
+    ):
+    verify_user = crud.verify_member(
+        db=db,
+        username=asses_track_info.github_username
+        )
+    if verify_user == None:
+        raise HTTPException(status_code=404, detail="User Not Registered")
+
+    log = utils.runGHA(db=db, check=asses_track_info) 
+    logs = schemas.logs(logs=log) 
+
+    update(db=db, logs=logs, update=asses_track_info)
+
+    return {"Logs updated"}
 
 # /api/update:
 # invoked by bot.check
 # uses: app.crud.update_assessment_log
-# working
-# @router.post("/update")
-# def update(*,
-#     db: Session = Depends(get_db),
-#     GHAartifacts = Json
-#     ):
-#     return {"Update"}
+# updates the log in assessment_tracker table
+# working on it
+@router.patch("/update")
+def update(*,
+    db: Session = Depends(get_db),
+    logs: schemas.logs,
+    asses_track_info: schemas.check_update
+    ):
+    crud.update_assessment_log(
+        db=db,
+        logs=logs,
+        asses_track_info=asses_track_info
+        )
+
+    return {"Logs Updated"}
 
 # /api/approve-assessment
 # invoked by bot.approve
 # uses: crud.approve_assessment : update status and log
 # working
-@router.put("/approve_assessment")
+@router.patch("/approve_assessment")
 def approve_assessment(*,
     db: Session = Depends(get_db),
     approve_assessment: schemas.approve_assessment

@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from pydantic import Json
 from sqlalchemy.orm import Session
 from app.models import models
 from app.schemas import schemas
@@ -23,13 +24,13 @@ def verify_reviewer(
     ):
 
     reviewer = verify_member(db=db, username=reviewer_username)
-    if (reviewer == None):
-        return False
+    if reviewer is None:
+        return None
     reviewer_info = db.query(models.Reviewers)\
         .filter(models.Reviewers.user_id == reviewer.user_id)\
         .with_entities(models.Reviewers.reviewer_id).first()
-    if(reviewer_info == None):
-        return False
+    if reviewer_info is None:
+        return None
     return reviewer_info
 
 def assessment_id_tracker(
@@ -73,7 +74,8 @@ def init_assessment_tracker(
 def approve_assessment(
     db: Session,
     user_id: int,
-    reviewer_id: int,
+    # reviewer_id: int, # use this to check if the reviewer is correct for the given assessment tracker
+    # will be used when reviewers are assigned and updated in DB 
     assessment_name: str
     ):
     assessment_id = assessment_id_tracker(
@@ -83,11 +85,9 @@ def approve_assessment(
     
     # first read the data which is to be updated
 
-    approve_assessment_data = reviewer_info = db.query(models.Assessment_Tracker)\
-        .filter(models.Assessment_Tracker.user_id == user_id, 
-        models.Assessment_Tracker.reviewer_id == reviewer_id, 
-        models.Assessment_Tracker.assessment_id == assessment_id)\
-        .with_entities(models.Reviewers.reviewer_id).first()
+    approve_assessment_data = db.query(models.Assessment_Tracker)\
+        .filter(models.Assessment_Tracker.user_id == user_id,  
+        models.Assessment_Tracker.assessment_id == assessment_id).first()
 
     if approve_assessment_data is None:
         return None
@@ -102,3 +102,40 @@ def approve_assessment(
     db.refresh(approve_assessment_data)
     
     return approve_assessment_data
+
+
+# app.crud.update_assessment_log
+# invoked by /api/update
+# input: logs of GHA, assessment_tracker info
+
+def update_assessment_log(
+    db: Session,
+    logs: schemas.logs,
+    asses_track_info: schemas.check_update
+    ):
+    assessment_id = assessment_id_tracker(
+        db=db,
+        assessment_name= asses_track_info.assessment_name
+        )
+    
+    user = verify_member(db=db, username=asses_track_info.github_username)
+    if user is None:
+        return None
+    # first read the data which is to be updated
+
+    assess_track_data =  db.query(models.Assessment_Tracker)\
+        .filter(models.Assessment_Tracker.user_id == user.user_id,
+        models.Assessment_Tracker.assessment_id == assessment_id)\
+        .with_entities(models.Reviewers.reviewer_id).first()
+
+    if assess_track_data is None:
+        return None
+
+    assess_track_data.last_updated = datetime.utcnow()
+    assess_track_data.log.append(logs.logs)
+
+    db.add(assess_track_data)
+    db.commit()
+    db.refresh(assess_track_data)
+    
+    return assess_track_data

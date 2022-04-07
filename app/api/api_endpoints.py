@@ -61,30 +61,30 @@ def init_assessment(*,
 #   3. /api/update: api.update()
 # will make later when app.utils are made
 # working
-@router.post("/init_check")
-def init_check(*,
-    db: Session = Depends(get_db),
-    user: schemas.user_check,
-    GHAartifacts: Json 
-    ):
-    return {"check"}
+# @router.post("/init_check")
+# def init_check(*,
+#     db: Session = Depends(get_db),
+#     user: schemas.user_check,
+#     GHAartifacts: Json 
+#     ):
+#     return {"check"}
 
 # /api/update:
 # invoked by bot.check
 # uses: app.crud.update_assessment_log
 # working
-@router.post("/update")
-def update(*,
-    db: Session = Depends(get_db),
-    GHAartifacts = Json
-    ):
-    return {"Update"}
+# @router.post("/update")
+# def update(*,
+#     db: Session = Depends(get_db),
+#     GHAartifacts = Json
+#     ):
+#     return {"Update"}
 
 # /api/approve-assessment
 # invoked by bot.approve
 # uses: crud.approve_assessment : update status and log
 # working
-@router.patch("/approve_assessment")
+@router.put("/approve_assessment")
 def approve_assessment(*,
     db: Session = Depends(get_db),
     approve_assessment: schemas.approve_assessment

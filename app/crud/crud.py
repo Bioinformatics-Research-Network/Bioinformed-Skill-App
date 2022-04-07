@@ -58,11 +58,12 @@ def init_assessment_tracker(
         latest_commit=assessment_tracker.latest_commit,
         last_updated= datetime.utcnow(),
         status="Initiated",
-        log=[{"Status":"Initiated","Updated":str(datetime.utcnow()), "Commit":assessment_tracker.latest_commit}] 
+        log=[{"Status":"Initiated","Updated":str(datetime.utcnow()), "Commit":assessment_tracker.latest_commit}]
         )
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
+    return db_obj
     
 # app.crud.check_pre_req
 
@@ -87,7 +88,7 @@ def approve_assessment(
         models.Assessment_Tracker.reviewer_id == reviewer_id, 
         models.Assessment_Tracker.assessment_id == assessment_id)\
         .with_entities(models.Reviewers.reviewer_id).first()
-        
+
     if approve_assessment_data is None:
         return None
 
@@ -99,4 +100,5 @@ def approve_assessment(
     db.add(approve_assessment_data)
     db.commit()
     db.refresh(approve_assessment_data)
+    
     return approve_assessment_data

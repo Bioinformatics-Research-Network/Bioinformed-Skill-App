@@ -87,15 +87,17 @@ def approve_assessment(
 
     approve_assessment_data = db.query(models.Assessment_Tracker)\
         .filter(models.Assessment_Tracker.user_id == user_id,  
-        models.Assessment_Tracker.assessment_id == assessment_id).first()
+        models.Assessment_Tracker.assessment_id == assessment_id).one_or_none()
 
     if approve_assessment_data is None:
         return None
 
     approve_assessment_data.status = "Approved"
     approve_assessment_data.last_updated = datetime.utcnow()
-    log = {"Updated": datetime.utcnow(), "Status" : "Approved"}
-    approve_assessment_data.log.append(log)
+    log = {"Updated": str(datetime.utcnow()), "Status" : "Approved"}
+    logs = list(approve_assessment_data.log)
+    logs.append(log)
+    approve_assessment_data.log = logs
 
     db.add(approve_assessment_data)
     db.commit()
@@ -110,7 +112,6 @@ def approve_assessment(
 
 def update_assessment_log(
     db: Session,
-    logs: schemas.logs,
     asses_track_info: schemas.check_update
     ):
     assessment_id = assessment_id_tracker(
@@ -125,14 +126,14 @@ def update_assessment_log(
 
     assess_track_data =  db.query(models.Assessment_Tracker)\
         .filter(models.Assessment_Tracker.user_id == user.user_id,
-        models.Assessment_Tracker.assessment_id == assessment_id)\
-        .with_entities(models.Reviewers.reviewer_id).first()
+        models.Assessment_Tracker.assessment_id == assessment_id).one_or_none()
 
-    if assess_track_data is None:
-        return None
-
+    
     assess_track_data.last_updated = datetime.utcnow()
-    assess_track_data.log.append(logs.logs)
+    assess_track_data.latest_commit = asses_track_info.commit
+    logs = list(assess_track_data.log)
+    logs.append(asses_track_info.logs)
+    assess_track_data.log = logs
 
     db.add(assess_track_data)
     db.commit()

@@ -1,6 +1,7 @@
 # starting with api endpoints : these may be divided into different files when needed.
+from datetime import datetime
 from http.client import HTTPException
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import Json
 from sqlalchemy.orm import Session
 from .services import get_db
@@ -74,12 +75,11 @@ def init_check(*,
     if verify_user == None:
         raise HTTPException(status_code=404, detail="User Not Registered")
 
-    log = utils.runGHA(db=db, check=asses_track_info) 
-    logs = schemas.logs(logs=log) 
+    # asses_track_info.logs = utils.runGHA(db=db, check=asses_track_info) 
+    asses_track_info.logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
+    update(db=db, asses_track_info=asses_track_info)
 
-    update(db=db, logs=logs, update=asses_track_info)
-
-    return {"Logs updated"}
+    return {"Logs updated: init-check"}
 
 # /api/update:
 # invoked by bot.check
@@ -89,16 +89,14 @@ def init_check(*,
 @router.patch("/update")
 def update(*,
     db: Session = Depends(get_db),
-    logs: schemas.logs,
     asses_track_info: schemas.check_update
     ):
     crud.update_assessment_log(
         db=db,
-        logs=logs,
         asses_track_info=asses_track_info
         )
 
-    return {"Logs Updated"}
+    return {"Logs Updated: update"}
 
 # /api/approve-assessment
 # invoked by bot.approve
@@ -117,7 +115,7 @@ def approve_assessment(*,
     assessment_status = crud.approve_assessment(
         db=db,
         user_id=user.user_id,
-        reviewer_id=reviewer.reviewer_id, 
+        # reviewer_id=reviewer.reviewer_id,  # will use when reviewers are assigned
         assessment_name=approve_assessment.assessment_name
      )
     if assessment_status == None:

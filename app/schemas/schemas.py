@@ -2,7 +2,7 @@
 # these will be devided into different files when needed
 
 from typing import Optional
-
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Json, validator
 
 # make schemas user_check for `/api/init_assessment' endpoint
@@ -27,8 +27,14 @@ class check_update(BaseModel):
     github_username: str
     assessment_name: str
     commit: str
+    logs: Optional[Json] = {"Default":"Value"}
+
+    class Config:
+        orm_mode = True
     # other info required by GHA can be entered here
 
 # logs schemas is used so as logs are not enterd as parameter rather as request body
-class logs(BaseModel):
-    logs: Json
+class update_log(BaseModel):
+    log: Json
+    class Config:
+        orm_mode = True

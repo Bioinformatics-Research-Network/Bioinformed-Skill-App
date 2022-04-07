@@ -10,6 +10,17 @@ import random
 import string
 
 
+def create_random_data(
+    db: Session
+    ):
+
+    create_random_user(db=db, random_users= 100)
+    create_random_reviewers(db=db, random_reviewers=25)
+    create_assessments(db=db, random_assessments=10)
+    create_random_assessment_tracker(db=db, random_assessment_tracker=20)
+
+
+
 def create_random_user(
     random_users: int, db: Session  # number of random users to create
 ):  # commit random users in DB

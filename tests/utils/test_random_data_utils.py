@@ -19,7 +19,3 @@ def test_random_username():
     assert first in username
     assert last in username
 
-
-def test_random_user_id():
-    user_id = random_user_id(1)
-    assert user_id

@@ -134,9 +134,6 @@ def random_username(first, last):
     return username
 
 
-def random_user_id(x):
-    user_id_lst = random.sample(range(1, 100), x)
-    return user_id_lst
 
 
 # lists to create data for assessments table

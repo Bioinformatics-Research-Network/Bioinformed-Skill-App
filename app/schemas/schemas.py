@@ -27,7 +27,6 @@ class check_update(BaseModel):
     github_username: str
     assessment_name: str
     commit: str
-    logs: Optional[Json] = {"Default":"Value"}
 
     class Config:
         orm_mode = True

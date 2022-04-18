@@ -76,8 +76,8 @@ def init_check(*,
         raise HTTPException(status_code=404, detail="User Not Registered")
 
     # asses_track_info.logs = utils.runGHA(db=db, check=asses_track_info) 
-    asses_track_info.logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
-    update(db=db, asses_track_info=asses_track_info)
+    update_logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
+    update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
 
     return {"Logs updated: init-check"}
 
@@ -89,11 +89,13 @@ def init_check(*,
 @router.patch("/update")
 def update(*,
     db: Session = Depends(get_db),
-    asses_track_info: schemas.check_update
+    asses_track_info: schemas.check_update,
+    update_logs: Json
     ):
     crud.update_assessment_log(
         db=db,
-        asses_track_info=asses_track_info
+        asses_track_info=asses_track_info,
+        update_logs=update_logs
         )
 
     return {"Logs Updated: update"}

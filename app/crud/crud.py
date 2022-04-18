@@ -112,7 +112,8 @@ def approve_assessment(
 
 def update_assessment_log(
     db: Session,
-    asses_track_info: schemas.check_update
+    asses_track_info: schemas.check_update,
+    update_logs: Json
     ):
     assessment_id = assessment_id_tracker(
         db=db,
@@ -132,7 +133,7 @@ def update_assessment_log(
     assess_track_data.last_updated = datetime.utcnow()
     assess_track_data.latest_commit = asses_track_info.commit
     logs = list(assess_track_data.log)
-    logs.append(asses_track_info.logs)
+    logs.append(update_logs)
     assess_track_data.log = logs
 
     db.add(assess_track_data)

@@ -27,10 +27,4 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-# deteling test db tables at end of the test session
-# meta = MetaData()
-# with contextlib.closing(engine.connect()) as con:
-#     trans = con.begin()
-#     for table in reversed(meta.sorted_tables):
-#         con.execute(table.delete())
-#     trans.commit()
+

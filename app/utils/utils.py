@@ -10,7 +10,6 @@ from app.schemas import schemas
 # runs GHA.
 # output GHA logs required
 def runGHA(
-    db: Session,
     check: schemas.check_update
     ):
 

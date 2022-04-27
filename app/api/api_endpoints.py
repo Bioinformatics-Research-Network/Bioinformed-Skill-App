@@ -31,14 +31,10 @@ router = APIRouter(
 @router.post("/init_assessment")
 def init_assessment(*,
     db: Session = Depends(get_db),
-    # for app.crud.verify_member
-    # make request schemas which accepts gitusername
     user: schemas.user_check,
-    # for app.crud.init_assessment_tracker
-    # make schemas which takes in commit, assessment detail
     assessment_tracker: schemas.assessment_tracker_init
     ):
-    check_user = crud.verify_member(db=db, username=user.github_username) # returns data of the user
+    check_user = crud.verify_member(db=db, username=user.github_username)
 
     if (check_user == None):
         raise HTTPException(status_code=404, detail="User not found")
@@ -50,7 +46,7 @@ def init_assessment(*,
     )
      # bool signifies if the assessment tracker was initialized
      # as well as that the member is valid
-    return {"Initiated": True, "User_first_name":check_user.first_name}
+    return {"Initiated":True, "User_first_name":check_user.first_name}
 
 # /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it. And it is not explicitly used anywhere.
 #        not needed necessarly can be replaced by app.crud.verify_member
@@ -75,11 +71,11 @@ def init_check(*,
     if verify_user == None:
         raise HTTPException(status_code=404, detail="User Not Registered")
 
-    # asses_track_info.logs = utils.runGHA(db=db, check=asses_track_info) 
-    update_logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
+    update_logs = utils.runGHA(check=asses_track_info) 
+    # update_logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
     update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
 
-    return {"Logs updated: init-check"}
+    return {"Logs updated": "init-check"}
 
 # /api/update:
 # invoked by bot.check
@@ -97,8 +93,8 @@ def update(*,
         asses_track_info=asses_track_info,
         update_logs=update_logs
         )
-
-    return {"Logs Updated: update"}
+    
+    return {"Logs Updated": "update"}
 
 # /api/approve-assessment
 # invoked by bot.approve
@@ -125,7 +121,7 @@ def approve_assessment(*,
     
     # app.utils.sync_badger 
 
-    return {"Assessment Approved"}
+    return {"Assessment Approved": True}
 
 
 

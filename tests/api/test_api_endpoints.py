@@ -1,9 +1,11 @@
 # starting with tests for api endpoints
 from datetime import datetime
+from fastapi import HTTPException
 import json
 import random
 import string
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy.orm import Session
 from app import models
 
@@ -37,6 +39,21 @@ def test_init_assessment(
     assert data["Initiated"] == True
     assert type(data["User_first_name"]) == str
 
+    error_json = {
+        "user": {
+            "github_username": "errorhandling"
+            },
+        "assessment_tracker": {
+            "assessment_name": "error",
+            "latest_commit": 'errors'
+            }
+    }
+    response_error = client.post("/api/init_assessment", json = error_json)
+
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail":"User not found"}
+
+
     
 # /api/init-check
 def test_init_check(
@@ -61,6 +78,14 @@ def test_init_check(
     
     assert response.status_code == 200
     assert response.json() == {"Logs updated": "init-check"}
+    error_json = {
+        "github_username": "error",
+        "assessment_name": "error",
+        "commit": "error"
+    }
+    response_error = client.post("/api/init_check", json=error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "User Not Registered"}
 
 # /api/update
 def test_update(
@@ -94,6 +119,21 @@ def test_update(
     assert response.status_code == 200
     assert response.json() == {"Logs Updated": "update"}
 
+    error_json = {
+        "asses_track_info": {
+            "github_username": "error",
+            "assessment_name": "error",
+            "commit": "error"
+            },
+        "update_logs": {
+            "log": json.dumps({"Error":"update log"})
+            }
+    }
+    response_error = client.patch("/api/update", json=error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "Assessment not found"}
+    
+
 # /api/approve-assessment
 def test_approve_assessment(
     client: TestClient,
@@ -124,6 +164,28 @@ def test_approve_assessment(
     
     assert response.status_code == 200
     assert response.json() == {"Assessment Approved": True}
+
+    error_json = {
+        "reviewer_username": "error",
+        "member_username": "error",
+        "assessment_name": "error"
+    }
+
+    response_error = client.patch("/api/approve_assessment", json=error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "User/Reviewer Not Found"}
+    assessment_error_json = {
+        "reviewer_username": reviewer_username,
+        "member_username": github_username,
+        "assessment_name": "error"
+    }
+    response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "Assessment not found"}
+
+
+
+
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

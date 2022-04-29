@@ -41,6 +41,8 @@ def assessment_id_tracker(
     assessment_id = db.query(models.Assessments)\
         .filter(models.Assessments.name == assessment_name)\
         .with_entities(models.Assessments.assessment_id).first()
+    if assessment_id is None:
+        return None
 
     return assessment_id.assessment_id 
 # create app.crud.init_assessment_tracker
@@ -74,7 +76,7 @@ def init_assessment_tracker(
 # crud.approve_assessment
 # update status and log
 
-def approve_assessment(
+def approve_assessment_crud(
     db: Session,
     user_id: int,
     # reviewer_id: int, # use this to check if the reviewer is correct for the given assessment tracker
@@ -85,7 +87,8 @@ def approve_assessment(
         db=db,
         assessment_name= assessment_name
         )
-    
+    if assessment_id is None:
+        return None
     # first read the data which is to be updated
 
     approve_assessment_data = db.query(models.Assessment_Tracker)\
@@ -93,7 +96,7 @@ def approve_assessment(
         models.Assessment_Tracker.assessment_id == assessment_id).first()
 
     if approve_assessment_data is None:
-        return None
+        return None # cannot test this as the data in test database keeps on changing 
 
     approve_assessment_data.status = "Approved"
     approve_assessment_data.last_updated = datetime.utcnow()
@@ -124,7 +127,7 @@ def update_assessment_log(
         )
     
     user = verify_member(db=db, username=asses_track_info.github_username)
-    if user is None:
+    if (user == None or assessment_id == None):
         return None
     # first read the data which is to be updated
 

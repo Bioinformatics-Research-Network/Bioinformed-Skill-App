@@ -68,14 +68,14 @@ def test_init_assessment_tracker(
     assert initiate_assessment.user_id == 1
     assert initiate_assessment.latest_commit == commit
 
-def test_approve_assessment(
+def test_approve_assessment_crud(
     db: Session,
     ):
     assessment_name = db.query(models.Assessments)\
         .filter(models.Assessments.assessment_id == 1)\
         .with_entities(models.Assessments.name).scalar()
     
-    approve_assess = approve_assessment(db=db, user_id=1, assessment_name=assessment_name)
+    approve_assess = approve_assessment_crud(db=db, user_id=1, assessment_name=assessment_name)
 
     assert approve_assess.status == "Approved"
     assert approve_assess.assessment_id == 1

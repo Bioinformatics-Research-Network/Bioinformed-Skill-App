@@ -1,8 +1,5 @@
 # starting with api endpoints : these may be divided into different files when needed.
-from datetime import datetime
-from http.client import HTTPException
-from fastapi import APIRouter, Depends, Request
-from pydantic import Json
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .services import get_db
 from app.crud import crud
@@ -89,11 +86,13 @@ def update(*,
     asses_track_info: schemas.check_update,
     update_logs: schemas.update_log
     ):
-    crud.update_assessment_log(
+    assessment_log = crud.update_assessment_log(
         db=db,
         asses_track_info=asses_track_info,
         update_logs=update_logs.log
         )
+    if assessment_log is None:
+        raise HTTPException(status_code=404, detail="Assessment not found")
     
     return {"Logs Updated": "update"}
 
@@ -111,7 +110,7 @@ def approve_assessment(*,
     if(user == None or reviewer == None):
         raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
     
-    assessment_status = crud.approve_assessment(
+    assessment_status = crud.approve_assessment_crud(
         db=db,
         user_id=user.user_id,
         # reviewer_id=reviewer.reviewer_id,  # will use when reviewers are assigned
@@ -125,7 +124,7 @@ def approve_assessment(*,
     return {"Assessment Approved": True}
 
 
-
+# to be done
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

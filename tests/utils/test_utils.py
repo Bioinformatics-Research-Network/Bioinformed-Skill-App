@@ -7,7 +7,7 @@ from app.utils.utils import runGHA
 
 # app.utils.runGHA 
 def test_runGHA(
-    client: TestClient
+    db: Session
     ):
     request_json = schemas.check_update(
         github_username =  "test",
@@ -16,6 +16,6 @@ def test_runGHA(
     )
     log = runGHA(check=request_json) # logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": commit}
 
-    assert type(log["Updated"]) == str
-    assert log["Checks_passed"] == True
-    assert type(log["Commit"]) == str
+    assert type(log.log["Updated"]) == str
+    assert log.log["Checks_passed"] == True
+    assert type(log.log["Commit"]) == str

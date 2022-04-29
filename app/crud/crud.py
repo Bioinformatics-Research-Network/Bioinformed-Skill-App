@@ -24,22 +24,25 @@ def verify_reviewer(
     ):
 
     reviewer = verify_member(db=db, username=reviewer_username)
+    
     if reviewer is None:
         return None
-    reviewer_info = db.query(models.Reviewers)\
+
+    reviewer_id = db.query(models.Reviewers)\
         .filter(models.Reviewers.user_id == reviewer.user_id)\
         .with_entities(models.Reviewers.reviewer_id).first()
-    if reviewer_info is None:
-        return None
-    return reviewer_info
+
+    return reviewer_id
 
 def assessment_id_tracker(
     db:Session,
     assessment_name: str
     ):
-    return db.query(models.Assessments)\
+    assessment_id = db.query(models.Assessments)\
         .filter(models.Assessments.name == assessment_name)\
-        .with_entities(models.Assessments.assessment_id).scalar()
+        .with_entities(models.Assessments.assessment_id).first()
+
+    return assessment_id.assessment_id 
 # create app.crud.init_assessment_tracker
 # takes in assessment info and create an entry in assessment_tracker table
 def init_assessment_tracker(
@@ -55,7 +58,7 @@ def init_assessment_tracker(
 
     db_obj = models.Assessment_Tracker(
         assessment_id=assessment_id,
-        user_id= user_id,
+        user_id=user_id,
         latest_commit=assessment_tracker.latest_commit,
         last_updated= datetime.utcnow(),
         status="Initiated",
@@ -87,7 +90,7 @@ def approve_assessment(
 
     approve_assessment_data = db.query(models.Assessment_Tracker)\
         .filter(models.Assessment_Tracker.user_id == user_id,  
-        models.Assessment_Tracker.assessment_id == assessment_id).one_or_none()
+        models.Assessment_Tracker.assessment_id == assessment_id).first()
 
     if approve_assessment_data is None:
         return None
@@ -127,7 +130,7 @@ def update_assessment_log(
 
     assess_track_data =  db.query(models.Assessment_Tracker)\
         .filter(models.Assessment_Tracker.user_id == user.user_id,
-        models.Assessment_Tracker.assessment_id == assessment_id).one_or_none()
+        models.Assessment_Tracker.assessment_id == assessment_id).first()
 
     
     assess_track_data.last_updated = datetime.utcnow()

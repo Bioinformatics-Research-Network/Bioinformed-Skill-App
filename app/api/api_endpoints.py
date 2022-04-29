@@ -28,7 +28,8 @@ router = APIRouter(
 # returns bool : True if member verified and assessment initialized
 
 # updates required: app.crud.check_pre_req
-@router.post("/init_assessment")
+@router.post("/init_assessment",
+                response_model= schemas.response_init_assessment)
 def init_assessment(*,
     db: Session = Depends(get_db),
     user: schemas.user_check,
@@ -86,12 +87,12 @@ def init_check(*,
 def update(*,
     db: Session = Depends(get_db),
     asses_track_info: schemas.check_update,
-    update_logs: Json
+    update_logs: schemas.update_log
     ):
     crud.update_assessment_log(
         db=db,
         asses_track_info=asses_track_info,
-        update_logs=update_logs
+        update_logs=update_logs.log
         )
     
     return {"Logs Updated": "update"}

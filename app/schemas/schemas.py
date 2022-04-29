@@ -37,3 +37,7 @@ class update_log(BaseModel):
     log: Json
     class Config:
         orm_mode = True
+
+class response_init_assessment(BaseModel):
+    Initiated: bool  
+    User_first_name: str

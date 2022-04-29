@@ -15,6 +15,6 @@ def runGHA(
 
     # uses GHA Actions API 
     # returns logs
-    logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": check.commit}
-
+    logs = schemas.update_log(log=json.dumps({"Updated": str(datetime.utcnow()),
+                                "Checks_passed": True, "Commit": check.commit}))
     return logs

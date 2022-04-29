@@ -1,26 +1,33 @@
 # starting with tests for api endpoints
 from datetime import datetime
-from fastapi import FastAPI
+import json
+import random
+import string
 from fastapi.testclient import TestClient
-from pydantic import Json
 from sqlalchemy.orm import Session
 from app import models
-from app.crud.crud import verify_member
-from app.schemas import schemas
 
 # /api/init-assessment
 def test_init_assessment(
     client: TestClient,
     db: Session
     ):
-    user = db.query(models.Users).first()
+    github_username = db.query(models.Users)\
+        .filter(models.Users.user_id == 1)\
+        .with_entities(models.Users.github_username).scalar()
+
+    assessment_name = db.query(models.Assessments)\
+        .filter(models.Assessments.assessment_id == 1)\
+        .with_entities(models.Assessments.name).scalar()
+
     request_json = {
         "user": {
-            "github_username": user.github_username
+            "github_username": github_username
             },
         "assessment_tracker": {
-            "assessment_name": "Back-End Web Development",
-            "latest_commit": "testcommit8451adafadace45a41c65ea"
+            "assessment_name": assessment_name,
+            "latest_commit": ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k = 10))
             }
     }
     response = client.post("/api/init_assessment", json = request_json)
@@ -39,13 +46,18 @@ def test_init_check(
     github_username = db.query(models.Users)\
         .filter(models.Users.user_id == 1)\
         .with_entities(models.Users.github_username).scalar()
+    assessment_name = db.query(models.Assessments)\
+        .filter(models.Assessments.assessment_id == 1)\
+        .with_entities(models.Assessments.name).scalar()
+    
     request_json = {
         "github_username": github_username,
-        "assessment_name": "Back-End Web Development",
-        "commit": "testcommit12345qwerty"
+        "assessment_name": assessment_name,
+        "commit": ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k = 10))
     }
 
-    response = client.post("/init_check", json=request_json)
+    response = client.post("/api/init_check", json=request_json)
     
     assert response.status_code == 200
     assert response.json() == {"Logs updated": "init-check"}
@@ -57,16 +69,27 @@ def test_update(
     ):
     github_username = db.query(models.Users)\
         .filter(models.Users.user_id == 1)\
-        .with_entities(models.Users.github_username).scalar()
-    request_json = {
-        "github_username": github_username,
-        "assessment_name": "Back-End Web Development",
-        "commit": "testcommit12345qwerty"
-    }
-    logs = {"Updated": str(datetime.utcnow()),
-            "Commit": "testupdatecommit123"}
+        .with_entities(models.Users.github_username).scalar() 
 
-    response = client.patch("/update", json=request_json, params=logs)
+    assessment_name = db.query(models.Assessments)\
+        .filter(models.Assessments.assessment_id == 1)\
+        .with_entities(models.Assessments.name).scalar()
+
+    commit = ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k = 10))
+    logs = json.dumps({"Updated": str(datetime.utcnow()), "Commit": commit})
+    request_json ={
+        "asses_track_info": {
+            "github_username": github_username,
+            "assessment_name": assessment_name,
+            "commit": commit
+            },
+        "update_logs": {
+            "log": logs
+            }
+        }
+    
+    response = client.patch("/api/update", json=request_json)
     
     assert response.status_code == 200
     assert response.json() == {"Logs Updated": "update"}
@@ -78,13 +101,26 @@ def test_approve_assessment(
     ):
     github_username = db.query(models.Users)\
         .filter(models.Users.user_id == 1)\
-        .with_entities(models.Users.github_username).scalar() # the reviewer and member username is assumed to be same for test purposes
+        .with_entities(models.Users.github_username).scalar()
+    
+    assessment_name = db.query(models.Assessments)\
+        .filter(models.Assessments.assessment_id == 1)\
+        .with_entities(models.Assessments.name).scalar()
+    
+    reviewer = db.query(models.Reviewers)\
+        .filter(models.Reviewers.reviewer_id == 1)\
+        .with_entities(models.Reviewers.user_id).scalar()
+
+    reviewer_username = db.query(models.Users)\
+        .filter(models.Users.user_id == reviewer)\
+        .with_entities(models.Users.github_username).scalar()
+    
     request_json = {
-        "reviewer_username": github_username,
+        "reviewer_username": reviewer_username,
         "member_username": github_username,
-        "assessment_name": "Back-End Web Development"
+        "assessment_name": assessment_name
     }
-    response = client.patch("/approve_assessment", json=request_json)
+    response = client.patch("/api/approve_assessment", json=request_json)
     
     assert response.status_code == 200
     assert response.json() == {"Assessment Approved": True}

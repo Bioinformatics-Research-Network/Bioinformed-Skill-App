@@ -95,8 +95,8 @@ def approve_assessment_crud(
         .filter(models.Assessment_Tracker.user_id == user_id,  
         models.Assessment_Tracker.assessment_id == assessment_id).first()
 
-    if approve_assessment_data is None:
-        return None # cannot test this as the data in test database keeps on changing 
+    # if approve_assessment_data is None:
+    #     return None # cannot test this as the data in test database keeps on changing 
 
     approve_assessment_data.status = "Approved"
     approve_assessment_data.last_updated = datetime.utcnow()

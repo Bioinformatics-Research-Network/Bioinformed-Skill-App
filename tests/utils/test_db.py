@@ -6,6 +6,7 @@ from app.api.services import get_db
 from sqlalchemy.ext.declarative import declarative_base
 from app.db import base
 import contextlib
+from app.crud.random_data_crud import *
 
 
 TEST_URL = "sqlite:///./test.db"
@@ -16,15 +17,21 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 base.Base.metadata.create_all(bind=engine)
 
+
 def override_get_db():
     try:
         db = TestingSessionLocal()
         yield db
+        
     finally:
         db.close()
 
 
 
 app.dependency_overrides[get_db] = override_get_db
+
+
+
+
 
 

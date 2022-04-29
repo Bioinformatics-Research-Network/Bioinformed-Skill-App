@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from app.crud.random_data_crud import *
+from tests.conftest import create_random_data
 from tests.utils.test_db import *
 from app.db import base
 from sqlalchemy.orm import Session
@@ -9,7 +10,7 @@ import pytest
 
 
 def test_root(client: TestClient, db: Session) -> None:
-
+    create_random_data(db=db)
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == ["Hello World!"]

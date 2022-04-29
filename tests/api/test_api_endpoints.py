@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy.orm import Session
 from app import models
 
+
 # /api/init-assessment
 def test_init_assessment(
     client: TestClient,

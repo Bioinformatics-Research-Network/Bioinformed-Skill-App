@@ -18,4 +18,3 @@ def test_random_username():
     username = random_username(first, last)
     assert first in username
     assert last in username
-

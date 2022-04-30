@@ -9,9 +9,7 @@ import random
 import string
 
 
-def test_create_random_user(
-    db: Session 
-): 
+def test_create_random_user(db: Session):
     db_obj = create_random_user(db=db, random_users=1)
 
     assert db_obj.first_name in random_data_utils.first_list
@@ -21,15 +19,13 @@ def test_create_random_user(
 
 
 def test_create_random_reviewers(db: Session):
-    
+
     db_obj = create_random_reviewers(db=db, random_reviewers=1)
 
     assert type(db_obj.user_id) == int
 
 
-def test_create_assessments(
-    db: Session
-):
+def test_create_assessments(db: Session):
     db_obj = create_assessments(db=db, random_assessments=1)
 
     assert db_obj.name in random_data_utils.assessments_name
@@ -39,10 +35,8 @@ def test_create_assessments(
     assert db_obj.version_number == "1"
 
 
-def test_create_random_assessment_tracker(
-    db: Session
-):
-    db_obj=create_random_assessment_tracker(db=db, random_assessment_tracker=1)
+def test_create_random_assessment_tracker(db: Session):
+    db_obj = create_random_assessment_tracker(db=db, random_assessment_tracker=1)
 
     assert db_obj.status == "Initiated"
     assert type(db_obj.latest_commit) == str

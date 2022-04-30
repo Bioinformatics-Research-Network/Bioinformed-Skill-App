@@ -134,8 +134,6 @@ def random_username(first, last):
     return username
 
 
-
-
 # lists to create data for assessments table
 assessments_name = [
     "Back-End Web Development",

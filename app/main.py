@@ -3,6 +3,7 @@
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+
 # from app.crud.random_data_crud import create_random_data
 from app.db.initiate_db import init_db
 from app.api.services import get_db
@@ -17,5 +18,6 @@ init_db()
 @app.get("/")
 def root(db: Session = Depends(get_db)):
     return {"Hello World!"}
+
 
 app.include_router(api_endpoints.router)

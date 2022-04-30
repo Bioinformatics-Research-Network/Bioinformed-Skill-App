@@ -6,14 +6,11 @@ from app.crud import crud
 from app.schemas import schemas
 from app.utils import utils
 
-router = APIRouter(
-    prefix="/api",
-    tags=["api"]
-)
+router = APIRouter(prefix="/api", tags=["api"])
 
-# ignore errors during the development, 
+# ignore errors during the development,
 # these will be solved as schemas and crud functions will be made
-# the endpoints are defined according to: 
+# the endpoints are defined according to:
 # https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
 
 
@@ -25,31 +22,30 @@ router = APIRouter(
 # returns bool : True if member verified and assessment initialized
 
 # updates required: app.crud.check_pre_req
-@router.post("/init_assessment",
-                response_model= schemas.response_init_assessment)
-def init_assessment(*,
+@router.post("/init_assessment", response_model=schemas.response_init_assessment)
+def init_assessment(
+    *,
     db: Session = Depends(get_db),
     user: schemas.user_check,
     assessment_tracker: schemas.assessment_tracker_init
-    ):
+):
     check_user = crud.verify_member(db=db, username=user.github_username)
 
-    if (check_user == None):
+    if check_user == None:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     crud.init_assessment_tracker(
-            db=db,
-            assessment_tracker=assessment_tracker,
-            user_id=check_user.user_id
+        db=db, assessment_tracker=assessment_tracker, user_id=check_user.user_id
     )
-     # bool signifies if the assessment tracker was initialized
-     # as well as that the member is valid
-    return {"Initiated":True, "User_first_name":check_user.first_name}
+    # bool signifies if the assessment tracker was initialized
+    # as well as that the member is valid
+    return {"Initiated": True, "User_first_name": check_user.first_name}
+
 
 # /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it. And it is not explicitly used anywhere.
 #        not needed necessarly can be replaced by app.crud.verify_member
 
-# /api/init-check: 
+# /api/init-check:
 # invoked by bot.check
 # uses:
 #   1. app.crud.verify_member
@@ -58,22 +54,19 @@ def init_assessment(*,
 # will make later when app.utils are made
 # working on it
 @router.post("/init_check")
-def init_check(*,
-    db: Session = Depends(get_db),
-    asses_track_info: schemas.check_update
-    ):
-    verify_user = crud.verify_member(
-        db=db,
-        username=asses_track_info.github_username
-        )
+def init_check(
+    *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
+):
+    verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
     if verify_user == None:
         raise HTTPException(status_code=404, detail="User Not Registered")
 
-    update_logs = utils.runGHA(check=asses_track_info) 
+    update_logs = utils.runGHA(check=asses_track_info)
     # update_logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": asses_track_info.commit}
     update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
 
     return {"Logs updated": "init-check"}
+
 
 # /api/update:
 # invoked by bot.check
@@ -81,45 +74,46 @@ def init_check(*,
 # updates the log in assessment_tracker table
 # working on it
 @router.patch("/update")
-def update(*,
+def update(
+    *,
     db: Session = Depends(get_db),
     asses_track_info: schemas.check_update,
     update_logs: schemas.update_log
-    ):
+):
     assessment_log = crud.update_assessment_log(
-        db=db,
-        asses_track_info=asses_track_info,
-        update_logs=update_logs.log
-        )
+        db=db, asses_track_info=asses_track_info, update_logs=update_logs.log
+    )
     if assessment_log is None:
         raise HTTPException(status_code=404, detail="Assessment not found")
-    
+
     return {"Logs Updated": "update"}
+
 
 # /api/approve-assessment
 # invoked by bot.approve
 # uses: crud.approve_assessment : update status and log
 # working
 @router.patch("/approve_assessment")
-def approve_assessment(*,
-    db: Session = Depends(get_db),
-    approve_assessment: schemas.approve_assessment
-    ):
+def approve_assessment(
+    *, db: Session = Depends(get_db), approve_assessment: schemas.approve_assessment
+):
     user = crud.verify_member(db=db, username=approve_assessment.member_username)
-    reviewer = crud.verify_reviewer(db=db, reviewer_username=approve_assessment.reviewer_username)
-    if(user == None or reviewer == None):
+    reviewer = crud.verify_reviewer(
+        db=db, reviewer_username=approve_assessment.reviewer_username
+    )
+    if user == None or reviewer == None:
         raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
-    
+
     assessment_status = crud.approve_assessment_crud(
         db=db,
         user_id=user.user_id,
         # reviewer_id=reviewer.reviewer_id,  # will use when reviewers are assigned
-        assessment_name=approve_assessment.assessment_name
-     )
+        assessment_name=approve_assessment.assessment_name,
+    )
     if assessment_status == None:
         raise HTTPException(status_code=404, detail="Assessment not found")
-    
-    # app.utils.sync_badger 
+
+    # app.utils.sync_badger
 
     return {"Assessment Approved": True}
 

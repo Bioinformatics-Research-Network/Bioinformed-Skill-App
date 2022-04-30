@@ -10,7 +10,6 @@ import random
 import string
 
 
-
 def create_random_user(
     random_users: int, db: Session  # number of random users to create
 ):  # commit random users in DB
@@ -53,7 +52,7 @@ def create_assessments(random_assessments: int, db: Session):
         db_obj = Assessments(
             name=name,
             version_number="1",
-            change_log=[{"Version No.":"1" , "Updated":str(datetime.utcnow())}],
+            change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
             description=desc,
             pre_requisites_ids=pre_req,
             goals=desc,
@@ -78,7 +77,13 @@ def create_random_assessment_tracker(random_assessment_tracker: int, db: Session
             status="Initiated",
             last_updated=datetime.utcnow(),
             latest_commit=commit,
-            log=[{"Status":"Initiated","Updated":str(datetime.utcnow()),"Commit": commit}],
+            log=[
+                {
+                    "Status": "Initiated",
+                    "Updated": str(datetime.utcnow()),
+                    "Commit": commit,
+                }
+            ],
         )
         db.add(db_obj)
         db.commit()

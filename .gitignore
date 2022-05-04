@@ -7,6 +7,6 @@ htmlcov
 .env
 .pipenv
 codecov
-tests/*.db
+*/*.db
 *.db
 .vscode

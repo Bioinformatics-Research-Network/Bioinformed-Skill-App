@@ -110,8 +110,8 @@ def approve_assessment_crud(
         .first()
     )
 
-    # if approve_assessment_data is None:
-    #     return None # cannot test this as the data in test database keeps on changing
+    if approve_assessment_data is None:
+        return None  
 
     approve_assessment_data.status = "Approved"
     approve_assessment_data.last_updated = datetime.utcnow()
@@ -152,6 +152,8 @@ def update_assessment_log(
         )
         .first()
     )
+    if assess_track_data is None:
+        return None 
 
     assess_track_data.last_updated = datetime.utcnow()
     assess_track_data.latest_commit = asses_track_info.commit

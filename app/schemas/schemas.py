@@ -1,9 +1,8 @@
 # writing the schemas needed
 # these will be devided into different files when needed
 
-from typing import Optional
-from datetime import datetime
-from pydantic import BaseModel, EmailStr, Json, validator
+import json
+from pydantic import BaseModel, Json
 
 # make schemas user_check for `/api/init_assessment' endpoint
 # take in gitusername
@@ -39,7 +38,7 @@ class check_update(BaseModel):
 
 # logs schemas is used so as logs are not enterd as parameter rather as request body
 class update_log(BaseModel):
-    log: Json
+    log: dict
 
     class Config:
         orm_mode = True

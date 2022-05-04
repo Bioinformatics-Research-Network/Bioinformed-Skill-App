@@ -14,12 +14,10 @@ def runGHA(check: schemas.check_update):
     # uses GHA Actions API
     # returns logs
     logs = schemas.update_log(
-        log=json.dumps(
-            {
+        log={
                 "Updated": str(datetime.utcnow()),
                 "Checks_passed": True,
                 "Commit": check.commit,
             }
-        )
     )
     return logs

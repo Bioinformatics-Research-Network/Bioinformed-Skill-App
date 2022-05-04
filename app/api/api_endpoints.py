@@ -96,13 +96,16 @@ def update(
 @router.patch("/approve_assessment")
 def approve_assessment(
     *, db: Session = Depends(get_db), approve_assessment: schemas.approve_assessment
-):
+):  
     user = crud.verify_member(db=db, username=approve_assessment.member_username)
     reviewer = crud.verify_reviewer(
         db=db, reviewer_username=approve_assessment.reviewer_username
     )
     if user == None or reviewer == None:
         raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
+
+    if approve_assessment.member_username == approve_assessment.reviewer_username:
+        raise HTTPException(status_code=403, detail="Reviewer not authorized to review personal assessments")
 
     assessment_status = crud.approve_assessment_crud(
         db=db,

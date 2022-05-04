@@ -133,7 +133,7 @@ def approve_assessment_crud(
 
 
 def update_assessment_log(
-    db: Session, asses_track_info: schemas.check_update, update_logs: Json
+    db: Session, asses_track_info: schemas.check_update, update_logs: dict
 ):
     assessment_id = assessment_id_tracker(
         db=db, assessment_name=asses_track_info.assessment_name

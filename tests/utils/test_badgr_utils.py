@@ -1,10 +1,11 @@
 from app.utils import badgr_utils
+import os
 
 
 # TODO: Should this go here?
 config_test = {
-    "BADGR_USERNAME": "infrastructure@bioresnet.org",
-    "BADGR_PASSWORD": "badgrtest123",
+    "BADGR_USERNAME": os.environ["BADGR_TEST_USERNAME"],
+    "BADGR_PASSWORD": os.environ["BADGR_TEST_PASSWORD"],
     "BADGR_BASE_URL": "https://api.test.badgr.com",
     "BADGR_SCOPE": "rw:issuer rw:backpack",
     "BADGR_ISSUER_ID": "4aQWejKFThS1NtViZk6GnQ",

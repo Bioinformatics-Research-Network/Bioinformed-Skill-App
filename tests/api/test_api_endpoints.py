@@ -21,7 +21,7 @@ def test_init_assessment(client: TestClient, db: Session):
 
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -62,7 +62,7 @@ def test_init_check(client: TestClient, db: Session):
     )
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -87,6 +87,7 @@ def test_init_check(client: TestClient, db: Session):
     assert response_error.json() == {"detail": "User Not Registered"}
 
 
+
 # /api/update
 def test_update(client: TestClient, db: Session):
     github_username = (
@@ -98,7 +99,7 @@ def test_update(client: TestClient, db: Session):
 
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -118,11 +119,16 @@ def test_update(client: TestClient, db: Session):
 
     assert response.status_code == 200
     assert response.json() == {"Logs Updated": "update"}
-
+    assessment_error = (
+        db.query(models.Assessments)
+        .filter(models.Assessments.assessment_id == 1)
+        .with_entities(models.Assessments.name)
+        .scalar()
+    )
     error_json = {
         "asses_track_info": {
-            "github_username": "error",
-            "assessment_name": "error",
+            "github_username": github_username,
+            "assessment_name": assessment_error,
             "commit": "error",
         },
         "update_logs": {"log": json.dumps({"Error": "update log"})},
@@ -130,6 +136,18 @@ def test_update(client: TestClient, db: Session):
     response_error = client.patch("/api/update", json=error_json)
     assert response_error.status_code == 404
     assert response_error.json() == {"detail": "Assessment not found"}
+    error_json = {
+        "asses_track_info": {
+            "github_username": "error",
+            "assessment_name": assessment_name,
+            "commit": "error",
+        },
+        "update_logs": {"log": json.dumps({"Error": "update log"})},
+    }
+    response_error = client.patch("/api/update", json=error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "Assessment not found"}
+    
 
 
 # /api/approve-assessment
@@ -143,7 +161,7 @@ def test_approve_assessment(client: TestClient, db: Session):
 
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -175,16 +193,31 @@ def test_approve_assessment(client: TestClient, db: Session):
     error_json = {
         "reviewer_username": "error",
         "member_username": "error",
-        "assessment_name": "error",
+        "assessment_name": assessment_name,
     }
 
     response_error = client.patch("/api/approve_assessment", json=error_json)
     assert response_error.status_code == 404
     assert response_error.json() == {"detail": "User/Reviewer Not Found"}
+
+    assessment_error = (
+        db.query(models.Assessments)
+        .filter(models.Assessments.assessment_id == 1)
+        .with_entities(models.Assessments.name)
+        .scalar()
+    )
     assessment_error_json = {
         "reviewer_username": reviewer_username,
         "member_username": github_username,
-        "assessment_name": "error",
+        "assessment_name": assessment_error,
+    }
+    response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "Assessment not found"}
+    assessment_error_json = {
+        "reviewer_username": reviewer_username,
+        "member_username": github_username,
+        "assessment_name": "errorid",
     }
     response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
     assert response_error.status_code == 404

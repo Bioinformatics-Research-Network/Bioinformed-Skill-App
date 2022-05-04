@@ -70,7 +70,7 @@ def create_random_assessment_tracker(random_assessment_tracker: int, db: Session
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
         userid = random.randint(1, user_id_count)
-        assessmentid = random.randint(1, assessment_id_count)
+        assessmentid = random.randint(2, assessment_id_count)
         db_obj = Assessment_Tracker(
             user_id=userid,
             assessment_id=assessmentid,

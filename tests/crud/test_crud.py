@@ -47,7 +47,7 @@ def test_verify_reviewer(db: Session):
 def test_assessment_id_tracker(db: Session):
     assessment = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -55,13 +55,16 @@ def test_assessment_id_tracker(db: Session):
     assessment_id = assessment_id_tracker(db=db, assessment_name=assessment)
 
     assert assessment_id is not None
-    assert assessment_id == 1
+    assert assessment_id == 2
+    assessment = "Error"
+    assessment_id = assessment_id_tracker(db=db, assessment_name=assessment)
+    assert assessment_id is None
 
 
 def test_init_assessment_tracker(db: Session):
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -77,7 +80,7 @@ def test_init_assessment_tracker(db: Session):
     )
 
     assert initiate_assessment.status == "Initiated"
-    assert initiate_assessment.assessment_id == 1
+    assert initiate_assessment.assessment_id == 2
     assert initiate_assessment.user_id == 1
     assert initiate_assessment.latest_commit == commit
 
@@ -87,7 +90,7 @@ def test_approve_assessment_crud(
 ):
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -97,14 +100,14 @@ def test_approve_assessment_crud(
     )
 
     assert approve_assess.status == "Approved"
-    assert approve_assess.assessment_id == 1
+    assert approve_assess.assessment_id == 2
     assert approve_assess.user_id == 1
 
 
 def test_update_assessment_log(db: Session):
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.assessment_id == 2)
         .with_entities(models.Assessments.name)
         .scalar()
     )
@@ -126,7 +129,7 @@ def test_update_assessment_log(db: Session):
         db=db, asses_track_info=assessment, update_logs=test_log
     )
 
-    assert update_logs.assessment_id == 1
+    assert update_logs.assessment_id == 2
     assert update_logs.user_id == 1
     assert update_logs.latest_commit == commit
     logs = list(update_logs.log)

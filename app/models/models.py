@@ -1,6 +1,13 @@
-from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
+from sqlalchemy import (
+    DateTime,
+    JSON,
+    String,
+    Integer,
+    Column,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
-from app.db.base import Base
+from app.db.base_class import Base
 
 
 class Users(Base):

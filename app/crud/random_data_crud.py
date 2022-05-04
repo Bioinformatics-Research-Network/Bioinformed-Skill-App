@@ -1,10 +1,7 @@
 # to create random data and test other crud utils
-from fastapi import Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.api.services import get_db
-from app.db import base
-from app.models.models import *
+from app.models import models
 from app.utils import random_data_utils
 import random
 import string
@@ -19,8 +16,11 @@ def create_random_user(
         username = random_data_utils.random_username(first, last)
         email = random_data_utils.random_email(username)
 
-        db_obj = Users(
-            email=email, github_username=username, first_name=first, last_name=last
+        db_obj = models.Users(
+            email=email,
+            github_username=username,
+            first_name=first,
+            last_name=last,
         )
         db.add(db_obj)
         db.commit()
@@ -30,11 +30,11 @@ def create_random_user(
 
 
 def create_random_reviewers(random_reviewers: int, db: Session):
-    user_id_count = db.query(Users).count()
+    user_id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
         userid = random.randint(1, user_id_count)
-        db_obj = Reviewers(user_id=userid)
+        db_obj = models.Reviewers(user_id=userid)
 
         db.add(db_obj)
         db.commit()
@@ -49,7 +49,7 @@ def create_assessments(random_assessments: int, db: Session):
         desc = random_data_utils.assessment_desc[i]
         pre_req = random_data_utils.pre_requisite_id[i]
 
-        db_obj = Assessments(
+        db_obj = models.Assessments(
             name=name,
             version_number="1",
             change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
@@ -65,13 +65,13 @@ def create_assessments(random_assessments: int, db: Session):
 
 
 def create_random_assessment_tracker(random_assessment_tracker: int, db: Session):
-    user_id_count = db.query(Users).count()
-    assessment_id_count = db.query(Assessments).count()
+    user_id_count = db.query(models.Users).count()
+    assessment_id_count = db.query(models.Assessments).count()
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
         userid = random.randint(1, user_id_count)
         assessmentid = random.randint(2, assessment_id_count)
-        db_obj = Assessment_Tracker(
+        db_obj = models.Assessment_Tracker(
             user_id=userid,
             assessment_id=assessmentid,
             status="Initiated",

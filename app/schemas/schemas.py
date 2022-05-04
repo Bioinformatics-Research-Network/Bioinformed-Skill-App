@@ -1,8 +1,7 @@
 # writing the schemas needed
 # these will be devided into different files when needed
+from pydantic import BaseModel
 
-import json
-from pydantic import BaseModel, Json
 
 # make schemas user_check for `/api/init_assessment' endpoint
 # take in gitusername

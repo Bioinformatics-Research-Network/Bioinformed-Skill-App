@@ -1,5 +1,6 @@
 import random
 
+
 # lists to create random names
 first_list = [
     "Alison",
@@ -117,6 +118,7 @@ email_list = [
     "gmx",
 ]
 
+
 # random name
 def random_name():
     first = random.choice(first_list)
@@ -161,4 +163,15 @@ assessment_desc = [
     "Creating a web application based on react.js.",
 ]
 
-pre_requisite_id = [[3, 4, 5], [7], None, None, [4], None, [6], [6, 7], [6, 7, 8], None]
+pre_requisite_id = [
+    [3, 4, 5],
+    [7],
+    None,
+    None,
+    [4],
+    None,
+    [6],
+    [6, 7],
+    [6, 7, 8],
+    None,
+]

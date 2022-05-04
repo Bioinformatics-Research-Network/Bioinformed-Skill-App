@@ -1,4 +1,3 @@
-import pytest
 from app.api.services import get_db
 
 

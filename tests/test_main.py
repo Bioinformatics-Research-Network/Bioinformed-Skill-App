@@ -1,15 +1,10 @@
 from fastapi.testclient import TestClient
-from app.crud.random_data_crud import *
-from tests.utils.test_db import *
-from app.db import base
+from tests.utils import test_db
 from sqlalchemy.orm import Session
-from app.api import services
-from tests.api import test_services
-import pytest
 
 
 def test_root(client: TestClient, db: Session) -> None:
-    create_random_data(db=db)
+    test_db.create_random_data(db=db)
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == ["Hello World!"]

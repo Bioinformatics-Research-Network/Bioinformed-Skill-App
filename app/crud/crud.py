@@ -1,18 +1,16 @@
 from datetime import datetime
-import json
-from pydantic import Json
 from sqlalchemy.orm import Session
 from app.models import models
 from app.schemas import schemas
 
+
 # writing core crud functions for the api endpoints #8
-
 # create crud functions for `/api/init_assessment`
-
 # create app.crud.verify_member
 # takes in gitusername
 # returns bool
 def verify_member(db: Session, username: str):
+
     return (
         db.query(models.Users)
         .filter(models.Users.github_username == username)
@@ -56,7 +54,9 @@ def assessment_id_tracker(db: Session, assessment_name: str):
 # create app.crud.init_assessment_tracker
 # takes in assessment info and create an entry in assessment_tracker table
 def init_assessment_tracker(
-    db: Session, assessment_tracker: schemas.assessment_tracker_init, user_id: int
+    db: Session,
+    assessment_tracker: schemas.assessment_tracker_init,
+    user_id: int,
 ):
 
     assessment_id = assessment_id_tracker(
@@ -111,7 +111,7 @@ def approve_assessment_crud(
     )
 
     if approve_assessment_data is None:
-        return None  
+        return None
 
     approve_assessment_data.status = "Approved"
     approve_assessment_data.last_updated = datetime.utcnow()
@@ -140,7 +140,7 @@ def update_assessment_log(
     )
 
     user = verify_member(db=db, username=asses_track_info.github_username)
-    if user == None or assessment_id == None:
+    if user is None or assessment_id is None:
         return None
     # first read the data which is to be updated
 
@@ -153,7 +153,7 @@ def update_assessment_log(
         .first()
     )
     if assess_track_data is None:
-        return None 
+        return None
 
     assess_track_data.last_updated = datetime.utcnow()
     assess_track_data.latest_commit = asses_track_info.commit

@@ -3,16 +3,16 @@
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-
-# from app.crud.random_data_crud import create_random_data
 from app.db.initiate_db import init_db
 from app.api.services import get_db
 from app.api import api_endpoints
+
 
 app = FastAPI()
 
 # initialize database : used here to initialize fake data in database
 init_db()
+
 
 # root was created to test if the api works
 @app.get("/")

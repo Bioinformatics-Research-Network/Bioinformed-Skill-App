@@ -1,8 +1,6 @@
 from datetime import datetime
-import json
-from sqlalchemy.orm import Session
-from app.models import models
 from app.schemas import schemas
+
 
 # app.utils.runGHA
 # invoked by /api/init-check
@@ -15,9 +13,9 @@ def runGHA(check: schemas.check_update):
     # returns logs
     logs = schemas.update_log(
         log={
-                "Updated": str(datetime.utcnow()),
-                "Checks_passed": True,
-                "Commit": check.commit,
-            }
+            "Updated": str(datetime.utcnow()),
+            "Checks_passed": True,
+            "Commit": check.commit,
+        }
     )
     return logs

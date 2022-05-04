@@ -1,10 +1,9 @@
 import random
 import string
-from turtle import update
 from sqlalchemy.orm import Session
 from app.schemas import schemas
 from app import models
-from app.crud.crud import *
+from app.crud import crud
 
 
 def test_verify_member(db: Session):
@@ -16,7 +15,7 @@ def test_verify_member(db: Session):
         .scalar()
     )
 
-    user = verify_member(db=db, username=github_username)
+    user = crud.verify_member(db=db, username=github_username)
 
     assert user is not None
     assert type(user.user_id) == int
@@ -38,7 +37,7 @@ def test_verify_reviewer(db: Session):
         .scalar()
     )
 
-    reviewer_verify = verify_reviewer(db=db, reviewer_username=github_username)
+    reviewer_verify = crud.verify_reviewer(db=db, reviewer_username=github_username)
 
     assert reviewer_verify is not None
     assert reviewer_verify.reviewer_id == 1
@@ -52,12 +51,12 @@ def test_assessment_id_tracker(db: Session):
         .scalar()
     )
 
-    assessment_id = assessment_id_tracker(db=db, assessment_name=assessment)
+    assessment_id = crud.assessment_id_tracker(db=db, assessment_name=assessment)
 
     assert assessment_id is not None
     assert assessment_id == 2
     assessment = "Error"
-    assessment_id = assessment_id_tracker(db=db, assessment_name=assessment)
+    assessment_id = crud.assessment_id_tracker(db=db, assessment_name=assessment)
     assert assessment_id is None
 
 
@@ -75,7 +74,7 @@ def test_init_assessment_tracker(db: Session):
         assessment_name=assessment_name, latest_commit=commit
     )
 
-    initiate_assessment = init_assessment_tracker(
+    initiate_assessment = crud.init_assessment_tracker(
         db=db, assessment_tracker=assessment, user_id=1
     )
 
@@ -95,7 +94,7 @@ def test_approve_assessment_crud(
         .scalar()
     )
 
-    approve_assess = approve_assessment_crud(
+    approve_assess = crud.approve_assessment_crud(
         db=db, user_id=1, assessment_name=assessment_name
     )
 
@@ -122,10 +121,12 @@ def test_update_assessment_log(db: Session):
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
     assessment = schemas.check_update(
-        github_username=github_username, assessment_name=assessment_name, commit=commit
+        github_username=github_username,
+        assessment_name=assessment_name,
+        commit=commit,
     )
-    test_log = json.dumps({"Test update log": True})
-    update_logs = update_assessment_log(
+    test_log = {"Test update log": True}
+    update_logs = crud.update_assessment_log(
         db=db, asses_track_info=assessment, update_logs=test_log
     )
 

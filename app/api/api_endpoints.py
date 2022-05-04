@@ -31,7 +31,7 @@ def init_assessment(
 ):
     check_user = crud.verify_member(db=db, username=user.github_username)
 
-    if check_user == None:
+    if check_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
     crud.init_assessment_tracker(
@@ -41,9 +41,6 @@ def init_assessment(
     # as well as that the member is valid
     return {"Initiated": True, "User_first_name": check_user.first_name}
 
-
-# /api/verify-member : I think endpoints should not be explicitly be made if a simple function can replace it. And it is not explicitly used anywhere.
-#        not needed necessarly can be replaced by app.crud.verify_member
 
 # /api/init-check:
 # invoked by bot.check
@@ -58,7 +55,7 @@ def init_check(
     *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
 ):
     verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
-    if verify_user == None:
+    if verify_user is None:
         raise HTTPException(status_code=404, detail="User Not Registered")
 
     update_logs = utils.runGHA(check=asses_track_info)
@@ -96,16 +93,19 @@ def update(
 @router.patch("/approve_assessment")
 def approve_assessment(
     *, db: Session = Depends(get_db), approve_assessment: schemas.approve_assessment
-):  
+):
     user = crud.verify_member(db=db, username=approve_assessment.member_username)
     reviewer = crud.verify_reviewer(
         db=db, reviewer_username=approve_assessment.reviewer_username
     )
-    if user == None or reviewer == None:
+    if user is None or reviewer is None:
         raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
 
     if approve_assessment.member_username == approve_assessment.reviewer_username:
-        raise HTTPException(status_code=403, detail="Reviewer not authorized to review personal assessments")
+        raise HTTPException(
+            status_code=403,
+            detail="Reviewer not authorized to review personal assessments",
+        )
 
     assessment_status = crud.approve_assessment_crud(
         db=db,
@@ -113,10 +113,10 @@ def approve_assessment(
         # reviewer_id=reviewer.reviewer_id,  # will use when reviewers are assigned
         assessment_name=approve_assessment.assessment_name,
     )
-    if assessment_status == None:
+    if assessment_status is None:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
-    # app.utils.sync_badger
+    # app.utils.sync_badger to be implemented here later
 
     return {"Assessment Approved": True}
 

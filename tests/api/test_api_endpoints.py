@@ -1,11 +1,8 @@
 # starting with tests for api endpoints
 from datetime import datetime
-from fastapi import HTTPException
-import json
 import random
 import string
 from fastapi.testclient import TestClient
-import pytest
 from sqlalchemy.orm import Session
 from app import models
 
@@ -39,12 +36,15 @@ def test_init_assessment(client: TestClient, db: Session):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["Initiated"] == True
+    assert data["Initiated"] is True
     assert type(data["User_first_name"]) == str
 
     error_json = {
         "user": {"github_username": "errorhandling"},
-        "assessment_tracker": {"assessment_name": "error", "latest_commit": "errors"},
+        "assessment_tracker": {
+            "assessment_name": "error",
+            "latest_commit": "errors",
+        },
     }
     response_error = client.post("/api/init_assessment", json=error_json)
 
@@ -85,7 +85,6 @@ def test_init_check(client: TestClient, db: Session):
     response_error = client.post("/api/init_check", json=error_json)
     assert response_error.status_code == 404
     assert response_error.json() == {"detail": "User Not Registered"}
-
 
 
 # /api/update
@@ -147,7 +146,6 @@ def test_update(client: TestClient, db: Session):
     response_error = client.patch("/api/update", json=error_json)
     assert response_error.status_code == 404
     assert response_error.json() == {"detail": "Assessment not found"}
-    
 
 
 # /api/approve-assessment
@@ -243,13 +241,13 @@ def test_approve_assessment(client: TestClient, db: Session):
     assessment_error_json = {
         "reviewer_username": reviewer_username_error,
         "member_username": github_username_error,
-        "assessment_name": assessment_name
+        "assessment_name": assessment_name,
     }
     response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
     assert response_error.status_code == 403
-    assert response_error.json() == {"detail": "Reviewer not authorized to review personal assessments"}
-
-
+    assert response_error.json() == {
+        "detail": "Reviewer not authorized to review personal assessments"
+    }
 
 
 # /api/assign-reviewers

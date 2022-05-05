@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - badgr
   pull_request:
     branches:
       - main

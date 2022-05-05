@@ -50,6 +50,17 @@ def test_init_assessment(client: TestClient, db: Session):
 
     assert response_error.status_code == 404
     assert response_error.json() == {"detail": "User not found"}
+    error_json_2 = {
+        "user": {"github_username": github_username},
+        "assessment_tracker": {
+            "assessment_name": "error",
+            "latest_commit": "string",
+        },
+    }
+    response_error = client.post("/api/init_assessment", json=error_json_2)
+
+    assert response_error.status_code == 404
+    assert response_error.json() == {"detail": "Invalid Assessment name"}
 
 
 # /api/init-check

@@ -2,15 +2,16 @@ from datetime import datetime
 from app.schemas import schemas
 
 
-# app.utils.runGHA
-# invoked by /api/init-check
-# input: github username, assessment name
-# runs GHA.
-# output GHA logs required
 def runGHA(check: schemas.check_update):
+    """
+    Invoked by /api/init_check endpoint
+    Used to run the GitHub Actions checks on the commit reuired
 
-    # uses GHA Actions API
-    # returns logs
+    :param check: user's github username, assessment name and latest commit
+
+    :returns: logs from the GHA 
+    """
+    
     logs = schemas.update_log(
         log={
             "Updated": str(datetime.utcnow()),

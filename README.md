@@ -27,15 +27,15 @@ Other notes:
 
 1. **Before you start building your python modules, please write your unit tests in pytest**. API functions, CRUD functions, and bot functions should have a unit test. Ideally we would hit > 90% code coverage for the whole app. FastAPI + Pytest docs: https://fastapi.tiangolo.com/tutorial/testing/ Writing unit tests prior to development will (1) force you to think through what you are building and what you expect it to do, (2) allows you to rapidly/automatically test your code as you build it, (3) allow others to figure out how you expect your modules to work (for compatibility with their modules) and identify unmet dependencies from their modules in your codebase. Here is a really beautiful example of incorporating pytest unit tests into a FastAPI CRUD app: https://github.com/tiangolo/full-stack-fastapi-postgresql/tree/master/%7B%7Bcookiecutter.project_slug%7D%7D/backend/app/app/tests
 2. **Please never push to the main branch**, use your own branch and submit a pull-request. Also **please do not merge your own PR** unless you are the maintainer.
-3. **Document your code** (docstrings for functions, comments). 
+3. **Document your code** (docstrings for functions, comments).
 4. **Use accepted pythonic coding practices** - try to keep your code style simple, PEP-compliant, and don't repeat yourself (DRY) where possible. Run `black` to automatically format your code prior to submitting the PR:
 
 ```shell
 black app/
 ```
 
-5. **Ask for feedback any time** -- no one is an expert here so if you have any doubts or questions, just let us know and we can all figure it out together! 
-6. As a pro-tip, **try using gitpod for your IDE** (it's VS Code in your browser with pre-built dev environments). I use it and I found it makes life way easier since you are in the same dev environment as everyone else. 
+5. **Ask for feedback any time** -- no one is an expert here so if you have any doubts or questions, just let us know and we can all figure it out together!
+6. As a pro-tip, **try using gitpod for your IDE** (it's VS Code in your browser with pre-built dev environments). I use it and I found it makes life way easier since you are in the same dev environment as everyone else.
 
 
 ## Setting up the dev environment (non-gitpod)
@@ -80,7 +80,7 @@ You might encounter a `ModuleNotFoundError` in this step -- if so, see the solut
 source .venv/bin/activate
 ```
 
-6. Set environmental variables
+6. Set environmental variables: For badgr
 
 ```shell
 export BADGR_TEST_USERNAME="**************"
@@ -93,6 +93,23 @@ export BADGR_TEST_PASSWORD="**************"
 pytest
 ```
 
+## Setup database with fake data
 
+To create fake data for the database. This will adds fake data to the pre-existing database.
 
+If database doesn't exist already it will create the database `fake_skill_cert.db`. 
+The name of db can be altered from app/db/session.py .
+
+To create the database suitable for the SKILL-CERT-API:
+
+1. Go to the Skill-cert-API/app directory.
+   This is necessary to create the database in the required directory i.e. `/app/` for the API to read from.
+
+2. Run the following command:
+
+```shell
+python ./db/create_fake_data.py
+```
+
+To alter the amount of fake data created `create_fake_data.py` file can edited accordingly.
 

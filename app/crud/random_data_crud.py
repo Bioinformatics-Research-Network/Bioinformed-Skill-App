@@ -8,8 +8,16 @@ import string
 
 
 def create_random_user(
-    random_users: int, db: Session  # number of random users to create
-):  # commit random users in DB
+    random_users: int, db: Session
+    ): 
+    """
+    Creates random fake entries for User table
+
+    :param db: Generator for Session of database
+    :param random_user: number of fake user entries to be generated
+
+    :returns: User object for the last fake entry generated
+    """
 
     for i in range(random_users):
         first, last = random_data_utils.random_name()
@@ -30,6 +38,14 @@ def create_random_user(
 
 
 def create_random_reviewers(random_reviewers: int, db: Session):
+    """
+    Creates random fake entries for reviewer table
+
+    :param db: Generator for Session of database
+    :param random_reviewer: number of fake reviewer entries to be generated
+
+    :returns: Reviewer object for the last fake entry generated
+    """
     user_id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
@@ -44,6 +60,14 @@ def create_random_reviewers(random_reviewers: int, db: Session):
 
 
 def create_assessments(random_assessments: int, db: Session):
+    """
+    Creates random fake entries for assessment table
+
+    :param db: Generator for Session of database
+    :param random_assessments: number of fake assessments entries to be generated
+
+    :returns: Assessment object for the last fake entry generated
+    """
     for i in range(random_assessments):
         name = random_data_utils.assessments_name[i]
         desc = random_data_utils.assessment_desc[i]
@@ -65,6 +89,14 @@ def create_assessments(random_assessments: int, db: Session):
 
 
 def create_random_assessment_tracker(random_assessment_tracker: int, db: Session):
+    """
+    Creates random fake entries for assessment_tracker table
+
+    :param db: Generator for Session of database
+    :param random_assessment_tracker: number of fake assessment_tracker entries to be generated
+
+    :returns: Assessment_tracker object for the last fake entry generated
+    """
     user_id_count = db.query(models.Users).count()
     assessment_id_count = db.query(models.Assessments).count()
     for i in range(random_assessment_tracker):

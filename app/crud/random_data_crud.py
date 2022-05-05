@@ -7,9 +7,7 @@ import random
 import string
 
 
-def create_random_user(
-    random_users: int, db: Session
-    ): 
+def create_random_user(random_users: int, db: Session):
     """
     Creates random fake entries for User table
 

@@ -9,9 +9,9 @@ def runGHA(check: schemas.check_update):
 
     :param check: user's github username, assessment name and latest commit
 
-    :returns: logs from the GHA 
+    :returns: logs from the GHA
     """
-    
+
     logs = schemas.update_log(
         log={
             "Updated": str(datetime.utcnow()),

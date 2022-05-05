@@ -7,8 +7,8 @@ from app.db import session
 def init_db():
     """
     Initiates the database, creates new database if it doesn't exist.
-    Invoked in app/main.py 
+    Invoked in app/main.py
 
-    :returns: None 
+    :returns: None
     """
     return Base.metadata.create_all(bind=session.engine)

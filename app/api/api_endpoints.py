@@ -18,12 +18,12 @@ def init_assessment(
     db: Session = Depends(get_db),
     user: schemas.user_check,
     assessment_tracker: schemas.assessment_tracker_init
-    ):
+):
     """
     Invoked by bot.assessment_init
-    Initiates new assessments for assessment_tracker table. 
+    Initiates new assessments for assessment_tracker table.
     It verifies member by github username if valid, initiates
-    
+
     :param db: Generator for Session of database
     :param user: Inputs user's github username.
     :param assessment_tracker: Inputs assessment name and latest commit.
@@ -45,11 +45,10 @@ def init_assessment(
     return {"Initiated": True, "User_first_name": check_user.first_name}
 
 
-
 @router.post("/init_check")
 def init_check(
     *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
-    ):
+):
     """
     Invoked by bot.check
     Verifies member github username, then provokes utils.runGHA to run GHA checks on the commit.
@@ -71,21 +70,20 @@ def init_check(
     return {"Logs updated": "init-check"}
 
 
-
 @router.patch("/update")
 def update(
     *,
     db: Session = Depends(get_db),
     asses_track_info: schemas.check_update,
     update_logs: schemas.update_log
-    ):
+):
     """
     Invoked by bot.check and /api/init-check
     Updates the log of the assessment_tracker table entry with input log.
 
     :param db: Generator for Session of database
     :param asses_track_info: inputs user github username, assessment name and latest commit.
-    :param update_logs: inputs the logs which will be added to pre-existing log entry. 
+    :param update_logs: inputs the logs which will be added to pre-existing log entry.
 
     :returns: json indicating the logs were updated
     """
@@ -98,17 +96,16 @@ def update(
     return {"Logs Updated": "update"}
 
 
-
 @router.patch("/approve_assessment")
 def approve_assessment(
     *, db: Session = Depends(get_db), approve_assessment: schemas.approve_assessment
-    ):
+):
     """
     Invoked by bot.ipprove
-    Changes the status of the assessment_tracker entry to "Approved", 
+    Changes the status of the assessment_tracker entry to "Approved",
     updates the logs with the changes made
-    Verifies member and reviewer. 
-    
+    Verifies member and reviewer.
+
     Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
 
     :param db: Generator for Session of database

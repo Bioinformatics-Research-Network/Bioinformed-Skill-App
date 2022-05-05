@@ -10,7 +10,7 @@ from app.api import api_endpoints
 
 app = FastAPI()
 
-# initialize database, creates new database if it doesn't exist. It doesn't add fake data. 
+# initialize database, creates new database if it doesn't exist. It doesn't add fake data.
 # For fake data entry see: app\db\create_fake_data.py
 init_db()
 
@@ -26,5 +26,6 @@ def root(db: Session = Depends(get_db)):
     """
     return {"Hello World!"}
 
+
 # Router links all the api endpoints to main.py
-app.include_router(api_endpoints.router) 
+app.include_router(api_endpoints.router)

@@ -80,9 +80,19 @@ You might encounter a `ModuleNotFoundError` in this step -- if so, see the solut
 source .venv/bin/activate
 ```
 
-6. Test that the venv is working by running unit tests:
+6. Set environmental variables
+
+```shell
+export BADGR_TEST_USERNAME="**************"
+export BADGR_TEST_PASSWORD="**************"
+```
+
+7. Test that the venv is working by running unit tests:
 
 ```shell
 pytest
 ```
+
+
+
 

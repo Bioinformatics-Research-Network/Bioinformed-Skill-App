@@ -102,7 +102,7 @@ The name of db can be altered from app/db/session.py .
 
 To create the database suitable for the SKILL-CERT-API:
 
-1. Go to the Skill-cert-API/app directory.
+1. Go to the `Skill-cert-API/app` directory.
    This is necessary to create the database in the required directory i.e. `/app/` for the API to read from.
 
 2. Run the following command:
@@ -112,4 +112,3 @@ python ./db/create_fake_data.py
 ```
 
 To alter the amount of fake data created `create_fake_data.py` file can edited accordingly.
-

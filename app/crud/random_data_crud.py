@@ -1,26 +1,32 @@
 # to create random data and test other crud utils
-from fastapi import Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.api.services import get_db
-from app.db import base
-from app.models.models import *
+from app.models import models
 from app.utils import random_data_utils
 import random
 import string
 
 
-def create_random_user(
-    random_users: int, db: Session  # number of random users to create
-):  # commit random users in DB
+def create_random_user(random_users: int, db: Session):
+    """
+    Creates random fake entries for User table
+
+    :param db: Generator for Session of database
+    :param random_user: number of fake user entries to be generated
+
+    :returns: User object for the last fake entry generated
+    """
 
     for i in range(random_users):
         first, last = random_data_utils.random_name()
         username = random_data_utils.random_username(first, last)
         email = random_data_utils.random_email(username)
 
-        db_obj = Users(
-            email=email, github_username=username, first_name=first, last_name=last
+        db_obj = models.Users(
+            email=email,
+            github_username=username,
+            first_name=first,
+            last_name=last,
         )
         db.add(db_obj)
         db.commit()
@@ -30,11 +36,19 @@ def create_random_user(
 
 
 def create_random_reviewers(random_reviewers: int, db: Session):
-    user_id_list = random_data_utils.random_user_id(random_reviewers)
+    """
+    Creates random fake entries for reviewer table
+
+    :param db: Generator for Session of database
+    :param random_reviewer: number of fake reviewer entries to be generated
+
+    :returns: Reviewer object for the last fake entry generated
+    """
+    user_id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
-        userid = user_id_list[i]
-        db_obj = Reviewers(user_id=userid)
+        userid = random.randint(1, user_id_count)
+        db_obj = models.Reviewers(user_id=userid)
 
         db.add(db_obj)
         db.commit()
@@ -44,15 +58,23 @@ def create_random_reviewers(random_reviewers: int, db: Session):
 
 
 def create_assessments(random_assessments: int, db: Session):
+    """
+    Creates random fake entries for assessment table
+
+    :param db: Generator for Session of database
+    :param random_assessments: number of fake assessments entries to be generated
+
+    :returns: Assessment object for the last fake entry generated
+    """
     for i in range(random_assessments):
         name = random_data_utils.assessments_name[i]
         desc = random_data_utils.assessment_desc[i]
         pre_req = random_data_utils.pre_requisite_id[i]
 
-        db_obj = Assessments(
+        db_obj = models.Assessments(
             name=name,
             version_number="1",
-            change_log={"Created": str(datetime.now())},
+            change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
             description=desc,
             pre_requisites_ids=pre_req,
             goals=desc,
@@ -65,17 +87,33 @@ def create_assessments(random_assessments: int, db: Session):
 
 
 def create_random_assessment_tracker(random_assessment_tracker: int, db: Session):
+    """
+    Creates random fake entries for assessment_tracker table
+
+    :param db: Generator for Session of database
+    :param random_assessment_tracker: number of fake assessment_tracker entries to be generated
+
+    :returns: Assessment_tracker object for the last fake entry generated
+    """
+    user_id_count = db.query(models.Users).count()
+    assessment_id_count = db.query(models.Assessments).count()
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
-        userid = random.randint(1, 100)
-        assessmentid = random.randint(1, 10)
-        db_obj = Assessment_Tracker(
+        userid = random.randint(1, user_id_count)
+        assessmentid = random.randint(2, assessment_id_count)
+        db_obj = models.Assessment_Tracker(
             user_id=userid,
             assessment_id=assessmentid,
-            status="Created",
-            last_updated=datetime.now(),
+            status="Initiated",
+            last_updated=datetime.utcnow(),
             latest_commit=commit,
-            log={"Created": str(datetime.now())},
+            log=[
+                {
+                    "Status": "Initiated",
+                    "Updated": str(datetime.utcnow()),
+                    "Commit": commit,
+                }
+            ],
         )
         db.add(db_obj)
         db.commit()

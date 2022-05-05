@@ -5,16 +5,27 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.db.initiate_db import init_db
 from app.api.services import get_db
-from app.crud.random_data_crud import *
-from app.db import base
+from app.api import api_endpoints
+
 
 app = FastAPI()
 
-# initialize database : used here to initialize fake data in database
+# initialize database, creates new database if it doesn't exist. It doesn't add fake data.
+# For fake data entry see: app\db\create_fake_data.py
 init_db()
 
-# root was created to test if the api works
+
 @app.get("/")
 def root(db: Session = Depends(get_db)):
+    """
+    Root api endpoint, has no specific function. Was created to test API.
 
+    :param db: Generator for Session of database
+
+    :returns: json with "Hello World!"
+    """
     return {"Hello World!"}
+
+
+# Router links all the api endpoints to main.py
+app.include_router(api_endpoints.router)

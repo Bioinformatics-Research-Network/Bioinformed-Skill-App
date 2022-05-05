@@ -1,6 +1,7 @@
 import random
 
-# lists to create random names
+
+# lists to create fake names
 first_list = [
     "Alison",
     "Ashley",
@@ -105,6 +106,7 @@ last_list = [
     "Watts",
 ]
 
+# list to create fake emails
 email_list = [
     "gmail",
     "hotmail",
@@ -117,29 +119,44 @@ email_list = [
     "gmx",
 ]
 
+
 # random name
 def random_name():
+    """
+    To create random names using common first and last names
+
+    :returns: random first and last name
+    """
     first = random.choice(first_list)
     last = random.choice(last_list)
     return (first, last)
 
 
 def random_email(username):
+    """
+    To create fake email id using fake usernames for github
+
+    :param username: fake username
+
+    :returns: fake email
+    """
     email = f"{username}@{random.choice(email_list)}.com"
     return email
 
 
 def random_username(first, last):
+    """
+    To create fake usernames for github
+    :param first: random first name
+    :param last: random last name
+
+    :returns: fake username
+    """
     username = f"{first}_{last}{random.randint(0,100)}"
     return username
 
 
-def random_user_id(x):
-    user_id_lst = random.sample(range(1, 100), x)
-    return user_id_lst
-
-
-# lists to create data for assessments table
+# lists to create fake data for assessments table
 assessments_name = [
     "Back-End Web Development",
     "ChIP-Seq Analysis",
@@ -166,4 +183,15 @@ assessment_desc = [
     "Creating a web application based on react.js.",
 ]
 
-pre_requisite_id = [[3, 4, 5], [7], None, None, [4], None, [6], [6, 7], [6, 7, 8], None]
+pre_requisite_id = [
+    [3, 4, 5],
+    [7],
+    None,
+    None,
+    [4],
+    None,
+    [6],
+    [6, 7],
+    [6, 7, 8],
+    None,
+]

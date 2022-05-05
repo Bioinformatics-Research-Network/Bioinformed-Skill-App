@@ -1,11 +1,19 @@
-from sqlalchemy import ARRAY, DateTime, JSON, String, Integer, Column, ForeignKey
+from sqlalchemy import (
+    DateTime,
+    JSON,
+    String,
+    Integer,
+    Column,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
-from app.db.base import Base
+from app.db.base_class import Base
 
 
 class Users(Base):
     """
     Shared with Airtable
+    SQLAlchemy model for the "users" table
     """
 
     __tablename__ = "users"
@@ -22,6 +30,10 @@ class Users(Base):
 
 
 class Reviewers(Base):
+    """
+    SQLAlchemy model for the "reviewers" table
+    """
+
     __tablename__ = "reviewers"
 
     reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
@@ -35,6 +47,10 @@ class Reviewers(Base):
 
 
 class Assessment_Tracker(Base):
+    """
+    SQLAlchemy model for the "assessment_tracker" table
+    """
+
     __tablename__ = "assessment_tracker"
 
     entry_id = Column(Integer, primary_key=True, unique=True, index=True)
@@ -55,6 +71,10 @@ class Assessment_Tracker(Base):
 
 
 class Assessments(Base):
+    """
+    SQLAlchemy model for the "assessments" table
+    """
+
     __tablename__ = "assessments"
 
     assessment_id = Column(Integer, primary_key=True, unique=True, index=True)

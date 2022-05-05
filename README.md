@@ -112,3 +112,21 @@ python ./db/create_fake_data.py
 ```
 
 To alter the amount of fake data created `create_fake_data.py` file can edited accordingly.
+
+## Starting the API
+
+To start the api follow the steps:
+
+1. Go to `Skill-cert-API/app` directory.
+
+2. Starting the app using `uvicorn`:
+
+```shell
+uvicorn main:app --reload
+```
+
+To test out the API locally use the Swagger UI docs:
+
+Open your prefered web browser and enter following URL `http://127.0.0.1:8000/docs`. This will help you in discovering how to use the API.
+
+To learn more about basics of FastAPI: https://fastapi.tiangolo.com/tutorial/first-steps/

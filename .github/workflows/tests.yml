@@ -1,0 +1,55 @@
+name: tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  tests:
+    name: tests
+    runs-on: "ubuntu-latest"
+    env:
+      BOT_KEY: ${{ secrets.BOT_KEY }}
+      APP_ID: ${{ secrets.APP_ID }}
+      BOT_KEY_PATH: "~/.certs/bot_key.pem"
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+      - name: Poetry install
+        run: |
+          pip install poetry
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+          poetry env use python
+          poetry install
+          source .venv/bin/activate
+      - name: Private key
+        run: |
+          cat $BOT_KEY > $BOT_KEY_PATH
+          ls $BOT_KEY_PATH
+      - name: Lint with flake8
+        run: |
+          source .venv/bin/activate
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with coverage + pytest
+        run: |
+          source .venv/bin/activate
+          python -m coverage run -m pytest
+          if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
+          python -m coverage report -m --fail-under=85
+          python -m coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -33,7 +33,7 @@ jobs:
           source .venv/bin/activate
       - name: Private key
         run: |
-          cat $BOT_KEY > $BOT_KEY_PATH
+          echo $BOT_KEY > $BOT_KEY_PATH
           ls $BOT_KEY_PATH
       - name: Lint with flake8
         run: |

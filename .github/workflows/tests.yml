@@ -45,6 +45,7 @@ jobs:
       - name: Test with coverage + pytest
         run: |
           source .venv/bin/activate
+          cat $BOT_KEY_PATH
           python -m coverage run -m pytest
           if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
           python -m coverage report -m --fail-under=85

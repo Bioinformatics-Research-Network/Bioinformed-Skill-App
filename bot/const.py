@@ -30,5 +30,9 @@ with open(os.path.normpath(os.path.expanduser(bot_key_path)), "r") as cert_file:
     app_key = cert_file.read()
     print(app_key)
 
+app_key = os.environ["BOT_KEY"]
+print("App key")
+print(app_key)
+
 # Create a GitHub integration instance
 git_integration = GithubIntegration(integration_id=app_id, private_key=app_key)

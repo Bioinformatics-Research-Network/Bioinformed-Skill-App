@@ -22,17 +22,17 @@ class Bot:
         # Create tokens if file doesn't exist
         print("Loading access tokens")
         if not os.path.exists(self.token_fp):
-            return get_all_access_tokens(self.installation_ids, jwt=self.jwt)
-        else:
-            with open(self.token_fp, "r") as f:
-                current_tokens = json.load(f)
-                exp_time = datetime.strptime(
-                    current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
-                )
-                if exp_time < datetime.now():
-                    return get_all_access_tokens(self.installation_ids, jwt=self.jwt)
-                else:
-                    return current_tokens
+            get_all_access_tokens(self.installation_ids, jwt=self.jwt)
+        with open(self.token_fp, "r") as f:
+            current_tokens = json.load(f)
+        exp_time = datetime.strptime(
+            current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
+        )
+        if exp_time < datetime.now():
+            get_all_access_tokens(self.installation_ids, jwt=self.jwt)
+        with open(self.token_fp, "r") as f:
+            current_tokens = json.load(f)
+            return current_tokens
 
     
     def post_comment(self, text: str, **kwargs):

@@ -68,8 +68,7 @@ pytest
 9. Launch the app
 
 ```shell
-cd app/
-uvicorn app:app --reload
+uvicorn main:app --reload
 ```
 
 10. Try it out by navigating to the [test repo PR](https://github.com/Bioinformatics-Research-Network/test-bot/pull/1) and writing "@brnbot hello" in the PR comments. You should see a response from BRN bot which says "Hello <your_gh_username>! 😊". For a list of all available commands, type "@brnbot help".

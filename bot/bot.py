@@ -1,3 +1,4 @@
+from cgitb import text
 from .const import *
 from .utils import *
 
@@ -57,7 +58,7 @@ class Bot:
         Returns:
             str: The comment text
         """
-        if self.forbot(payload):
+        if forbot(payload):
             cmd = payload["comment"]["body"].split(" ")[1]
             return getattr(self, str(cmd), self.invalid)(payload)
         else:
@@ -104,13 +105,18 @@ class Bot:
         
         # Initialize the skill assessment in the database using API
         request_url = f"{self.brn_url}/api/init_assessment"
+        print(request_url)
         body = {
             "user": {
                 "github_username": kwarg_dict["sender"],
             },
             "assessment_tracker": {
                 "assessment_name": get_assessment_name(payload),
-                "latest_commit": get_last_commit(**kwarg_dict),
+                "latest_commit": get_last_commit(
+                    owner=kwarg_dict["owner"],
+                    repo_name=kwarg_dict["repo_name"], 
+                    access_token=kwarg_dict["access_token"]
+                ),
             }
         }
         print(body)
@@ -118,8 +124,132 @@ class Bot:
             request_url,
             json=body,
         )
+        response.raise_for_status()
         print(response.json())
         post_comment(text, **kwarg_dict)
         return text
+
+    
+    def update(self, log: str, payload: dict):
+        """
+        Update the skill assessment using automated tests via API
+        """
+        kwarg_dict = self.parse_payload(payload)
+        print("Updating assessment logs")
+        request_url = f"{self.brn_url}/api/update"
+        print(request_url)
+        body = {
+            "asses_track_info": {
+                "github_username": kwarg_dict["sender"],
+                "assessment_name": get_assessment_name(payload),
+                "commit": get_last_commit(
+                    owner=kwarg_dict["owner"],
+                    repo_name=kwarg_dict["repo_name"],
+                    access_token=kwarg_dict["access_token"]
+                ),
+            },
+            "update_logs": {
+                "log": {"message": log}
+            }
+        }
+        print(body)
+        response = requests.patch(
+            request_url,
+            json=body,
+        )
+        print(response.json())
+        response.raise_for_status()
+        return response
+        
+    
+    def check(self, payload: dict):
+        """
+        Check the skill assessment using automated tests via API
+        """
+        kwarg_dict = self.parse_payload(payload)
+        text = "Checking assessment. 🤔"
+        print("Checking assessment")
+        # Check the skill assessment in the database using API
+        request_url = f"{self.brn_url}/api/init_check"
+        print(request_url)
+        body = {
+            "github_username": kwarg_dict["sender"],
+            "assessment_name": get_assessment_name(payload),
+            "commit": get_last_commit(
+                owner=kwarg_dict["owner"],
+                repo_name=kwarg_dict["repo_name"],
+                access_token=kwarg_dict["access_token"]
+            ),
+        }
+        print(body)
+        response = requests.post(
+            request_url,
+            json=body,
+        )
+        response.raise_for_status()
+        print(response.json())
+        post_comment(text, **kwarg_dict)
+        return text
+        
+    
+    def review(self, payload: dict):
+        """
+        Find a reviewer for the assessment via API
+        """
+        kwarg_dict = self.parse_payload(payload)
+        text = "Finding a reviewer. 🔍 This may take up to 48 hours. If you do not receive a reviewer by then, please contact the BRN reviewer team on Slack."
+        print("Finding a reviewer")
+        # Find a reviewer for the assessment in the database using API
+        request_url = f"{self.brn_url}/api/init_review"
+        print(request_url)
+        body = {
+            "github_username": kwarg_dict["sender"],
+            "assessment_name": get_assessment_name(payload),
+            "commit": get_last_commit(
+                owner=kwarg_dict["owner"],
+                repo_name=kwarg_dict["repo_name"],
+                access_token=kwarg_dict["access_token"]
+            ),
+        }
+        print(body)
+        response = requests.post(
+            request_url,
+            json=body,
+        )
+        response.raise_for_status()
+        print(response.json())
+        post_comment(text, **kwarg_dict)
+        return text
+    
+
+    def approve(self, payload: dict):
+        """
+        Approve the assessment via API
+        """
+        kwarg_dict = self.parse_payload(payload)
+        text = "Assessment approved. 🤘"
+        print("Approving assessment")
+        # Approve the assessment in the database using API
+        request_url = f"{self.brn_url}/api/approve_assessment"
+        print(request_url)
+        body = {
+            "github_username": kwarg_dict["sender"],
+            "assessment_name": get_assessment_name(payload),
+            "commit": get_last_commit(
+                owner=kwarg_dict["owner"],
+                repo_name=kwarg_dict["repo_name"],
+                access_token=kwarg_dict["access_token"]
+            ),
+        }
+        print(body)
+        response = requests.post(
+            request_url,
+            json=body,
+        )
+        response.raise_for_status()
+        print(response.json())
+        post_comment(text, **kwarg_dict)
+        return text
+
 
     ## Additional commands go here ##

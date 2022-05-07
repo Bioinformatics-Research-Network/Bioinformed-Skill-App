@@ -16,7 +16,7 @@ def bot(payload: dict = Body(...)):
     print(sender)
     print(message)
 
-    if brnbot.forbot(payload):
+    if forbot(payload):
         cmd = brnbot.process_cmd(payload)
         print(cmd)
 

@@ -53,14 +53,12 @@ def get_last_commit(owner, repo_name, access_token):
         The response from the GitHub API with the last commit SHA
     """
     url = f"{gh_url}/repos/{owner}/{repo_name}/commits"
-    print(url)
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": accept_header,
     }
     response = requests.get(url, headers=headers)
     commits = response.json()
-    print (commits)
     if len(commits) > 0:
         commit = commits[0]
         commit_sha = commit["sha"]

@@ -1,6 +1,6 @@
 # Developer notes
 
-![Build Status](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/BRN-bot/branch/main/graph/badge.svg?token=MD2VSBJ141)](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-cert-bot)
+![Build Status](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/BRN-bot/branch/main/graph/badge.svg?token=64FAWBD72C)](https://codecov.io/gh/Bioinformatics-Research-Network/BRN-bot)
 
 Primary maintainer: Henry Miller
 

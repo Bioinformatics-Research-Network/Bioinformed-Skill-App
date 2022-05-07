@@ -31,11 +31,6 @@ jobs:
           poetry env use python
           poetry install
           source .venv/bin/activate
-      - name: Private key
-        run: |
-          echo $BOT_KEY | tr -d '\r' > $BOT_KEY_PATH
-          ls $BOT_KEY_PATH
-          printf $BOT_KEY_PATH
       - name: Lint with flake8
         run: |
           source .venv/bin/activate
@@ -46,7 +41,6 @@ jobs:
       - name: Test with coverage + pytest
         run: |
           source .venv/bin/activate
-          cat $BOT_KEY_PATH
           python -m coverage run -m pytest
           if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
           python -m coverage report -m --fail-under=85

@@ -7,6 +7,7 @@ app = FastAPI()
 
 brnbot = Bot()
 
+
 @app.post("/")
 def bot(payload: dict = Body(...)):
 

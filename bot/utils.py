@@ -21,9 +21,7 @@ def get_access_token(installation_id, jwt):
         "Authorization": f"Bearer {jwt}",
         "Accept": "application/vnd.github.v3+json",
     }
-    request_url = (
-        f"{base_url}/app/installations/{installation_id}/access_tokens"
-    )
+    request_url = f"{base_url}/app/installations/{installation_id}/access_tokens"
     response = requests.post(request_url, headers=headers)
 
     response_dict = response.json()
@@ -38,9 +36,7 @@ def get_all_access_tokens(installation_ids, jwt):
     print("Getting access tokens")
     # Get the access tokens for the installations
     token_dict = {
-        installation_id: get_access_token(
-            installation_id, jwt
-        )["token"]
+        installation_id: get_access_token(installation_id, jwt)["token"]
         for training, installation_id in installation_ids.items()
     }
 

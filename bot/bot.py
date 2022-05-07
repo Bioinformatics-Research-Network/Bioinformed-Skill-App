@@ -1,10 +1,12 @@
 from .const import *
 from .utils import *
 
+
 class Bot:
     """
     Bot class
     """
+
     def __init__(self):
         self.base_url = base_url
         self.accept_header = accept_header
@@ -13,7 +15,6 @@ class Bot:
         self.token_fp = token_fp
         self.jwt = git_integration.create_jwt()
         self.current_tokens = self.retrieve_access_tokens()
-
 
     def retrieve_access_tokens(self):
         """
@@ -25,16 +26,13 @@ class Bot:
             get_all_access_tokens(self.installation_ids, jwt=self.jwt)
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
-        exp_time = datetime.strptime(
-            current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
-        )
+        exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
         if exp_time < datetime.now():
             get_all_access_tokens(self.installation_ids, jwt=self.jwt)
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
             return current_tokens
 
-    
     def post_comment(self, text: str, **kwargs):
         """
         Post a comment to the issue
@@ -51,7 +49,6 @@ class Bot:
             json={"body": text},
         )
         return response.json()
-
 
     # def retrieve_last_comment(self, payload: dict):
     #     """
@@ -73,7 +70,6 @@ class Bot:
     #     else:
     #         return None
 
-
     def process_cmd(self, payload):
         """
         Process the command and run the appropriate bot function
@@ -85,13 +81,12 @@ class Bot:
             cmd = payload["comment"]["body"].split(" ")[1]
             return getattr(self, str(cmd), self.invalid)(payload)
 
-
     def parse_payload(self, payload: dict):
         """
         Parse the payload
         """
         install_id = payload["installation"]["id"]
-        access_token = self.current_tokens['tokens'][str(install_id)]
+        access_token = self.current_tokens["tokens"][str(install_id)]
         return {
             "sender": payload["sender"]["login"],
             "issue_number": payload["issue"]["number"],
@@ -99,7 +94,6 @@ class Bot:
             "repo_name": payload["repository"]["name"],
             "access_token": access_token,
         }
-  
 
     def forbot(self, payload: dict):
         """
@@ -118,16 +112,14 @@ class Bot:
         self.post_comment(text, **kwarg_dict)
         return text
 
-
     def hello(self, payload: dict):
         """
         Say hello to the user
         """
         kwarg_dict = self.parse_payload(payload)
-        text = f"Hello, @{kwarg_dict['sender']}! 😊"   
+        text = f"Hello, @{kwarg_dict['sender']}! 😊"
         self.post_comment(text, **kwarg_dict)
         return text
-
 
     def help(self, payload: dict):
         """
@@ -139,4 +131,3 @@ class Bot:
         return text
 
     ## Additional commands go here ##
-

@@ -48,7 +48,7 @@ def test_init_assessment(client: TestClient, db: Session):
     }
     response_error = client.post("/api/init_assessment", json=error_json)
 
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "User not found"}
     error_json_2 = {
         "user": {"github_username": github_username},
@@ -59,7 +59,7 @@ def test_init_assessment(client: TestClient, db: Session):
     }
     response_error = client.post("/api/init_assessment", json=error_json_2)
 
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "Invalid Assessment name"}
 
 
@@ -94,7 +94,7 @@ def test_init_check(client: TestClient, db: Session):
         "commit": "error",
     }
     response_error = client.post("/api/init_check", json=error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "User Not Registered"}
 
 
@@ -144,7 +144,7 @@ def test_update(client: TestClient, db: Session):
         "update_logs": {"log": {"Error": "update log"}},
     }
     response_error = client.patch("/api/update", json=error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "Assessment not found"}
     error_json = {
         "asses_track_info": {
@@ -155,7 +155,7 @@ def test_update(client: TestClient, db: Session):
         "update_logs": {"log": {"Error": "update log"}},
     }
     response_error = client.patch("/api/update", json=error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "Assessment not found"}
 
 
@@ -206,7 +206,7 @@ def test_approve_assessment(client: TestClient, db: Session):
     }
 
     response_error = client.patch("/api/approve_assessment", json=error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "User/Reviewer Not Found"}
 
     assessment_error = (
@@ -221,7 +221,7 @@ def test_approve_assessment(client: TestClient, db: Session):
         "assessment_name": assessment_error,
     }
     response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "Assessment not found"}
     assessment_error_json = {
         "reviewer_username": reviewer_username,
@@ -229,7 +229,7 @@ def test_approve_assessment(client: TestClient, db: Session):
         "assessment_name": "errorid",
     }
     response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 404
+    assert response_error.status_code == 400
     assert response_error.json() == {"detail": "Assessment not found"}
     reviewer = (
         db.query(models.Reviewers)
@@ -255,7 +255,7 @@ def test_approve_assessment(client: TestClient, db: Session):
         "assessment_name": assessment_name,
     }
     response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 403
+    assert response_error.status_code == 400
     assert response_error.json() == {
         "detail": "Reviewer not authorized to review personal assessments"
     }

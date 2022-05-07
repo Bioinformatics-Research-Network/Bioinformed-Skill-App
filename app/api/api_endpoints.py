@@ -33,13 +33,13 @@ def init_assessment(
     check_user = crud.verify_member(db=db, username=user.github_username)
 
     if check_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=400, detail="User not found")
 
     assessment_init = crud.init_assessment_tracker(
         db=db, assessment_tracker=assessment_tracker, user_id=check_user.user_id
     )
     if assessment_init is None:
-        raise HTTPException(status_code=404, detail="Invalid Assessment name")
+        raise HTTPException(status_code=400, detail="Invalid Assessment name")
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
     return {"Initiated": True, "User_first_name": check_user.first_name}
@@ -61,7 +61,7 @@ def init_check(
     """
     verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
     if verify_user is None:
-        raise HTTPException(status_code=404, detail="User Not Registered")
+        raise HTTPException(status_code=400, detail="User Not Registered")
 
     update_logs = utils.runGHA(check=asses_track_info)
 
@@ -91,7 +91,7 @@ def update(
         db=db, asses_track_info=asses_track_info, update_logs=update_logs.log
     )
     if assessment_log is None:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+        raise HTTPException(status_code=400, detail="Assessment not found")
 
     return {"Logs Updated": "update"}
 
@@ -118,11 +118,11 @@ def approve_assessment(
         db=db, reviewer_username=approve_assessment.reviewer_username
     )
     if user is None or reviewer is None:
-        raise HTTPException(status_code=404, detail="User/Reviewer Not Found")
+        raise HTTPException(status_code=400, detail="User/Reviewer Not Found")
 
     if approve_assessment.member_username == approve_assessment.reviewer_username:
         raise HTTPException(
-            status_code=403,
+            status_code=400,
             detail="Reviewer not authorized to review personal assessments",
         )
 
@@ -133,7 +133,7 @@ def approve_assessment(
         assessment_name=approve_assessment.assessment_name,
     )
     if assessment_status is None:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+        raise HTTPException(status_code=400, detail="Assessment not found")
 
     # app.utils.badgr_utils implementation to be done here
 

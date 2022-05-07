@@ -1,5 +1,5 @@
 import os
-from github import Github, GithubIntegration
+from github import GithubIntegration
 
 # ID of the GitHub integration
 app_id = os.environ["APP_ID"]
@@ -8,7 +8,10 @@ app_id = os.environ["APP_ID"]
 bot_key_path = os.environ["BOT_KEY_PATH"]
 
 # Base URL for the GitHub API
-base_url = "https://api.github.com"
+gh_url = "https://api.github.com"
+
+# Base URL for the BRN CRUD API
+brn_url = "http://localhost:8000"
 
 # Header for the GitHub API
 accept_header = "application/vnd.github.v3+json"

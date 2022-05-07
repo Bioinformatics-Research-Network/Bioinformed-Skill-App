@@ -4,7 +4,6 @@ from bot.bot import *
 from fastapi import FastAPI, Body
 
 app = FastAPI()
-
 brnbot = Bot()
 
 
@@ -13,7 +12,9 @@ def bot(payload: dict = Body(...)):
 
     print("Processing payload")
     sender = payload["sender"]["login"]
+    message = payload["comment"]["body"]
     print(sender)
+    print(message)
 
     if brnbot.forbot(payload):
         cmd = brnbot.process_cmd(payload)

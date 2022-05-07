@@ -1,9 +1,83 @@
-import os
 import requests
 import json
 from .const import *
 from datetime import datetime, timedelta
-from github import Github, GithubIntegration
+
+
+def post_comment(text: str, **kwargs):
+    """
+    Post a comment to the issue
+
+    Args:
+        text: The text to post
+        **kwargs: The keyword arguments
+    
+    Returns:
+        The response from the GitHub API
+    """
+    headers = {
+        "Authorization": f"Bearer {kwargs['access_token']}",
+        "Accept": accept_header,
+    }
+
+    request_url = f"{gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    response = requests.post(
+        request_url,
+        headers=headers,
+        json={"body": text},
+    )
+    return response.json()
+
+
+def get_assessment_name(payload: dict):
+    """
+    Get the assessment name based on installation ID
+    """
+    install_id = payload["installation"]["id"]
+    assessment = [key for key, value in installation_ids.items() if value == install_id][0]
+    if assessment is None:
+        return "Unknown"
+    return assessment
+
+
+def get_last_commit(owner, repo_name, access_token):
+    """
+    Get the last commit
+
+    Args:
+        owner: The owner of the repository
+        repo_name: The name of the repository
+        access_token: The access token
+
+    Returns:
+        The response from the GitHub API with the last commit SHA
+    """
+    url = f"{gh_url}/repos/{owner}/{repo_name}/commits"
+    print(url)
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": accept_header,
+    }
+    response = requests.get(url, headers=headers)
+    commits = response.json()
+    print (commits)
+    if len(commits) > 0:
+        commit = commits[0]
+        commit_sha = commit["sha"]
+        return commit_sha
+    else:
+        return None
+
+
+def forbot(payload: dict):
+    """
+    Check if the payload is for the bot
+    """
+    splt = payload["comment"]["body"].split()
+    if len(splt) > 0:
+        return splt[0] == "@brnbot"
+    else:
+        return False
 
 
 def get_access_token(installation_id, jwt):
@@ -21,7 +95,7 @@ def get_access_token(installation_id, jwt):
         "Authorization": f"Bearer {jwt}",
         "Accept": "application/vnd.github.v3+json",
     }
-    request_url = f"{base_url}/app/installations/{installation_id}/access_tokens"
+    request_url = f"{gh_url}/app/installations/{installation_id}/access_tokens"
     response = requests.post(request_url, headers=headers)
 
     response_dict = response.json()

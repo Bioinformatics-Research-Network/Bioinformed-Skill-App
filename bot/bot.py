@@ -8,7 +8,8 @@ class Bot:
     """
 
     def __init__(self):
-        self.base_url = base_url
+        self.gh_url = gh_url
+        self.brn_url = brn_url
         self.accept_header = accept_header
         self.installation_ids = installation_ids
         self.cmds = cmds
@@ -33,53 +34,6 @@ class Bot:
             current_tokens = json.load(f)
             return current_tokens
 
-    def post_comment(self, text: str, **kwargs):
-        """
-        Post a comment to the issue
-        """
-        headers = {
-            "Authorization": f"Bearer {kwargs['access_token']}",
-            "Accept": self.accept_header,
-        }
-
-        request_url = f"{self.base_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
-        response = requests.post(
-            request_url,
-            headers=headers,
-            json={"body": text},
-        )
-        return response.json()
-
-    # def retrieve_last_comment(self, payload: dict):
-    #     """
-    #     Retrieve the last comment
-    #     """
-
-    #     print("Getting last comment")
-
-    #     kwarg_dict = self.parse_payload(payload)
-    #     headers = {
-    #         "Authorization": f"Bearer {kwarg_dict['access_token']}",
-    #         "Accept": self.accept_header,
-    #     }
-    #     request_url = f"{self.base_url}/repos/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/issues/{kwarg_dict['issue_number']}/comments"
-    #     response = requests.get(request_url, headers=headers)
-    #     comments = response.json()
-    #     if len(comments) > 0:
-    #         return comments[-1]["body"]
-    #     else:
-    #         return None
-
-    def process_cmd(self, payload):
-        """
-        Process the command and run the appropriate bot function
-
-        Returns:
-            str: The comment text
-        """
-        if self.forbot(payload):
-            cmd = payload["comment"]["body"].split(" ")[1]
-            return getattr(self, str(cmd), self.invalid)(payload)
 
     def parse_payload(self, payload: dict):
         """
@@ -95,11 +49,20 @@ class Bot:
             "access_token": access_token,
         }
 
-    def forbot(self, payload: dict):
+
+    def process_cmd(self, payload):
         """
-        Check if the payload is for the bot
+        Process the command and run the appropriate bot function
+
+        Returns:
+            str: The comment text
         """
-        return payload["comment"]["body"].startswith("@brnbot")
+        if self.forbot(payload):
+            cmd = payload["comment"]["body"].split(" ")[1]
+            return getattr(self, str(cmd), self.invalid)(payload)
+        else:
+            return None
+
 
     ## Bot commands ##
 
@@ -109,7 +72,7 @@ class Bot:
         """
         kwarg_dict = self.parse_payload(payload)
         text = "Invalid command. Try @brnbot help"
-        self.post_comment(text, **kwarg_dict)
+        post_comment(text, **kwarg_dict)
         return text
 
     def hello(self, payload: dict):
@@ -118,7 +81,7 @@ class Bot:
         """
         kwarg_dict = self.parse_payload(payload)
         text = f"Hello, @{kwarg_dict['sender']}! 😊"
-        self.post_comment(text, **kwarg_dict)
+        post_comment(text, **kwarg_dict)
         return text
 
     def help(self, payload: dict):
@@ -127,7 +90,36 @@ class Bot:
         """
         kwarg_dict = self.parse_payload(payload)
         text = "Available commands: \n" + "\n".join(cmds)
-        self.post_comment(text, **kwarg_dict)
+        post_comment(text, **kwarg_dict)
+        return text
+
+
+    def init(self, payload: dict):
+        """
+        Initialize the skill assessment
+        """
+        kwarg_dict = self.parse_payload(payload)
+        text = "Initialized assessment. 🚀"
+        print("Initializing assessment")
+        
+        # Initialize the skill assessment in the database using API
+        request_url = f"{self.brn_url}/api/init_assessment"
+        body = {
+            "user": {
+                "github_username": kwarg_dict["sender"],
+            },
+            "assessment_tracker": {
+                "assessment_name": get_assessment_name(payload),
+                "latest_commit": get_last_commit(**kwarg_dict),
+            }
+        }
+        print(body)
+        response = requests.post(
+            request_url,
+            json=body,
+        )
+        print(response.json())
+        post_comment(text, **kwarg_dict)
         return text
 
     ## Additional commands go here ##

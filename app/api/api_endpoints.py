@@ -40,7 +40,9 @@ def init_assessment(
     )
 
     if assessment_init is None:
-        raise HTTPException(status_code=422, detail="Invalid Assessment initiation request.")
+        raise HTTPException(
+            status_code=422, detail="Invalid Assessment initiation request."
+        )
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
     return {"Initiated": True, "User_first_name": check_user.first_name}

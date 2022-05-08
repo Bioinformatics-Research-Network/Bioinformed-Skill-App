@@ -22,14 +22,12 @@ def test_init_assessment(client: TestClient, db: Session):
         .with_entities(models.Assessments.name)
         .scalar()
     )
-    commit = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=10)
-                )
+    commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
     request_json = {
         "user": {"github_username": github_username},
         "assessment_tracker": {
             "assessment_name": assessment_name,
-            "latest_commit": commit
+            "latest_commit": commit,
         },
     }
     response = client.post("/api/init_assessment", json=request_json)
@@ -47,7 +45,7 @@ def test_init_assessment(client: TestClient, db: Session):
     request_json["assessment_tracker"]["latest_commit"] = "commit123"
 
     response_error = client.post("/api/init_assessment", json=request_json)
-    
+
     assert response_error.status_code == 422
     assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
 

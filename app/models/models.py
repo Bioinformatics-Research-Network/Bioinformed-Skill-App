@@ -38,7 +38,9 @@ class Reviewers(Base):
 
     reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    assessment_reviewing_id = Column(Integer, ForeignKey("assessment_tracker.entry_id", use_alter=True))
+    assessment_reviewing_id = Column(
+        Integer, ForeignKey("assessment_tracker.entry_id", use_alter=True)
+    )
 
     user_info = relationship("Users", foreign_keys=[user_id])
     assessment_reviewing_info = relationship(
@@ -55,7 +57,9 @@ class Assessment_Tracker(Base):
 
     entry_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id", use_alter=True))
-    assessment_id = Column(Integer, ForeignKey("assessments.assessment_id", use_alter=True))
+    assessment_id = Column(
+        Integer, ForeignKey("assessments.assessment_id", use_alter=True)
+    )
     status = Column(String)
     last_updated = Column(DateTime)
     latest_commit = Column(String, nullable=False, unique=True)

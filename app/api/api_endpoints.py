@@ -62,9 +62,41 @@ def init_check(
 
     :returns: Json indicating logs were updated
     """
+    
+    print(asses_track_info)
     verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
     if verify_user is None:
         raise HTTPException(status_code=422, detail="User Not Registered")
+
+    update_logs = utils.runGHA(check=asses_track_info)
+
+    update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
+
+    return {"Logs updated": "init-check"}
+
+
+@router.post("/init_review")
+def init_review(
+    *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
+):
+    """
+    Invoked by bot.review
+
+    :param db: Generator for Session of database
+    :param asses_track_info: inputs user github username, assessment name and latest commit.
+
+    :returns: Json indicating logs were updated
+    """
+    verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
+    if verify_user is None:
+        raise HTTPException(status_code=422, detail="User Not Registered")
+
+    
+    verify_check = crud.verify_check(
+        db=db, asses_track_info=asses_track_info, user_id=verify_user.user_id
+    )
+    if verify_check is None:
+        raise HTTPException(status_code=422, detail="Automated check not passed")
 
     update_logs = utils.runGHA(check=asses_track_info)
 
@@ -141,6 +173,10 @@ def approve_assessment(
     # app.utils.badgr_utils implementation to be done here
 
     return {"Assessment Approved": True}
+
+
+
+
 
 
 # to be done

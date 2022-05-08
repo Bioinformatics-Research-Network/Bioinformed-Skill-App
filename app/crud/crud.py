@@ -90,7 +90,7 @@ def init_assessment_tracker(
     )
 
     if assessment_id is None:
-        return None
+        raise ValueError("Assessment name is invalid")
 
     check_commit = (
         db.query(models.Assessment_Tracker)
@@ -224,3 +224,43 @@ def update_assessment_log(
     db.refresh(assess_track_data)
 
     return assess_track_data
+
+
+def verify_check(db: Session, user: str, commit: str):
+    """
+    Verifies that the commit is passing the checks.
+
+    :param db: Generator for Session of database
+    :param username: imputs github username
+
+    :returns: User id and first name of the member.
+              None if the member doesn;t exist in the db.
+    """
+    user_id = (
+        db.query(models.Users)
+        .filter(models.Users.github_username == user)
+        .first()
+    )
+    if user_id is None:
+        raise ValueError("User does not exist")
+    
+    last_commit = (
+        db.query(models.Assessment_Tracker)
+        .filter(
+            models.Assessment_Tracker.latest_commit == commit,
+        )
+        .first()
+    )
+    if last_commit is None:
+        raise ValueError("Commit does not exist")
+    
+    log = last_commit.log
+    if log is None:
+        raise ValueError("Log does not exist")
+
+    # [ log_dict['Checks_passed'] for log_dict in log ]
+       
+    print(log)
+
+    return log
+

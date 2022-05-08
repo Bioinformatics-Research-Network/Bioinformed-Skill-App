@@ -1,5 +1,7 @@
 import random
 
+random.seed(42)
+
 
 # lists to create fake names
 first_list = [

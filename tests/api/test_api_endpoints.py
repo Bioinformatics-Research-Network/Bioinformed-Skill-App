@@ -271,6 +271,41 @@ def test_approve_assessment(client: TestClient, db: Session):
     }
 
 
+def test_review_assessment(client: TestClient, db: Session):
+    github_username = (
+        db.query(models.Users)
+        .filter(models.Users.user_id == 1)
+        .with_entities(models.Users.github_username)
+        .scalar()
+    )
+    assessment_name = (
+        db.query(models.Assessments)
+        .filter(models.Assessments.assessment_id == 2)
+        .with_entities(models.Assessments.name)
+        .scalar()
+    )
+
+    request_json = {
+        "github_username": github_username,
+        "assessment_name": assessment_name,
+        "commit": "".join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+    }
+
+    response = client.post("/api/init_review", json=request_json)
+
+    assert response.status_code == 200
+    assert response.json() == {"Logs updated": "init-review"}
+    error_json = {
+        "github_username": "error",
+        "assessment_name": "error",
+        "commit": "error",
+    }
+    response_error = client.post("/api/init_review", json=error_json)
+    assert response_error.status_code == 422
+    assert response_error.json() == {"detail": "User Not Registered"}
+
+
+
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

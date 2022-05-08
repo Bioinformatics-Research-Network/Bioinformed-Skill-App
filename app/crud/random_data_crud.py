@@ -6,6 +6,8 @@ from app.utils import random_data_utils
 import random
 import string
 
+random.seed(42)
+
 
 def create_random_user(random_users: int, db: Session):
     """

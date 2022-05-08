@@ -3,6 +3,7 @@ import string
 from sqlalchemy.orm import Session
 from app.schemas import schemas
 from app import models
+from app.utils import *
 from app.crud import crud
 
 
@@ -135,3 +136,9 @@ def test_update_assessment_log(db: Session):
     assert update_logs.latest_commit == commit
     logs = list(update_logs.log)
     assert test_log in logs
+
+
+def test_verify_check(db: Session):
+    
+
+

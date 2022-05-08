@@ -22,14 +22,14 @@ def test_init_assessment(client: TestClient, db: Session):
         .with_entities(models.Assessments.name)
         .scalar()
     )
-
+    commit = "".join(
+                random.choices(string.ascii_uppercase + string.digits, k=10)
+                )
     request_json = {
         "user": {"github_username": github_username},
         "assessment_tracker": {
             "assessment_name": assessment_name,
-            "latest_commit": "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=10)
-            ),
+            "latest_commit": commit
         },
     }
     response = client.post("/api/init_assessment", json=request_json)
@@ -38,6 +38,16 @@ def test_init_assessment(client: TestClient, db: Session):
     data = response.json()
     assert data["Initiated"] is True
     assert type(data["User_first_name"]) == str
+
+    response_error = client.post("/api/init_assessment", json=request_json)
+
+    assert response_error.status_code == 422
+    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
+
+    request_json["assessment_tracker"]["latest_commit"] = "commit123"
+
+    assert response_error.status_code == 422
+    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
 
     error_json = {
         "user": {"github_username": "errorhandling"},
@@ -60,7 +70,7 @@ def test_init_assessment(client: TestClient, db: Session):
     response_error = client.post("/api/init_assessment", json=error_json_2)
 
     assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Invalid Assessment name"}
+    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
 
 
 # /api/init-check

@@ -38,7 +38,7 @@ class Reviewers(Base):
 
     reviewer_id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    assessment_reviewing_id = Column(Integer, ForeignKey("assessment_tracker.entry_id"))
+    assessment_reviewing_id = Column(Integer, ForeignKey("assessment_tracker.entry_id", use_alter=True))
 
     user_info = relationship("Users", foreign_keys=[user_id])
     assessment_reviewing_info = relationship(
@@ -54,12 +54,12 @@ class Assessment_Tracker(Base):
     __tablename__ = "assessment_tracker"
 
     entry_id = Column(Integer, primary_key=True, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
-    assessment_id = Column(Integer, ForeignKey("assessments.assessment_id"))
+    user_id = Column(Integer, ForeignKey("users.user_id", use_alter=True))
+    assessment_id = Column(Integer, ForeignKey("assessments.assessment_id", use_alter=True))
     status = Column(String)
     last_updated = Column(DateTime)
     latest_commit = Column(String, nullable=False, unique=True)
-    reviewer_id = Column(Integer, ForeignKey("reviewers.reviewer_id"))
+    reviewer_id = Column(Integer, ForeignKey("reviewers.reviewer_id", use_alter=True))
     log = Column(JSON, nullable=False)
 
     user_info = relationship(
@@ -83,7 +83,7 @@ class Assessments(Base):
     change_log = Column(JSON)
     description = Column(String)
     pre_requisites_ids = Column(
-        JSON, ForeignKey("assessments.assessment_id")
+        JSON, ForeignKey("assessments.assessment_id", use_alter=True)
     )  # divided pre_requisites into '_id' and '_name'
     goals = Column(String)
 

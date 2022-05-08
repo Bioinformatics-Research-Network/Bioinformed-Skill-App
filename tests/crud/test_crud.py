@@ -75,12 +75,12 @@ def test_init_assessment_tracker(db: Session):
     )
 
     initiate_assessment = crud.init_assessment_tracker(
-        db=db, assessment_tracker=assessment, user_id=1
+        db=db, assessment_tracker=assessment, user_id=2
     )
 
     assert initiate_assessment.status == "Initiated"
     assert initiate_assessment.assessment_id == 2
-    assert initiate_assessment.user_id == 1
+    assert initiate_assessment.user_id == 2
     assert initiate_assessment.latest_commit == commit
 
 

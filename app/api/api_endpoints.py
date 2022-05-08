@@ -38,8 +38,9 @@ def init_assessment(
     assessment_init = crud.init_assessment_tracker(
         db=db, assessment_tracker=assessment_tracker, user_id=check_user.user_id
     )
+
     if assessment_init is None:
-        raise HTTPException(status_code=422, detail="Invalid Assessment name")
+        raise HTTPException(status_code=422, detail="Invalid Assessment initiation request.")
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
     return {"Initiated": True, "User_first_name": check_user.first_name}

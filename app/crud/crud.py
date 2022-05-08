@@ -92,6 +92,28 @@ def init_assessment_tracker(
     if assessment_id is None:
         return None
 
+    check_commit = (
+        db.query(models.Assessment_Tracker)
+        .filter(
+            models.Assessment_Tracker.latest_commit == assessment_tracker.latest_commit
+        )
+        .one_or_none()
+    )
+    if check_commit is not None:
+        return None
+
+    assessment_init_check = (
+        db.query(models.Assessment_Tracker)
+        .filter(
+            models.Assessment_Tracker.user_id == user_id,
+            models.Assessment_Tracker.assessment_id == assessment_id,
+        )
+        .one_or_none()
+    )
+
+    if assessment_init_check is not None:
+        return None
+
     db_obj = models.Assessment_Tracker(
         assessment_id=assessment_id,
         user_id=user_id,

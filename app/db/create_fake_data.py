@@ -1,4 +1,5 @@
 # This
+import random
 from app.crud import random_data_crud
 from app.db.initiate_db import init_db
 from app.db.session import SessionLocal
@@ -23,6 +24,8 @@ def create_fake_data(user=100, reviewer=20, assessment=10, assessment_tracker=20
     :param assessment_tracker: inputs number of fake assessment_tracker entries to be created. Default = 100.
     """
     db = SessionLocal()
+    
+    random.seed(42)
 
     random_data_crud.create_random_user(db=db, random_users=user)
     random_data_crud.create_random_reviewers(db=db, random_reviewers=reviewer)

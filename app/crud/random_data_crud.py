@@ -47,7 +47,7 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     user_id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
-        userid = random.randint(1, user_id_count)
+        userid = random.randint(3, user_id_count)
         db_obj = models.Reviewers(user_id=userid)
 
         db.add(db_obj)
@@ -66,6 +66,7 @@ def create_assessments(random_assessments: int, db: Session):
 
     :returns: Assessment object for the last fake entry generated
     """
+
     for i in range(random_assessments):
         name = random_data_utils.assessments_name[i]
         desc = random_data_utils.assessment_desc[i]

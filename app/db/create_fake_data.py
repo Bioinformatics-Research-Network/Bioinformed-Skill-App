@@ -1,10 +1,66 @@
 # This
+
+from datetime import datetime
 import random
+from app import models
 from app.crud import random_data_crud
 from app.db.initiate_db import init_db
 from app.db.session import SessionLocal
+from sqlalchemy.orm import Session
+
 
 init_db()
+
+
+def bot_testing_data(db: Session):
+    """Used to create predefined data for bot testing"""
+
+    # creating users for bot testing
+    db_obj = models.Users(
+        email="tests@bioresnet.org",
+        github_username="millerh1",
+        first_name="BotUser",
+        last_name="Tests",
+    )
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+
+    db_obj = models.Users(
+        email="tests2@bioresnet.org",
+        github_username="itchytummy",
+        first_name="BotReviewer",
+        last_name="Reviews",
+    )
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+
+    # reviewers for bot testing
+    db_obj = models.Reviewers(user_id=1)
+
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+
+    db_obj = models.Reviewers(user_id=2)
+
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+
+    # assessment for bot testing
+    db_obj = models.Assessments(
+        name="Test",
+        version_number="1",
+        change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
+        description="Test decription",
+        pre_requisites_ids=None,
+        goals="Test goals",
+    )
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
 
 
 def create_fake_data(user=100, reviewer=20, assessment=10, assessment_tracker=20):
@@ -26,7 +82,7 @@ def create_fake_data(user=100, reviewer=20, assessment=10, assessment_tracker=20
     db = SessionLocal()
 
     random.seed(42)
-
+    bot_testing_data(db=db)
     random_data_crud.create_random_user(db=db, random_users=user)
     random_data_crud.create_random_reviewers(db=db, random_reviewers=reviewer)
     random_data_crud.create_assessments(db=db, random_assessments=assessment)

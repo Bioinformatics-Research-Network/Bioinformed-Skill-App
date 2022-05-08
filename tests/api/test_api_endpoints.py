@@ -46,6 +46,8 @@ def test_init_assessment(client: TestClient, db: Session):
 
     request_json["assessment_tracker"]["latest_commit"] = "commit123"
 
+    response_error = client.post("/api/init_assessment", json=request_json)
+    
     assert response_error.status_code == 422
     assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
 

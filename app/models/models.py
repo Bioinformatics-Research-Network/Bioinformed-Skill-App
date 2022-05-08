@@ -25,7 +25,7 @@ class Users(Base):
     email = Column(String, unique=True, index=True)
 
     assessments_submitted = relationship(
-        "Assessment_Tracker", back_populates="user_info"
+        "AssessmentTracker", back_populates="user_info"
     )  # column to check on ongoing assessments
 
 
@@ -44,11 +44,11 @@ class Reviewers(Base):
 
     user_info = relationship("Users", foreign_keys=[user_id])
     assessment_reviewing_info = relationship(
-        "Assessment_Tracker", foreign_keys=[assessment_reviewing_id]
+        "AssessmentTracker", foreign_keys=[assessment_reviewing_id]
     )  # column to check assessment and reviewer relationship
 
 
-class Assessment_Tracker(Base):
+class AssessmentTracker(Base):
     """
     SQLAlchemy model for the "assessment_tracker" table
     """

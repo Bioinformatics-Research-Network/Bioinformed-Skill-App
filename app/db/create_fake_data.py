@@ -3,8 +3,10 @@ import random
 from app.crud import random_data_crud
 from app.db.initiate_db import init_db
 from app.db.session import SessionLocal
+from app.models import *
 from sqlalchemy.orm import Session
 import string
+from datetime import datetime
 
 random.seed(42)
 
@@ -63,7 +65,7 @@ def bot_testing_data(db: Session):
 
     # assessment tracker for bot testing
     cmt = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
-    db_obj = models.Assessment_Tracker(
+    db_obj = models.AssessmentTracker(
         assessment_id=1,
         user_id=1,
         latest_commit=cmt,
@@ -103,6 +105,7 @@ def create_fake_data(user=20, reviewer=20, assessment=10, assessment_tracker=50)
 
     random.seed(42)
 
+    bot_testing_data(db=db)
     random_data_crud.create_random_user(db=db, random_users=user)
     random_data_crud.create_random_reviewers(db=db, random_reviewers=reviewer)
     random_data_crud.create_assessments(db=db, random_assessments=assessment)

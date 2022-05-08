@@ -1,9 +1,8 @@
+from app.crud.crud import get_assessment_tracker_entry_by_commit
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .services import get_db
-from app.crud import crud
-from app.schemas import schemas
-from app.utils import utils
+from app import schemas, crud, utils
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -30,22 +29,23 @@ def init_assessment(
 
     :returns: Json indicating if assessment was initiated, first name of user for bot use
     """
-    check_user = crud.verify_member(db=db, username=user.github_username)
-
-    if check_user is None:
-        raise HTTPException(status_code=422, detail="User not found")
-
-    assessment_init = crud.init_assessment_tracker(
-        db=db, assessment_tracker=assessment_tracker, user_id=check_user.user_id
-    )
-
-    if assessment_init is None:
-        raise HTTPException(
-            status_code=422, detail="Invalid Assessment initiation request."
+    # Try to init assessment tracker
+    # If member is not valid, raise 422 error
+    # If other error occurs, raise 500 error
+    try:
+        user = crud.get_user(db=db, username=user.github_username)
+        res = crud.init_assessment_tracker(
+            db=db, assessment_tracker=assessment_tracker, user_id=user.user_id
         )
+        print(res)
+    except ValueError as e:
+        print("ValueError:", e)
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
-    return {"Initiated": True, "User_first_name": check_user.first_name}
+    return {"Initiated": True, "User_first_name": user.first_name}
 
 
 @router.post("/init_check")
@@ -62,22 +62,34 @@ def init_check(
 
     :returns: Json indicating logs were updated
     """
+    try:
+        user = crud.get_user_by_username(db=db, username=asses_track_info.github_username)
+        assessment = crud.get_assessment_by_name(
+            db=db, assessment_name=asses_track_info.assessment_name
+        )
+        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+            db=db,
+            user_id=user.user_id,
+            assessment_id=assessment.assessment_id,
+        ) # Get assessment tracker id
+        update_logs = utils.runGHA(check=asses_track_info) # Run GHA checks
+        crud.update_assessment_log(
+            db=db,
+            assessment_tracker_id=assessment_tracker_entry.assessment_tracker_id,
+            latest_commit=asses_track_info.latest_commit, 
+            update_logs=update_logs.log
+        ) # Update logs
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
-    print(asses_track_info)
-    verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
-    if verify_user is None:
-        raise HTTPException(status_code=422, detail="User Not Registered")
-
-    update_logs = utils.runGHA(check=asses_track_info)
-
-    update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
-
     return {"Logs updated": "init-check"}
 
 
 @router.post("/init_review")
 def init_review(
-    *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
+    *, db: Session = Depends(get_db), payload: schemas.init_review
 ):
     """
     Invoked by bot.review
@@ -86,19 +98,33 @@ def init_review(
     :param asses_track_info: inputs user github username, assessment name and latest commit.
 
     :returns: Json indicating logs were updated
-    """
-    verify_user = crud.verify_member(db=db, username=asses_track_info.github_username)
-    if verify_user is None:
-        raise HTTPException(status_code=422, detail="User Not Registered")
+    """ 
+    try:
+        assessment_tracker_entry = get_assessment_tracker_entry_by_commit(
+            db=db, commit=payload.commit
+        ) # Get assessment tracker id
+        verify_check = crud.verify_check(
+            db=db, 
+            assessment_tracker_entry_id=assessment_tracker_entry.entry_id
+        )
+        if not verify_check:
+            raise ValueError("Automated check not passed for latest commit")
+        update_logs = utils.get_reviewer(
+            db=db, assessment_tracker_entry_id=assessment_tracker_entry.entry_id
+        ) # Run GHA checks
+        crud.update_assessment_log(
+            db=db,
+            assessment_tracker_id=assessment_tracker_entry.assessment_tracker_id,
+            latest_commit=asses_track_info.latest_commit, 
+            update_logs=update_logs.log
+        ) # Update logs
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     
-    verify_check = crud.verify_check(
-        db=db, asses_track_info=asses_track_info, user_id=verify_user.user_id
-    )
-    if verify_check is None:
-        raise HTTPException(status_code=422, detail="Automated check not passed")
-
-    update_logs = utils.runGHA(check=asses_track_info)
+    update_logs = utils.get_reviewer()
 
     update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
 
@@ -122,11 +148,14 @@ def update(
 
     :returns: json indicating the logs were updated
     """
-    assessment_log = crud.update_assessment_log(
-        db=db, asses_track_info=asses_track_info, update_logs=update_logs.log
-    )
-    if assessment_log is None:
-        raise HTTPException(status_code=422, detail="Assessment not found")
+    try:
+        crud.update_assessment_log(
+            db=db, asses_track_info=asses_track_info, update_logs=update_logs.log
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs Updated": "update"}
 
@@ -148,28 +177,26 @@ def approve_assessment(
 
     :returns: json indicating if the assessment was approved as a bool.
     """
-    user = crud.verify_member(db=db, username=approve_assessment.member_username)
-    reviewer = crud.verify_reviewer(
-        db=db, reviewer_username=approve_assessment.reviewer_username
-    )
-    if user is None or reviewer is None:
-        raise HTTPException(status_code=422, detail="User/Reviewer Not Found")
 
-    if approve_assessment.member_username == approve_assessment.reviewer_username:
-        raise HTTPException(
-            status_code=422,
-            detail="Reviewer not authorized to review personal assessments",
+    # Approve assessment
+    try:
+        user = crud.verify_member(db=db, username=approve_assessment.member_username)
+        reviewer = crud.verify_reviewer(
+            db=db, reviewer_username=approve_assessment.reviewer_username
         )
-
-    assessment_status = crud.approve_assessment_crud(
-        db=db,
-        user_id=user.user_id,
-        # reviewer_id=reviewer.reviewer_id,  # will be use when reviewers are assigned
-        assessment_name=approve_assessment.assessment_name,
-    )
-    if assessment_status is None:
-        raise HTTPException(status_code=422, detail="Assessment not found")
-
+        if verify_reviewer:
+            reviewer_id 
+            assessment_status = crud.approve_assessment_crud(
+                db=db,
+                user_id=user.user_id,
+                # reviewer_id=reviewer.reviewer_id,  # will be use when reviewers are assigned
+                assessment_name=approve_assessment.assessment_name,
+            )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
     # app.utils.badgr_utils implementation to be done here
 
     return {"Assessment Approved": True}

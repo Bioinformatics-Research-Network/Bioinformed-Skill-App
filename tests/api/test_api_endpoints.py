@@ -31,7 +31,7 @@ def test_init_assessment(client: TestClient, db: Session):
         },
     }
     response = client.post("/api/init_assessment", json=request_json)
-
+    print(response.json())
     assert response.status_code == 200
     data = response.json()
     assert data["Initiated"] is True
@@ -40,14 +40,14 @@ def test_init_assessment(client: TestClient, db: Session):
     response_error = client.post("/api/init_assessment", json=request_json)
 
     assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
+    assert response_error.json() == {"detail": "Commit already exists. Assessment already initiated."}
 
     request_json["assessment_tracker"]["latest_commit"] = "commit123"
 
     response_error = client.post("/api/init_assessment", json=request_json)
 
     assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
+    assert response_error.json() == {"detail": "Previous check attempt exists. Assessment already initiated."}
 
     error_json = {
         "user": {"github_username": "errorhandling"},
@@ -70,7 +70,7 @@ def test_init_assessment(client: TestClient, db: Session):
     response_error = client.post("/api/init_assessment", json=error_json_2)
 
     assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Invalid Assessment initiation request."}
+    assert response_error.json() == {"detail": "Assessment does not exist."}
 
 
 # /api/init-check

@@ -4,7 +4,9 @@ from app.main import app
 from app.api.services import get_db
 from app.db.base_class import Base
 from app.crud import random_data_crud
+import random
 
+random.seed(42)
 
 TEST_URL = "sqlite:///./test.db"
 

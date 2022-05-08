@@ -46,6 +46,23 @@ class check_update(BaseModel):
     # other info required by GHA can be entered here
 
 
+class init_review(BaseModel):
+    """
+    Pydantic request model schema used by `/api/init_review` endpoint
+    """
+
+    # We are using reviewer username and commit as the unique identifier
+    # As we do not have the trainee's username
+    reviewer_username: str
+    assessment_name: str
+    commit: str
+
+    class Config:
+        orm_mode = True
+
+    # other info required by GHA can be entered here
+
+
 # logs schemas is used so as logs are not enterd as parameter rather as request body
 class update_log(BaseModel):
     """

@@ -1,35 +1,77 @@
 from sqlalchemy.orm import Session
-from app import utils, crud
+from app import utils, crud, schemas
+import pytest
 
 
 # app.utils.runGHA
-def test_runGHA(db: Session):
-    request_json = schemas.check_update(
-        github_username="test",
-        assessment_name="test",
-        commit="test",
+def test_run_gha(db: Session):
+    log = utils.run_gha(commit="123456789")
+
+    assert type(log["Updated"]) == str
+    assert log["Checks_passed"] is True
+    assert type(log["Commit"]) == str
+
+
+def test_verify_check(db: Session):
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
+        db=db, assessment_tracker_entry_id=1
     )
-    log = utils.runGHA(
-        check=request_json
-    )  # logs = {"Updated": str(datetime.utcnow()), "Checks_passed": True, "Commit": commit}
+    # Fail due to missing checks
+    with pytest.raises(ValueError) as exc:
+        utils.verify_check(
+            assessment_tracker_entry=assessment_tracker_entry,
+        )
+    assert "Check results not available for latest commit." in str(exc.value)
 
-    assert type(log.log["Updated"]) == str
-    assert log.log["Checks_passed"] is True
-    assert type(log.log["Commit"]) == str
+    ## Fail due to missing logs
+    assessment_tracker_entry.log = None
+    with pytest.raises(ValueError) as exc:
+        utils.verify_check(
+            assessment_tracker_entry=assessment_tracker_entry,
+        )
+    assert "No logs found." in str(exc.value)
 
+    ## Fail due to missing log for last commit
+    assessment_tracker_entry.log = [{"Commit": "123456789"}]
+    with pytest.raises(ValueError) as exc:
+        utils.verify_check(
+            assessment_tracker_entry=assessment_tracker_entry,
+        )
+    assert "No logs found for latest commit." in str(exc.value)
 
-def test_get_reviewer(db: Session):
-    assessment_tracker_entry_id = 1
-
-    user_id = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=assessment_tracker_entry_id
-    ).user_id
-    
-    reviewer = utils.get_reviewer(
-        db=db, assessment_tracker_entry_id=assessment_tracker_entry_id
+    # Checks passed
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
+        db=db, assessment_tracker_entry_id=1
+    )
+    crud.update_assessment_log(
+        db=db,
+        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        latest_commit=assessment_tracker_entry.latest_commit,
+        update_logs={
+            "Checks_passed": True,
+            "Commit": assessment_tracker_entry.latest_commit,
+        },
+    )
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
+        db=db, assessment_tracker_entry_id=1
+    )
+    assert utils.verify_check(
+        assessment_tracker_entry=assessment_tracker_entry,
     )
 
-    assert reviewer.user_id != user_id
-    
-
-
+    # Checks failed
+    crud.update_assessment_log(
+        db=db,
+        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        latest_commit=assessment_tracker_entry.latest_commit,
+        update_logs={
+            "Checks_passed": False,
+            "Commit": assessment_tracker_entry.latest_commit,
+        },
+    )
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
+        db=db, assessment_tracker_entry_id=1
+    )
+    assert not utils.verify_check(
+        assessment_tracker_entry=assessment_tracker_entry,
+    )

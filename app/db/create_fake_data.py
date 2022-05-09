@@ -84,7 +84,6 @@ def bot_testing_data(db: Session):
     db.refresh(db_obj)
 
 
-
 def create_fake_data(user=20, reviewer=20, assessment=10, assessment_tracker=50):
     """
     To create fake data for the database. It adds fake data to the pre-existing database.

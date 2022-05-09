@@ -4,308 +4,281 @@ import random
 import string
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from app import models
+from app import crud
 
 
-# /api/init-assessment
-def test_init_assessment(client: TestClient, db: Session):
-    github_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-
-    assessment_name = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 2)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
+def test_init(client: TestClient, db: Session):
+    github_username = crud.get_user_by_id(db, 1).github_username
+    assessment_name = crud.get_assessment_by_id(db, 2).name
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+    # Successful query
     request_json = {
-        "user": {"github_username": github_username},
-        "assessment_tracker": {
-            "assessment_name": assessment_name,
-            "latest_commit": commit,
-        },
+        "assessment_name": assessment_name,
+        "latest_commit": commit,
+        "github_username": github_username,
     }
-    response = client.post("/api/init_assessment", json=request_json)
-    print(response.json())
+    response = client.post("/api/init", json=request_json)
     assert response.status_code == 200
     data = response.json()
     assert data["Initiated"] is True
     assert type(data["User_first_name"]) == str
 
-    response_error = client.post("/api/init_assessment", json=request_json)
+    # Error on initializing for a second time
+    response = client.post("/api/init", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry already exists."}
 
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Commit already exists. Assessment already initiated."}
+    # Error for reinitializing with a different commit
+    request_json["latest_commit"] = "commit123"
+    response = client.post("/api/init", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry already exists."}
 
-    request_json["assessment_tracker"]["latest_commit"] = "commit123"
-
-    response_error = client.post("/api/init_assessment", json=request_json)
-
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Previous check attempt exists. Assessment already initiated."}
-
-    error_json = {
-        "user": {"github_username": "errorhandling"},
-        "assessment_tracker": {
-            "assessment_name": "error",
-            "latest_commit": "errors",
-        },
-    }
-    response_error = client.post("/api/init_assessment", json=error_json)
-
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "User not found"}
-    error_json_2 = {
-        "user": {"github_username": github_username},
-        "assessment_tracker": {
-            "assessment_name": "error",
-            "latest_commit": "string",
-        },
-    }
-    response_error = client.post("/api/init_assessment", json=error_json_2)
-
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Assessment does not exist."}
-
-
-# /api/init-check
-def test_init_check(client: TestClient, db: Session):
-    github_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-    assessment_name = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 2)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-
+    # Error for initializing with an incorrect username
     request_json = {
-        "github_username": github_username,
         "assessment_name": assessment_name,
-        "commit": "".join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+        "latest_commit": commit,
+        "github_username": "error",
+    }
+    response = client.post("/api/init", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    # Error for initializing with an incorrect assessment name
+    github_username = crud.get_user_by_id(db, 2).github_username
+    request_json = {
+        "assessment_name": "error",
+        "latest_commit": commit,
+        "github_username": github_username,
+    }
+    response = client.post("/api/init", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment does not exist"}
+
+
+def test_check(client: TestClient, db: Session):
+
+    # Successful query
+    user = crud.get_user_by_id(db, 1)
+    assessment = crud.get_assessment_by_id(db, 2)
+    request_json = {
+        "github_username": user.github_username,
+        "assessment_name": assessment.name,
+        "latest_commit": "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=10)
+        ),
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Logs updated": "check"}
+
+    # Error on username
+    request_json = {
+        "github_username": "error",
+        "assessment_name": assessment.name,
+        "latest_commit": "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=10)
+        ),
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    # Error on assessment name
+    request_json = {
+        "github_username": user.github_username,
+        "assessment_name": "error",
+        "latest_commit": "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=10)
+        ),
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment does not exist"}
+
+
+def test_review(client: TestClient, db: Session):
+
+    ## Success: The repo is passing checks
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    # Therefore, successful query
+    request_json = {
+        "commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.post("/api/review", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"reviewer_id": 3, "reviewer_username": "Betsy_Enos29"}
+
+    ## Error: The repo is not passing checks
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
+    crud.update_assessment_log(
+        db=db,
+        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        latest_commit=assessment_tracker_entry.latest_commit,
+        update_logs={
+            "Checks_passed": False,
+            "Commit": assessment_tracker_entry.latest_commit,
+        },
+    )
+    # Therefore, successful query
+    request_json = {
+        "commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.post("/api/review", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "Automated checks not passed for latest commit"
     }
 
-    response = client.post("/api/init_check", json=request_json)
-
-    assert response.status_code == 200
-    assert response.json() == {"Logs updated": "init-check"}
-    error_json = {
-        "github_username": "error",
-        "assessment_name": "error",
+    # Error commit not found
+    request_json = {
         "commit": "error",
     }
-    response_error = client.post("/api/init_check", json=error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "User Not Registered"}
+    response = client.post("/api/review", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+    ## Error: Assessment is not at the initialization stage
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
+    assessment_tracker_entry.status = "Approved"
+    db.add(assessment_tracker_entry)
+    db.commit()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
+    request_json = {
+        "commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.post("/api/review", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "Assessment tracker entry already under review or approved"
+    }
+
+
+def test_approve(client: TestClient, db: Session):
+
+    # Tracker entry for which checks are passing
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    reviewer_id = assessment_tracker_entry.reviewer_id
+    reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id)
+    reviewer_username = crud.get_user_by_id(db, reviewer_userid.user_id).github_username
+
+    # Successful query
+    request_json = {
+        "reviewer_username": reviewer_username,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Assessment Approved": True}
+    db.refresh(assessment_tracker_entry)
+    assert assessment_tracker_entry.status == "Approved"
+
+    # Error on incorrect reviewer username
+    request_json = {
+        "reviewer_username": "error",
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    # Error on incorrect commit
+    request_json = {
+        "reviewer_username": reviewer_username,
+        "latest_commit": "error",
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+    # Error on requesting approval for an assessment that is already approved
+    request_json = {
+        "reviewer_username": reviewer_username,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment is not under review."}
+
+    # Error on commit for which checks are not passing
+    assessment_tracker_entry.status = "Under review"  # Reset status
+    db.add(assessment_tracker_entry)
+    db.commit()
+    db.refresh(assessment_tracker_entry)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    crud.update_assessment_log(
+        db=db,
+        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        latest_commit=assessment_tracker_entry.latest_commit,
+        update_logs={
+            "Checks_passed": False,
+            "Commit": assessment_tracker_entry.latest_commit,
+        },
+    )
+    request_json = {
+        "reviewer_username": reviewer_username,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Last commit checks failed."}
+
+    # Error where no reviewer is assigned to the assessment
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 1)
+    request_json = {
+        "reviewer_username": reviewer_username,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "No reviewer is assigned to the assessment."}
 
 
 # /api/update
 def test_update(client: TestClient, db: Session):
-    github_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    github_username = crud.get_user_by_id(
+        db, assessment_tracker_entry.user_id
+    ).github_username
+    assessment_name = crud.get_assessment_by_id(
+        db, assessment_tracker_entry.assessment_id
+    ).name
 
-    assessment_name = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 2)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-
-    commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    logs = {"Updated": str(datetime.utcnow()), "Commit": commit}
-    request_json = {
-        "asses_track_info": {
-            "github_username": github_username,
-            "assessment_name": assessment_name,
-            "commit": commit,
-        },
-        "update_logs": {"log": logs},
-    }
-
-    response = client.patch("/api/update", json=request_json)
-
-    assert response.status_code == 200
-    assert response.json() == {"Logs Updated": "update"}
-    assessment_error = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-    error_json = {
-        "asses_track_info": {
-            "github_username": github_username,
-            "assessment_name": assessment_error,
-            "commit": "error",
-        },
-        "update_logs": {"log": {"Error": "update log"}},
-    }
-    response_error = client.patch("/api/update", json=error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Assessment not found"}
-    error_json = {
-        "asses_track_info": {
-            "github_username": "error",
-            "assessment_name": assessment_name,
-            "commit": "error",
-        },
-        "update_logs": {"log": {"Error": "update log"}},
-    }
-    response_error = client.patch("/api/update", json=error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Assessment not found"}
-
-
-# /api/approve-assessment
-def test_approve_assessment(client: TestClient, db: Session):
-    github_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-
-    assessment_name = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 2)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-
-    reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.user_id != 1)
-        .with_entities(models.Reviewers.user_id)
-        .first()
-    )
-
-    reviewer_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == reviewer.user_id)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-
-    request_json = {
-        "reviewer_username": reviewer_username,
-        "member_username": github_username,
-        "assessment_name": assessment_name,
-    }
-    response = client.patch("/api/approve_assessment", json=request_json)
-
-    assert response.status_code == 200
-    assert response.json() == {"Assessment Approved": True}
-
-    error_json = {
-        "reviewer_username": "error",
-        "member_username": "error",
-        "assessment_name": assessment_name,
-    }
-
-    response_error = client.patch("/api/approve_assessment", json=error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "User/Reviewer Not Found"}
-
-    assessment_error = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-    assessment_error_json = {
-        "reviewer_username": reviewer_username,
-        "member_username": github_username,
-        "assessment_name": assessment_error,
-    }
-    response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Assessment not found"}
-    assessment_error_json = {
-        "reviewer_username": reviewer_username,
-        "member_username": github_username,
-        "assessment_name": "errorid",
-    }
-    response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "Assessment not found"}
-    reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.reviewer_id == 1)
-        .with_entities(models.Reviewers.user_id)
-        .scalar()
-    )
-    reviewer_username_error = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == reviewer)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-    github_username_error = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == reviewer)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-    assessment_error_json = {
-        "reviewer_username": reviewer_username_error,
-        "member_username": github_username_error,
-        "assessment_name": assessment_name,
-    }
-    response_error = client.patch("/api/approve_assessment", json=assessment_error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {
-        "detail": "Reviewer not authorized to review personal assessments"
-    }
-
-
-def test_review_assessment(client: TestClient, db: Session):
-    github_username = (
-        db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
-        .scalar()
-    )
-    assessment_name = (
-        db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 2)
-        .with_entities(models.Assessments.name)
-        .scalar()
-    )
-
+    # Successful query
+    log = {"Test": "Tested"}
     request_json = {
         "github_username": github_username,
         "assessment_name": assessment_name,
-        "commit": "".join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+        "commit": assessment_tracker_entry.latest_commit,
+        "log": log,
     }
-
-    response = client.post("/api/init_review", json=request_json)
-
+    response = client.patch("/api/update", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"Logs updated": "init-review"}
-    error_json = {
-        "github_username": "error",
+    assert response.json() == {"Logs Updated": "update"}
+
+    # Incorrect assessment
+    request_json = {
+        "github_username": github_username,
         "assessment_name": "error",
-        "commit": "error",
+        "commit": assessment_tracker_entry.latest_commit,
+        "log": log,
     }
-    response_error = client.post("/api/init_review", json=error_json)
-    assert response_error.status_code == 422
-    assert response_error.json() == {"detail": "User Not Registered"}
+    response = client.patch("/api/update", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment does not exist"}
+
+    # Incorrect username
+    request_json = {
+        "github_username": "error",
+        "assessment_name": assessment_name,
+        "commit": assessment_tracker_entry.latest_commit,
+        "log": log,
+    }
+    response = client.patch("/api/update", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
 
 
-
-# /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

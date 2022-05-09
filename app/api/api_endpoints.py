@@ -1,8 +1,12 @@
-from app.crud.crud import get_assessment_tracker_entry_by_commit
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .services import get_db
+from app.api.services import get_db
 from app import schemas, crud, utils
+
+
+## TODO: Fix this later -- should be parameterized
+badgr_config = utils.config_test
+
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -11,13 +15,8 @@ router = APIRouter(prefix="/api", tags=["api"])
 # https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
 
 
-@router.post("/init_assessment", response_model=schemas.response_init_assessment)
-def init_assessment(
-    *,
-    db: Session = Depends(get_db),
-    user: schemas.user_check,
-    assessment_tracker: schemas.assessment_tracker_init
-):
+@router.post("/init", response_model=schemas.InitResponse)
+def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     """
     Invoked by bot.assessment_init
     Initiates new assessments for assessment_tracker table.
@@ -33,13 +32,11 @@ def init_assessment(
     # If member is not valid, raise 422 error
     # If other error occurs, raise 500 error
     try:
-        user = crud.get_user(db=db, username=user.github_username)
-        res = crud.init_assessment_tracker(
-            db=db, assessment_tracker=assessment_tracker, user_id=user.user_id
+        user = crud.get_user_by_username(db=db, username=init_request.github_username)
+        crud.init_assessment_tracker(
+            db=db, init_request=init_request, user_id=user.user_id
         )
-        print(res)
     except ValueError as e:
-        print("ValueError:", e)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -48,10 +45,8 @@ def init_assessment(
     return {"Initiated": True, "User_first_name": user.first_name}
 
 
-@router.post("/init_check")
-def init_check(
-    *, db: Session = Depends(get_db), asses_track_info: schemas.check_update
-):
+@router.post("/check")
+def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
     """
     Invoked by bot.check
     Verifies member github username, then provokes utils.runGHA to run GHA checks on the commit.
@@ -63,34 +58,32 @@ def init_check(
     :returns: Json indicating logs were updated
     """
     try:
-        user = crud.get_user_by_username(db=db, username=asses_track_info.github_username)
+        user = crud.get_user_by_username(db=db, username=check_request.github_username)
         assessment = crud.get_assessment_by_name(
-            db=db, assessment_name=asses_track_info.assessment_name
+            db=db, assessment_name=check_request.assessment_name
         )
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
             user_id=user.user_id,
             assessment_id=assessment.assessment_id,
-        ) # Get assessment tracker id
-        update_logs = utils.runGHA(check=asses_track_info) # Run GHA checks
+        )
+        update_logs = utils.run_gha(commit=check_request.latest_commit)
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_id=assessment_tracker_entry.assessment_tracker_id,
-            latest_commit=asses_track_info.latest_commit, 
-            update_logs=update_logs.log
-        ) # Update logs
+            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+            latest_commit=check_request.latest_commit,
+            update_logs=update_logs,
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"Logs updated": "init-check"}
+
+    return {"Logs updated": "check"}
 
 
-@router.post("/init_review")
-def init_review(
-    *, db: Session = Depends(get_db), payload: schemas.init_review
-):
+@router.post("/review")
+def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewRequest):
     """
     Invoked by bot.review
 
@@ -98,48 +91,46 @@ def init_review(
     :param asses_track_info: inputs user github username, assessment name and latest commit.
 
     :returns: Json indicating logs were updated
-    """ 
+    """
     try:
-        assessment_tracker_entry = get_assessment_tracker_entry_by_commit(
-            db=db, commit=payload.commit
-        ) # Get assessment tracker id
-        verify_check = crud.verify_check(
-            db=db, 
-            assessment_tracker_entry_id=assessment_tracker_entry.entry_id
+        assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
+            db=db, commit=review_request.commit
+        )
+        if assessment_tracker_entry.status != "Initiated":
+            raise ValueError(
+                "Assessment tracker entry already under review or approved"
+            )
+        verify_check = utils.verify_check(
+            assessment_tracker_entry=assessment_tracker_entry
         )
         if not verify_check:
-            raise ValueError("Automated check not passed for latest commit")
-        update_logs = utils.get_reviewer(
-            db=db, assessment_tracker_entry_id=assessment_tracker_entry.entry_id
-        ) # Run GHA checks
-        crud.update_assessment_log(
+            raise ValueError("Automated checks not passed for latest commit")
+
+        reviewer = crud.select_reviewer(
+            db=db, assessment_tracker_entry=assessment_tracker_entry
+        )
+        reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
+        reviewer_info = {
+            "reviewer_id": reviewer.reviewer_id,
+            "reviewer_username": reviewer_user.github_username,
+        }
+        crud.assign_reviewer(
             db=db,
-            assessment_tracker_id=assessment_tracker_entry.assessment_tracker_id,
-            latest_commit=asses_track_info.latest_commit, 
-            update_logs=update_logs.log
-        ) # Update logs
+            assessment_tracker_entry=assessment_tracker_entry,
+            reviewer_info=reviewer_info,
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    
-    update_logs = utils.get_reviewer()
-
-    update(db=db, asses_track_info=asses_track_info, update_logs=update_logs)
-
-    return {"Logs updated": "init-check"}
+    return reviewer_info
 
 
 @router.patch("/update")
-def update(
-    *,
-    db: Session = Depends(get_db),
-    asses_track_info: schemas.check_update,
-    update_logs: schemas.update_log
-):
+def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
     """
-    Invoked by bot.check and /api/init-check
+    Invoked by bot.check -> HTTP request to /api/check
     Updates the log of the assessment_tracker table entry with input log.
 
     :param db: Generator for Session of database
@@ -149,8 +140,20 @@ def update(
     :returns: json indicating the logs were updated
     """
     try:
+        user = crud.get_user_by_username(db=db, username=update_request.github_username)
+        assessment = crud.get_assessment_by_name(
+            db=db, assessment_name=update_request.assessment_name
+        )
+        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+            db=db,
+            user_id=user.user_id,
+            assessment_id=assessment.assessment_id,
+        )
         crud.update_assessment_log(
-            db=db, asses_track_info=asses_track_info, update_logs=update_logs.log
+            db=db,
+            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+            latest_commit=update_request.commit,
+            update_logs=update_request.log,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -160,12 +163,10 @@ def update(
     return {"Logs Updated": "update"}
 
 
-@router.patch("/approve_assessment")
-def approve_assessment(
-    *, db: Session = Depends(get_db), approve_assessment: schemas.approve_assessment
-):
+@router.patch("/approve")
+def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRequest):
     """
-    Invoked by bot.ipprove
+    Invoked by bot.approve
     Changes the status of the assessment_tracker entry to "Approved",
     updates the logs with the changes made
     Verifies member and reviewer.
@@ -180,30 +181,49 @@ def approve_assessment(
 
     # Approve assessment
     try:
-        user = crud.verify_member(db=db, username=approve_assessment.member_username)
-        reviewer = crud.verify_reviewer(
-            db=db, reviewer_username=approve_assessment.reviewer_username
+        # Get the assessment_tracker entry
+        assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
+            db=db, commit=approve_request.latest_commit
         )
-        if verify_reviewer:
-            reviewer_id 
-            assessment_status = crud.approve_assessment_crud(
-                db=db,
-                user_id=user.user_id,
-                # reviewer_id=reviewer.reviewer_id,  # will be use when reviewers are assigned
-                assessment_name=approve_assessment.assessment_name,
+        # Get the trainee info
+        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+        # Get the reviewer info; error if not exists
+        reviewer = crud.get_reviewer_by_username(
+            db=db, username=approve_request.reviewer_username
+        )
+        # Get the assessment info
+        assessment = crud.get_assessment_by_id(
+            db=db, assessment_id=assessment_tracker_entry.assessment_id
+        )
+        # Approve assessment, update logs, issue badge
+        # Error if reviewer is not the one assigned;
+        # Error if checks are not passed
+        # Error if assessment is already approved;
+        # Error if reviewer is same as trainee
+        valid = crud.approve_assessment(
+            db=db,
+            trainee=user,
+            reviewer=reviewer,
+            reviewer_username=approve_request.reviewer_username,
+            assessment=assessment,
+        )
+        if valid:
+            # Issue badge
+            bt = utils.get_bearer_token(badgr_config)
+            utils.issue_badge(
+                user_email=user.email,
+                user_first=user.first_name,
+                user_last=user.last_name,
+                assessment_name=assessment.name,
+                bearer_token=bt,
+                config=badgr_config,
             )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-    # app.utils.badgr_utils implementation to be done here
 
     return {"Assessment Approved": True}
-
-
-
-
 
 
 # to be done

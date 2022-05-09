@@ -7,10 +7,10 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import relationship
-from app.db.base_class import Base
+from app import db
 
 
-class Users(Base):
+class Users(db.Base):
     """
     Shared with Airtable
     SQLAlchemy model for the "users" table
@@ -29,7 +29,7 @@ class Users(Base):
     )  # column to check on ongoing assessments
 
 
-class Reviewers(Base):
+class Reviewers(db.Base):
     """
     SQLAlchemy model for the "reviewers" table
     """
@@ -48,7 +48,7 @@ class Reviewers(Base):
     )  # column to check assessment and reviewer relationship
 
 
-class AssessmentTracker(Base):
+class AssessmentTracker(db.Base):
     """
     SQLAlchemy model for the "assessment_tracker" table
     """
@@ -74,7 +74,7 @@ class AssessmentTracker(Base):
     reviewer_info = relationship("Reviewers", foreign_keys=[reviewer_id])
 
 
-class Assessments(Base):
+class Assessments(db.Base):
     """
     SQLAlchemy model for the "assessments" table
     """

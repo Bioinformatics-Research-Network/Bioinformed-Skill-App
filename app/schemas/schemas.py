@@ -1,83 +1,72 @@
 from pydantic import BaseModel
 
 
-class user_check(BaseModel):
+## Request schemas
+
+
+class InitRequest(BaseModel):
     """
-    Pydantic request model schema used by `/api/init_assessment` endpoint
+    Pydantic request model schema used by `/api/init` endpoint
     """
 
     github_username: str
-
-
-# make schemas assessment_tracker_init for `/api/init_assessment`
-# to create new assessment_tracker entry
-# takes in assessment info
-class assessment_tracker_init(BaseModel):
-    """
-    Pydantic request model schema used by `/api/init_assessment` endpoint
-    """
-
     assessment_name: str
     latest_commit: str
 
 
-class approve_assessment(BaseModel):
+class CheckRequest(BaseModel):
     """
-    Pydantic request model schema used by `/api/approve_assessment` endpoint
+    Pydantic request model schema used by `/api/check` endpoint
     """
 
-    reviewer_username: str
-    member_username: str  # username of the member whose assessment is to be approved
+    github_username: str
     assessment_name: str
+    latest_commit: str
+
+    class Config:
+        orm_mode = True
 
 
-class check_update(BaseModel):
+class ApproveRequest(BaseModel):
     """
-    Pydantic request model schema used by `/api/init_check` and `/api/update` endpoint
+    Pydantic request model schema used by `/api/approve` endpoint
+    """
+
+    latest_commit: str
+    reviewer_username: str
+
+
+class UpdateRequest(BaseModel):
+    """
+    Pydantic request model schema used by the `/api/update` endpoint
     """
 
     github_username: str
     assessment_name: str
     commit: str
-
-    class Config:
-        orm_mode = True
-
-    # other info required by GHA can be entered here
-
-
-class init_review(BaseModel):
-    """
-    Pydantic request model schema used by `/api/init_review` endpoint
-    """
-
-    # We are using reviewer username and commit as the unique identifier
-    # As we do not have the trainee's username
-    reviewer_username: str
-    assessment_name: str
-    commit: str
-
-    class Config:
-        orm_mode = True
-
-    # other info required by GHA can be entered here
-
-
-# logs schemas is used so as logs are not enterd as parameter rather as request body
-class update_log(BaseModel):
-    """
-    Pydantic request model schema used by `/api/update` endpoint
-    """
-
     log: dict
 
     class Config:
         orm_mode = True
 
 
-class response_init_assessment(BaseModel):
+class ReviewRequest(BaseModel):
     """
-    Pydantic response model schema used by `/api/init_assessment` endpoint
+    Pydantic request model schema used by `/api/review` endpoint
+    """
+
+    commit: str
+
+    class Config:
+        orm_mode = True
+
+
+## Response schemas
+
+
+class InitResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/init` endpoint
     """
 
     Initiated: bool

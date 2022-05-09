@@ -22,6 +22,25 @@ config_prod = {
 }
 
 
+config_test = {
+    "BADGR_USERNAME": os.environ["BADGR_TEST_USERNAME"],
+    "BADGR_PASSWORD": os.environ["BADGR_TEST_PASSWORD"],
+    "BADGR_BASE_URL": "https://api.test.badgr.com",
+    "BADGR_SCOPE": "rw:issuer rw:backpack",
+    "BADGR_ISSUER_ID": "4aQWejKFThS1NtViZk6GnQ",
+    "BADGR_GRANT_TYPE": "password",
+    "BADGR_CLIENT_ID": "public",
+    "BADGE_IDs": {
+        "Python Programming I": "OcVxPZEORASs4dBL0h5mOw",
+        "Python Programming II": "OcVxPZEORASs4dBL0h5mOw",
+        "R Programming I": "OcVxPZEORASs4dBL0h5mOw",
+        "R Programming II": "OcVxPZEORASs4dBL0h5mOw",
+        "ChIP-Seq Analysis": "OcVxPZEORASs4dBL0h5mOw",
+        "Test": "OcVxPZEORASs4dBL0h5mOw",
+    },
+}
+
+
 def get_bearer_token(config: dict):
     """
     Get the bearer token from the Badgr API.
@@ -41,7 +60,6 @@ def get_bearer_token(config: dict):
         "client_id": config["BADGR_CLIENT_ID"],
     }
     response = requests.request("POST", url, data=payload)
-    print(response.content)
     return response.json()["access_token"]
 
 
@@ -98,7 +116,6 @@ def issue_badge(
 
     :return: The assertion as a response object
     """
-
     # Get the URL for the badge, based on assessment name
     url = (
         config["BADGR_BASE_URL"]
@@ -128,6 +145,5 @@ def issue_badge(
         "Content-Type": "application/json",
         "Authorization": "Bearer " + bearer_token,
     }
-
     response = requests.request("POST", url, headers=headers, data=payload)
     return response

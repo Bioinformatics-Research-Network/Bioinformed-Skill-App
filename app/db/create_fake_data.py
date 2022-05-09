@@ -1,5 +1,8 @@
 # This
+
+from datetime import datetime
 import random
+from app import models
 from app.crud import random_data_crud
 from app.db.initiate_db import init_db
 from app.db.session import SessionLocal
@@ -85,6 +88,7 @@ def bot_testing_data(db: Session):
 
 
 def create_fake_data(user=20, reviewer=20, assessment=10, assessment_tracker=50):
+
     """
     To create fake data for the database. It adds fake data to the pre-existing database.
     If database doesn't exist already it will create the database "fake_skill_cert.db".

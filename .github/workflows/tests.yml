@@ -6,7 +6,11 @@ name: tests
 # or API.
 on:
   push:
+    branches:
+      main
   pull_request:
+    branches:
+      main
   workflow_dispatch:
 
 # Use mamba to handle conda installs in a faster way.

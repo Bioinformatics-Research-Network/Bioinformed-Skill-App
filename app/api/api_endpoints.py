@@ -45,6 +45,110 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     return {"Initiated": True, "User_first_name": user.first_name}
 
 
+@router.get("/view")
+def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
+    """
+    Invoked by bot.approve
+    Changes the status of the assessment_tracker entry to "Approved",
+    updates the logs with the changes made
+    Verifies member and reviewer.
+
+    Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
+
+    :param db: Generator for Session of database
+    :param approve_assessment: inputs member and reviewer github username and assessment name.
+
+    :returns: json indicating if the assessment was approved as a bool.
+    """
+    try:
+        user = crud.get_user_by_username(db=db, username=view_request.github_username)
+        assessment = crud.get_assessment_by_name(
+            db=db, assessment_name=view_request.assessment_name
+        )
+        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+            db=db,
+            user_id=user.user_id,
+            assessment_id=assessment.assessment_id,
+        )
+    except ValueError as e: 
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e: # pragma: no cover
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return assessment_tracker_entry.as_dict()
+
+
+@router.patch("/update")
+def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
+    """
+    Invoked by bot.check -> HTTP request to /api/check
+    Updates the log of the assessment_tracker table entry with input log.
+
+    :param db: Generator for Session of database
+    :param asses_track_info: inputs user github username, assessment name and latest commit.
+    :param update_logs: inputs the logs which will be added to pre-existing log entry.
+
+    :returns: json indicating the logs were updated
+    """
+    try:
+        user = crud.get_user_by_username(db=db, username=update_request.github_username)
+        assessment = crud.get_assessment_by_name(
+            db=db, assessment_name=update_request.assessment_name
+        )
+        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+            db=db,
+            user_id=user.user_id,
+            assessment_id=assessment.assessment_id,
+        )
+        crud.update_assessment_log(
+            db=db,
+            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+            latest_commit=update_request.commit,
+            update_logs=update_request.log,
+        )
+    except ValueError as e: 
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e: # pragma: no cover
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"Logs Updated": "update"}
+
+
+@router.post("/delete")
+def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest):
+    """
+    Invoked by bot.approve
+    Changes the status of the assessment_tracker entry to "Approved",
+    updates the logs with the changes made
+    Verifies member and reviewer.
+
+    Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
+
+    :param db: Generator for Session of database
+    :param approve_assessment: inputs member and reviewer github username and assessment name.
+
+    :returns: json indicating if the assessment was approved as a bool.
+    """
+    try:
+        user = crud.get_user_by_username(db=db, username=view_request.github_username)
+        assessment = crud.get_assessment_by_name(
+            db=db, assessment_name=view_request.assessment_name
+        )
+        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+            db=db,
+            user_id=user.user_id,
+            assessment_id=assessment.assessment_id,
+        )
+        db.delete(assessment_tracker_entry)
+        db.commit()
+    except ValueError as e: 
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e: # pragma: no cover
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return True
+
+
 @router.post("/check")
 def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
     """
@@ -67,6 +171,8 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
             user_id=user.user_id,
             assessment_id=assessment.assessment_id,
         )
+        if assessment_tracker_entry.status == "Approved":
+            raise ValueError("Assessment already approved")
         update_logs = utils.run_gha(commit=check_request.latest_commit)
         crud.update_assessment_log(
             db=db,
@@ -125,42 +231,6 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
         raise HTTPException(status_code=500, detail=str(e))
 
     return reviewer_info
-
-
-@router.patch("/update")
-def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
-    """
-    Invoked by bot.check -> HTTP request to /api/check
-    Updates the log of the assessment_tracker table entry with input log.
-
-    :param db: Generator for Session of database
-    :param asses_track_info: inputs user github username, assessment name and latest commit.
-    :param update_logs: inputs the logs which will be added to pre-existing log entry.
-
-    :returns: json indicating the logs were updated
-    """
-    try:
-        user = crud.get_user_by_username(db=db, username=update_request.github_username)
-        assessment = crud.get_assessment_by_name(
-            db=db, assessment_name=update_request.assessment_name
-        )
-        assessment_tracker_entry = crud.get_assessment_tracker_entry(
-            db=db,
-            user_id=user.user_id,
-            assessment_id=assessment.assessment_id,
-        )
-        crud.update_assessment_log(
-            db=db,
-            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
-            latest_commit=update_request.commit,
-            update_logs=update_request.log,
-        )
-    except ValueError as e: 
-        raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return {"Logs Updated": "update"}
 
 
 @router.patch("/approve")

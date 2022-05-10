@@ -73,6 +73,9 @@ class AssessmentTracker(db.Base):
     assessment_info = relationship("Assessments", foreign_keys=[assessment_id])
     reviewer_info = relationship("Reviewers", foreign_keys=[reviewer_id])
 
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Assessments(db.Base):
     """

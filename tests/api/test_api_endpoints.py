@@ -1,7 +1,7 @@
 # starting with tests for api endpoints
-from datetime import datetime
 import random
 import string
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app import crud
@@ -57,9 +57,111 @@ def test_init(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment does not exist"}
 
 
+def test_view(client: TestClient, db: Session):
+    user_id = 1
+    assessment_id = 2
+    github_username = crud.get_user_by_id(db, user_id).github_username
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+
+    ## Successful query
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": github_username,
+    }
+    response = client.get("/api/view", json=request_json)
+    print(response.json())
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "Initiated"
+    assert data['user_id'] == user_id
+    assert data['assessment_id'] == assessment_id
+
+    ## Error on invalid username
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": "error",
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    ## Error on invalid assessment name
+    request_json = {
+        "assessment_name": "error",
+        "github_username": github_username,
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment does not exist"}
+
+    ## Error on missing entry
+    assessment_id = 3
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": github_username,
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+
+def test_delete(client: TestClient, db: Session):
+    user_id = 1
+    assessment_id = 3
+    github_username = crud.get_user_by_id(db, user_id).github_username
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+    commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    # Create entry
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": github_username,
+        "latest_commit": commit,
+    }
+    response = client.post("/api/init", json=request_json)
+
+    ## Success: Delete entry
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": github_username,
+    }
+    response = client.post("/api/delete", json=request_json)
+    assert response.status_code == 200
+    with pytest.raises(Exception) as exc:
+        crud.get_assessment_tracker_entry(db, user_id, assessment_id)
+    assert str(exc.value) == "Assessment tracker entry unavailable."
+
+    ## Error: Delete entry that does not exist
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": github_username,
+    }
+    response = client.post("/api/delete", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+    ## Error: Delete entry with incorrect username
+    request_json = {
+        "assessment_name": assessment_name,
+        "github_username": "error",
+    }
+    response = client.post("/api/delete", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    ## Error: Delete entry with incorrect assessment name
+    request_json = {
+        "assessment_name": "error",
+        "github_username": github_username,
+    }
+    response = client.post("/api/delete", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment does not exist"}
+
+
 def test_check(client: TestClient, db: Session):
 
-    # Successful query
+    ## Successful query
     user = crud.get_user_by_id(db, 1)
     assessment = crud.get_assessment_by_id(db, 2)
     request_json = {
@@ -73,7 +175,7 @@ def test_check(client: TestClient, db: Session):
     assert response.status_code == 200
     assert response.json() == {"Logs updated": "check"}
 
-    # Error on username
+    ## Error on username
     request_json = {
         "github_username": "error",
         "assessment_name": assessment.name,
@@ -85,7 +187,7 @@ def test_check(client: TestClient, db: Session):
     assert response.status_code == 422
     assert response.json() == {"detail": "User name does not exist"}
 
-    # Error on assessment name
+    ## Error on assessment name
     request_json = {
         "github_username": user.github_username,
         "assessment_name": "error",
@@ -96,6 +198,48 @@ def test_check(client: TestClient, db: Session):
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment does not exist"}
+
+    ## Error on not initiated
+    user = crud.get_user_by_id(db, 1)
+    assessment = crud.get_assessment_by_id(db, 3)
+    request_json = {
+        "github_username": user.github_username,
+        "assessment_name": assessment.name,
+        "latest_commit": "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=10)
+        ),
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+
+    ## Error on already approved
+    user = crud.get_user_by_id(db, 1)
+    assessment = crud.get_assessment_by_id(db, 2)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db, user.user_id, assessment.assessment_id
+    )
+    assessment_tracker_entry.status = "Approved"
+    db.add(assessment_tracker_entry)
+    db.commit()
+    request_json = {
+        "github_username": user.github_username,
+        "assessment_name": assessment.name,
+        "latest_commit": "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=10)
+        ),
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment already approved"}
+    # Revert back to initial state for subsequent tests
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db, user.user_id, assessment.assessment_id
+    )
+    assessment_tracker_entry.status = "Initiated"
+    db.add(assessment_tracker_entry)
+    db.commit()
 
 
 def test_review(client: TestClient, db: Session):
@@ -108,7 +252,7 @@ def test_review(client: TestClient, db: Session):
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"reviewer_id": 3, "reviewer_username": "Betsy_Enos29"}
+    assert response.json() == {"reviewer_id": 1, "reviewer_username": "Betsy_Enos29"}
 
     ## Error: The repo is not passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)

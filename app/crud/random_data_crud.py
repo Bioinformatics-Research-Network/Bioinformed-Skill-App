@@ -49,7 +49,7 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     user_id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
-        userid = random.randint(3, user_id_count)
+        userid = random.randint(1, user_id_count)
         db_obj = models.Reviewers(user_id=userid)
 
         db.add(db_obj)

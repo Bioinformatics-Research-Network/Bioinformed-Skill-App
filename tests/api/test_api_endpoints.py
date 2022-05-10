@@ -73,8 +73,8 @@ def test_view(client: TestClient, db: Session):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "Initiated"
-    assert data['user_id'] == user_id
-    assert data['assessment_id'] == assessment_id
+    assert data["user_id"] == user_id
+    assert data["assessment_id"] == assessment_id
 
     ## Error on invalid username
     request_json = {
@@ -212,7 +212,6 @@ def test_check(client: TestClient, db: Session):
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
-
 
     ## Error on already approved
     user = crud.get_user_by_id(db, 1)

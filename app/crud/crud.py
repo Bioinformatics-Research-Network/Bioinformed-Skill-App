@@ -157,9 +157,7 @@ def get_assessment_tracker_entry(db: Session, user_id: int, assessment_id: int):
     return assessment_tracker
 
 
-def get_assessment_tracker_entry_by_id(
-    db: Session, assessment_tracker_entry_id: int
-):
+def get_assessment_tracker_entry_by_id(db: Session, assessment_tracker_entry_id: int):
     """
     Return the assessment tracker entry by id.
 
@@ -276,7 +274,7 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
             username=user.github_username,
         ).reviewer_id
     except ValueError as e:
-        if str(e) != "Reviewer does not exist": # pragma: no cover
+        if str(e) != "Reviewer does not exist":  # pragma: no cover
             raise ValueError(str(e))  # Raise error if not expected
         else:
             invalid_rev = 0  # trainee is not a reviewer
@@ -296,12 +294,14 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
     try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_reviewer_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
+        random_reviewer_id = valid_reviewers[
+            random.randint(0, len(valid_reviewers) - 1)
+        ][0]
 
         # Return the reviewer's db entry
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_reviewer_id)
         return random_reviewer
-    except IndexError as e: # pragma: no cover
+    except IndexError as e:  # pragma: no cover
         raise ValueError("No reviewer available. Contact the administrator.")
 
 
@@ -315,7 +315,7 @@ def assign_reviewer(
     :param assessment_tracker_entry: assessment tracker entry
     :param reviewer_info: reviewer info. Dict following the format:
         { "reviewer_id": int, "reviewer_username": str }
-    
+
     :returns: True
 
     :raises: None (hopefully)

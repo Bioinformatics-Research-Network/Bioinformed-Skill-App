@@ -19,13 +19,13 @@ router = APIRouter(prefix="/api", tags=["api"])
 def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     """
     Initiates new assessment instances for assessment_tracker table.
-    
+
     :param db: Generator for Session of database
     :param init_request: Pydantic request model schema used by `/api/init` endpoint
 
     :returns: Json indicating if assessment was initiated, first name of user for bot use
 
-    :raises: HTTPException 422 if: 
+    :raises: HTTPException 422 if:
         - Entry already exists
         - User does not exist
         - Assessment does not exist
@@ -40,7 +40,7 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
@@ -58,8 +58,8 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     :returns: Json object containing the assessment tracker entry for the given user and assessment
 
     :raises: HTTPException 422 if:
-        - User does not exist 
-        - Assessment does not exist 
+        - User does not exist
+        - Assessment does not exist
         - Assessment tracker entry does not exist
     """
     try:
@@ -72,9 +72,9 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
             user_id=user.user_id,
             assessment_id=assessment.assessment_id,
         )
-    except ValueError as e: 
+    except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return assessment_tracker_entry.as_dict()
@@ -87,12 +87,12 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
 
     :param db: Generator for Session of database
     :param update_request: Pydantic request model schema used by `/api/update` endpoint
-    
+
     :returns: Json object indicating if the assessment tracker entry was updated
 
     :raises: HTTPException 422 if:
         - User does not exist
-        - Assessment does not exist 
+        - Assessment does not exist
         - Assessment tracker entry does not exist
     """
     try:
@@ -111,9 +111,9 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             latest_commit=update_request.commit,
             update_logs=update_request.log,
         )
-    except ValueError as e: 
+    except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs Updated": True}
@@ -131,7 +131,7 @@ def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest
 
     :raises: HTTPException 422 if:
         - User does not exist
-        - Assessment does not exist 
+        - Assessment does not exist
         - Assessment tracker entry does not exist
     """
     try:
@@ -146,9 +146,9 @@ def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest
         )
         db.delete(assessment_tracker_entry)
         db.commit()
-    except ValueError as e: 
+    except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Entry deleted": True}
@@ -166,7 +166,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
 
     :raises: HTTPException 422 if:
         - User does not exist
-        - Assessment does not exist 
+        - Assessment does not exist
         - Assessment tracker entry does not exist
     """
     try:
@@ -190,7 +190,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Check": True}
@@ -208,10 +208,10 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
 
     :raises: HTTPException 422 if:
         - User does not exist
-        - Assessment does not exist 
-        - Assessment tracker entry does not exist 
+        - Assessment does not exist
+        - Assessment tracker entry does not exist
         - Assessment tracker entry is already approved
-        - Assessment tracker entry is already assigned to a reviewer 
+        - Assessment tracker entry is already assigned to a reviewer
         - This assessment is not passing automated checks
         - The commit is not found in the assessment tracker entry table
     """
@@ -242,9 +242,9 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
             assessment_tracker_entry=assessment_tracker_entry,
             reviewer_info=reviewer_info,
         )
-    except ValueError as e: 
+    except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return reviewer_info
@@ -311,7 +311,7 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment Approved": True}

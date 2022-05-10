@@ -10,14 +10,14 @@ random.seed(42)
 
 def get_user_by_username(db: Session, username: str):
     """
-    Return the user's entry.
+    Return the user entry based on username.
 
     :param db: Generator for Session of database
-    :param username: imputs github username
+    :param username: github username
 
-    :returns: Entry in Users table.
+    :returns: Entry in Users table as a sqlalchemy query object.
 
-    :errors: ValueError if user does not exist.
+    :raises: ValueError if user does not exist.
     """
     user = (
         db.query(models.Users).filter(models.Users.github_username == username).first()
@@ -29,7 +29,14 @@ def get_user_by_username(db: Session, username: str):
 
 def get_user_by_id(db: Session, user_id: int):
     """
-    Return the user's details.
+    Return the user entry based on user id.
+
+    :param db: Generator for Session of database
+    :param user_id: user id
+
+    :returns: Entry in Users table as a sqlalchemy query object.
+
+    :raises: ValueError if user does not exist.
     """
     user = db.query(models.Users).filter(models.Users.user_id == user_id).first()
     if user is None:
@@ -39,14 +46,14 @@ def get_user_by_id(db: Session, user_id: int):
 
 def get_reviewer_by_username(db: Session, username: str):
     """
-    Return the reviewer's id from username.
+    Return the reviewer entry based on username.
 
     :param db: Generator for Session of database
-    :param username: inputs reviewer's username
+    :param username: github username
 
-    :returns: reviewer id
+    :returns: Entry in Reviewers table as a sqlalchemy query object.
 
-    :errors: ValueError if reviewer does not exist.
+    :raises: ValueError if reviewer does not exist.
     """
     reviewer_user_id = get_user_by_username(db=db, username=username).user_id
     reviewer = (
@@ -62,7 +69,14 @@ def get_reviewer_by_username(db: Session, username: str):
 
 def get_reviewer_by_id(db: Session, reviewer_id: int):
     """
-    Return the reviewer's details.
+    Return the reviewer entry based on reviewer id.
+
+    :param db: Generator for Session of database
+    :param reviewer_id: reviewer id
+
+    :returns: Entry in Reviewers table as a sqlalchemy query object.
+
+    :raises: ValueError if reviewer does not exist.
     """
     reviewer = (
         db.query(models.Reviewers)
@@ -76,14 +90,14 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
 
 def get_assessment_by_name(db: Session, assessment_name: str):
     """
-    Return the assessment's id.
+    Return the assessment entry based on assessment name.
 
     :param db: Generator for Session of database
-    :param assessment_name: inputs assessment name
+    :param assessment_name: assessment name
 
-    :returns: assessment id
+    :returns: Entry in Assessments table as a sqlalchemy query object.
 
-    :errors: ValueError if assessment does not exist.
+    :raises: ValueError if assessment does not exist.
     """
     assessment = (
         db.query(models.Assessments)
@@ -98,7 +112,14 @@ def get_assessment_by_name(db: Session, assessment_name: str):
 
 def get_assessment_by_id(db: Session, assessment_id: int):
     """
-    Return the assessment's details.
+    Return the assessment entry based on assessment id.
+
+    :param db: Generator for Session of database
+    :param assessment_id: assessment id
+
+    :returns: Entry in Assessments table as a sqlalchemy query object.
+
+    :raises: ValueError if assessment does not exist.
     """
     assessment = (
         db.query(models.Assessments)
@@ -112,15 +133,15 @@ def get_assessment_by_id(db: Session, assessment_id: int):
 
 def get_assessment_tracker_entry(db: Session, user_id: int, assessment_id: int):
     """
-    Return the user's assessment tracker entry.
+    Return the assessment tracker entry.
 
     :param db: Generator for Session of database
-    :param user_id: inputs user's id
-    :param assessment_id: inputs assessment id
+    :param user_id: user id
+    :param assessment_id: assessment id
 
-    :returns: Assessment_tracker object containing the details of the entry made.
+    :returns: Assessment traker entry as an sqlalchemy query object.
 
-    :errors: ValueError if assessment tracker entry does not exist.
+    :raises: ValueError if assessment tracker entry does not exist.
     """
     assessment_tracker = (
         db.query(models.AssessmentTracker)
@@ -136,17 +157,18 @@ def get_assessment_tracker_entry(db: Session, user_id: int, assessment_id: int):
     return assessment_tracker
 
 
-def get_assessment_tracker_entry_by_id(db: Session, assessment_tracker_entry_id: int):
+def get_assessment_tracker_entry_by_id(
+    db: Session, assessment_tracker_entry_id: int
+):
     """
-    Return the assessment tracker entry.
+    Return the assessment tracker entry by id.
 
     :param db: Generator for Session of database
-    :param assessment_tracker_entry_id: inputs assessment tracker entry id
+    :param assessment_tracker_entry_id: assessment tracker entry id
 
-    :returns: Assessment_tracker object containing the details of the entry made.
+    :returns: Assessment tracker entry as an sqlalchemy query object.
 
-    :errors: ValueError if assessment tracker entry does not exist.
-
+    :raises: ValueError if assessment tracker entry does not exist.
     """
     assessment_tracker = (
         db.query(models.AssessmentTracker)
@@ -161,10 +183,14 @@ def get_assessment_tracker_entry_by_id(db: Session, assessment_tracker_entry_id:
 
 def get_assessment_tracker_entry_by_commit(db: Session, commit: str):
     """
-    Return the assessment tracker entry by last commit.
-    This DOES NOT work as part of update commands, as these may
-    contain a new commit which is not yet registered in the tracker.
-    It should really only be applied for the /check and /approve endpoints.
+    Return the assessment tracker entry by latest commit.
+
+    :param db: Generator for Session of database
+    :param commit: commit
+
+    :returns: Assessment tracker entry as an sqlalchemy query object.
+
+    :raises: ValueError if assessment tracker entry does not exist.
     """
     assessment_tracker = (
         db.query(models.AssessmentTracker)
@@ -183,15 +209,17 @@ def init_assessment_tracker(
     user_id: int,
 ):
     """
-    Invoked by /api/init_assessment endpoint.
-    Initiates/adds a fresh entry in assessment_tracker table.
+    Initialize the assessment tracker entry
 
     :param db: Generator for Session of database
-    :param assessment_tracker: inputs user's github username, assessment name and latest commit.
+    :param init_request: init request based on InitRequest schema
 
-    :returns: Assessment_tracker object containing the details of the entry made.
+    :returns: True
 
-    :errors: ValueError if assessment tracker entry has already been initiated.
+    :raises: ValueError if:
+        - Assessment does not exist
+        - Assessment tracker entry already exists
+        - User does not exist
     """
     # Get assessment id
     assessment_id = get_assessment_by_name(
@@ -232,11 +260,14 @@ def init_assessment_tracker(
 
 def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTracker):
     """
-    Invoked by /api/init_review endpoint
-    Used to get the reviewer's github username
+    Select a reviewer for the assessment tracker entry.
 
-    This currently assumes we will be using the information about the
-    skill assessment in order to select a reviewer
+    :param db: Generator for Session of database
+    :param assessment_tracker_entry: assessment tracker entry
+
+    :returns: Reviewer info as an entry from the Reviewer's table in sqlalchemy query object format.
+
+    :raises: Uncaught error if no reviewer is available (should not happen).
     """
     user = get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
     try:
@@ -262,25 +293,32 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
         .all()
     )
 
-    # Get a random reviewer from the list of valid reviewers
-    # Will be replaced with Slack integration
-    random_reviewer_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
+    try:
+        # Get a random reviewer from the list of valid reviewers
+        # Will be replaced with Slack integration
+        random_reviewer_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
 
-    # Return the reviewer's db entry
-    random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_reviewer_id)
-    return random_reviewer
+        # Return the reviewer's db entry
+        random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_reviewer_id)
+        return random_reviewer
+    except IndexError as e: # pragma: no cover
+        raise ValueError("No reviewer available. Contact the administrator.")
 
 
 def assign_reviewer(
     db: Session, assessment_tracker_entry: models.AssessmentTracker, reviewer_info: dict
 ):
     """
-    Invoked by /api/init_review endpoint
-    Used to assign a reviewer to an assessment tracker entry
+    Assign a reviewer to the assessment tracker entry.
 
     :param db: Generator for Session of database
-    :param assessment_tracker_entry: inputs assessment tracker entry id
-    :param reviewer_info: dict containing reviewer's github username and id
+    :param assessment_tracker_entry: assessment tracker entry
+    :param reviewer_info: reviewer info. Dict following the format:
+        { "reviewer_id": int, "reviewer_username": str }
+    
+    :returns: True
+
+    :raises: None (hopefully)
     """
     # Update the assessment tracker entry
     assessment_tracker_entry.reviewer_id = reviewer_info["reviewer_id"]
@@ -308,15 +346,24 @@ def approve_assessment(
     assessment: models.Assessments,
 ):
     """
-    Invoked by /api/approve endpoint.
-    Changes the status of the assessment_tracker data, updates the log accordingly
+    Approve an assessment.
 
     :param db: Generator for Session of database
-    :param trainee: Entry from user table for trainee
-    :param reviewer: Entry from reviewer table for reviewer
-    :param assessment: Entry from assessment table for assessment
+    :param trainee: trainee's db entry from the Users table in sqlalchemy query object format.
+    :param reviewer: reviewer's db entry from the Reviewers table in sqlalchemy query object format.
+    :param reviewer_username: reviewer's github username
+    :param assessment: assessment's db entry from the Assessments table in sqlalchemy query object format.
 
-    :returns: boolean True if the assessment is approved and badge is awarded.
+    :returns: True
+
+    :raises: ValueError if:
+        - Reviewer is the same as the trainee
+        - Assessment is already approved
+        - Assessment is not under review
+        - No reviewer is assigned
+        - Last commit check failed
+        - Assessment tracker entry does not exist
+        - Reviewer is not the same as the reviewer assigned in the assessment tracker entry
     """
     # Get user ids and confirm they are different
     if reviewer.user_id == trainee.user_id:
@@ -369,13 +416,16 @@ def update_assessment_log(
     db: Session, assessment_tracker_entry_id: int, latest_commit: str, update_logs: dict
 ):
     """
-    It updates the logs of the entry in assessmnet_tracker table
+    Update the assessment tracker entry log.
 
     :param db: Generator for Session of database
-    :param asses_track_info: user github username, assessment name, latest commit
-    :param update_logs: logs to be added
+    :param assessment_tracker_entry_id: assessment tracker entry id
+    :param latest_commit: latest commit
+    :param update_logs: logs to update as a dict
 
-    :returns: assessment_tracker object with the updated entry
+    :returns: True
+
+    :raises: ValueError if the assessment tracker entry does not exist
     """
     # Get the assessment tracker entry
     assessment_tracker_entry = get_assessment_tracker_entry_by_id(

@@ -173,7 +173,7 @@ def test_check(client: TestClient, db: Session):
     }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"Logs updated": "check"}
+    assert response.json() == {"Check": True}
 
     ## Error on username
     request_json = {
@@ -379,7 +379,6 @@ def test_approve(client: TestClient, db: Session):
     assert response.json() == {"detail": "No reviewer is assigned to the assessment."}
 
 
-# /api/update
 def test_update(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
     github_username = crud.get_user_by_id(
@@ -399,7 +398,7 @@ def test_update(client: TestClient, db: Session):
     }
     response = client.patch("/api/update", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"Logs Updated": "update"}
+    assert response.json() == {"Logs Updated": True}
 
     # Incorrect assessment
     request_json = {

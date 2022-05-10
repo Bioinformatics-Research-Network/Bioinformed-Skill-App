@@ -4,7 +4,7 @@ from app.api.services import get_db
 from app import schemas, crud, utils
 
 
-## TODO: Fix this later -- should be parameterized
+## TODO: Fix this later -- should be parameterized using fastapi config
 badgr_config = utils.config_test
 
 
@@ -18,15 +18,17 @@ router = APIRouter(prefix="/api", tags=["api"])
 @router.post("/init", response_model=schemas.InitResponse)
 def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     """
-    Invoked by bot.assessment_init
-    Initiates new assessments for assessment_tracker table.
-    It verifies member by github username if valid, initiates
-
+    Initiates new assessment instances for assessment_tracker table.
+    
     :param db: Generator for Session of database
-    :param user: Inputs user's github username.
-    :param assessment_tracker: Inputs assessment name and latest commit.
+    :param init_request: Pydantic request model schema used by `/api/init` endpoint
 
     :returns: Json indicating if assessment was initiated, first name of user for bot use
+
+    :raises: HTTPException 422 if: 
+        - Entry already exists
+        - User does not exist
+        - Assessment does not exist
     """
     # Try to init assessment tracker
     # If member is not valid, raise 422 error
@@ -48,17 +50,17 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
 @router.get("/view")
 def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     """
-    Invoked by bot.approve
-    Changes the status of the assessment_tracker entry to "Approved",
-    updates the logs with the changes made
-    Verifies member and reviewer.
-
-    Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
+    Returns the assessment tracker entry for the given user and assessment as a json object.
 
     :param db: Generator for Session of database
-    :param approve_assessment: inputs member and reviewer github username and assessment name.
+    :param view_request: Pydantic request model schema used by `/api/view` endpoint
 
-    :returns: json indicating if the assessment was approved as a bool.
+    :returns: Json object containing the assessment tracker entry for the given user and assessment
+
+    :raises: HTTPException 422 if:
+        - User does not exist 
+        - Assessment does not exist 
+        - Assessment tracker entry does not exist
     """
     try:
         user = crud.get_user_by_username(db=db, username=view_request.github_username)
@@ -81,14 +83,17 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
 @router.patch("/update")
 def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
     """
-    Invoked by bot.check -> HTTP request to /api/check
-    Updates the log of the assessment_tracker table entry with input log.
+    Updates the assessment tracker entry for the given user and assessment with the given commit and log.
 
     :param db: Generator for Session of database
-    :param asses_track_info: inputs user github username, assessment name and latest commit.
-    :param update_logs: inputs the logs which will be added to pre-existing log entry.
+    :param update_request: Pydantic request model schema used by `/api/update` endpoint
+    
+    :returns: Json object indicating if the assessment tracker entry was updated
 
-    :returns: json indicating the logs were updated
+    :raises: HTTPException 422 if:
+        - User does not exist
+        - Assessment does not exist 
+        - Assessment tracker entry does not exist
     """
     try:
         user = crud.get_user_by_username(db=db, username=update_request.github_username)
@@ -111,23 +116,23 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
     except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Logs Updated": "update"}
+    return {"Logs Updated": True}
 
 
 @router.post("/delete")
 def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest):
     """
-    Invoked by bot.approve
-    Changes the status of the assessment_tracker entry to "Approved",
-    updates the logs with the changes made
-    Verifies member and reviewer.
-
-    Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
+    Deletes the assessment tracker entry for the given user and assessment.
 
     :param db: Generator for Session of database
-    :param approve_assessment: inputs member and reviewer github username and assessment name.
+    :param view_request: Pydantic request model schema used by `/api/delete` endpoint
 
-    :returns: json indicating if the assessment was approved as a bool.
+    :returns: Json object indicating if the assessment tracker entry was deleted
+
+    :raises: HTTPException 422 if:
+        - User does not exist
+        - Assessment does not exist 
+        - Assessment tracker entry does not exist
     """
     try:
         user = crud.get_user_by_username(db=db, username=view_request.github_username)
@@ -146,20 +151,23 @@ def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest
     except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
-    return True
+    return {"Entry deleted": True}
 
 
 @router.post("/check")
 def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
     """
-    Invoked by bot.check
-    Verifies member github username, then provokes utils.runGHA to run GHA checks on the commit.
-    Updates the logs of assessment_tracker entry with updated logs from GHA through api.update()
+    Run automated checks on the assessment tracker entry for the given user and assessment.
 
     :param db: Generator for Session of database
-    :param asses_track_info: inputs user github username, assessment name and latest commit.
+    :param check_request: Pydantic request model schema used by `/api/check` endpoint
 
-    :returns: Json indicating logs were updated
+    :returns: Json object indicating if the assessment tracker entry was checked
+
+    :raises: HTTPException 422 if:
+        - User does not exist
+        - Assessment does not exist 
+        - Assessment tracker entry does not exist
     """
     try:
         user = crud.get_user_by_username(db=db, username=check_request.github_username)
@@ -185,18 +193,27 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
     except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Logs updated": "check"}
+    return {"Check": True}
 
 
 @router.post("/review")
 def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewRequest):
     """
-    Invoked by bot.review
+    Assign the assessment tracker entry for the given user and assessment to a reviewer.
 
     :param db: Generator for Session of database
-    :param asses_track_info: inputs user github username, assessment name and latest commit.
+    :param review_request: Pydantic request model schema used by `/api/review` endpoint
 
-    :returns: Json indicating logs were updated
+    :returns: Json object containing the reviewer info
+
+    :raises: HTTPException 422 if:
+        - User does not exist
+        - Assessment does not exist 
+        - Assessment tracker entry does not exist 
+        - Assessment tracker entry is already approved
+        - Assessment tracker entry is already assigned to a reviewer 
+        - This assessment is not passing automated checks
+        - The commit is not found in the assessment tracker entry table
     """
     try:
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
@@ -236,20 +253,25 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
 @router.patch("/approve")
 def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRequest):
     """
-    Invoked by bot.approve
-    Changes the status of the assessment_tracker entry to "Approved",
-    updates the logs with the changes made
-    Verifies member and reviewer.
-
-    Implements app.utils.badgr_utils functions to assign badges to the user if assessment is approved.
+    Approve the assessment tracker entry for the given user and assessment.
 
     :param db: Generator for Session of database
-    :param approve_assessment: inputs member and reviewer github username and assessment name.
+    :param approve_request: Pydantic request model schema used by `/api/approve` endpoint
 
-    :returns: json indicating if the assessment was approved as a bool.
+    :returns: Json object indicating if the assessment tracker entry was approved
+
+    :raises: HTTPException 422 if:
+        - User does not exist
+        - Assessment does not exist
+        - Assessment tracker entry does not exist
+        - Assessment tracker entry is already approved
+        - Assessment tracker entry is not assigned to a reviewer
+        - Assessment tracker entry is not passing automated checks
+        - The commit is not found in the assessment tracker entry table
+        - The reviewer is not found in the reviewer table
+        - The reviewer is the same as the user
+        - The reviewer is not listed as a reviewer for this assessment
     """
-
-    # Approve assessment
     try:
         # Get the assessment_tracker entry
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(

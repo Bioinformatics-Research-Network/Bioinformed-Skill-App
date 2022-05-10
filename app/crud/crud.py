@@ -245,7 +245,7 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
             username=user.github_username,
         ).reviewer_id
     except ValueError as e:
-        if str(e) != "Reviewer does not exist":
+        if str(e) != "Reviewer does not exist": # pragma: no cover
             raise ValueError(str(e))  # Raise error if not expected
         else:
             invalid_rev = 0  # trainee is not a reviewer

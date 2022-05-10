@@ -38,7 +38,7 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
@@ -76,7 +76,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs updated": "check"}
@@ -119,9 +119,9 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
             assessment_tracker_entry=assessment_tracker_entry,
             reviewer_info=reviewer_info,
         )
-    except ValueError as e:
+    except ValueError as e: 
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return reviewer_info
@@ -155,9 +155,9 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             latest_commit=update_request.commit,
             update_logs=update_request.log,
         )
-    except ValueError as e:
+    except ValueError as e: 
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs Updated": "update"}
@@ -200,27 +200,26 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
         # Error if checks are not passed
         # Error if assessment is already approved;
         # Error if reviewer is same as trainee
-        valid = crud.approve_assessment(
+        crud.approve_assessment(
             db=db,
             trainee=user,
             reviewer=reviewer,
             reviewer_username=approve_request.reviewer_username,
             assessment=assessment,
         )
-        if valid:
-            # Issue badge
-            bt = utils.get_bearer_token(badgr_config)
-            utils.issue_badge(
-                user_email=user.email,
-                user_first=user.first_name,
-                user_last=user.last_name,
-                assessment_name=assessment.name,
-                bearer_token=bt,
-                config=badgr_config,
-            )
+        # Issue badge
+        bt = utils.get_bearer_token(badgr_config)
+        utils.issue_badge(
+            user_email=user.email,
+            user_first=user.first_name,
+            user_last=user.last_name,
+            assessment_name=assessment.name,
+            bearer_token=bt,
+            config=badgr_config,
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment Approved": True}

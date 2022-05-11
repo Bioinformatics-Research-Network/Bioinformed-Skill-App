@@ -102,13 +102,10 @@ The name of db can be altered from app/db/session.py .
 
 To create the database suitable for the SKILL-CERT-API:
 
-1. Go to the `Skill-cert-API/app` directory.
-   This is necessary to create the database in the required directory i.e. `/app/` for the API to read from.
-
-2. Run the following command:
+1. Run the following command:
 
 ```shell
-python ./db/create_fake_data.py
+python app/db/create_fake_data.py
 ```
 
 To alter the amount of fake data created `create_fake_data.py` file can edited accordingly.
@@ -117,9 +114,7 @@ To alter the amount of fake data created `create_fake_data.py` file can edited a
 
 To start the api follow the steps:
 
-1. Go to `Skill-cert-API/app` directory.
-
-2. Starting the app using `uvicorn`:
+1. Starting the app using `uvicorn`:
 
 ```shell
 uvicorn main:app --reload

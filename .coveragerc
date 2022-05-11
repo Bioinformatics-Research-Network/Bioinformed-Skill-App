@@ -5,3 +5,4 @@ omit =
     __pycache__/
     .pytest_cache/
     tests/
+    app/db/initiate_db.py

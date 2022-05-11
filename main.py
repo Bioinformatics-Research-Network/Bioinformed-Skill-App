@@ -3,7 +3,8 @@
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from app.db.initiate_db import init_db
+from app.db.initiate_db import init_db, init_db_real
+from app.db.fill_db import create_database
 from app.api.services import get_db
 from app.api import api_endpoints
 
@@ -12,7 +13,8 @@ app = FastAPI()
 
 # initialize database, creates new database if it doesn't exist. It doesn't add fake data.
 # For fake data entry see: app\db\create_fake_data.py
-init_db()
+init_db_real()
+create_database()
 
 
 @app.get("/")

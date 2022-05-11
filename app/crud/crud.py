@@ -436,8 +436,8 @@ def update_assessment_log(
     assessment_tracker_entry.last_updated = datetime.utcnow()
     assessment_tracker_entry.latest_commit = latest_commit
     logs = list(assessment_tracker_entry.log)
-    update_logs['commit'] = latest_commit
-    update_logs['timestamp'] = str(assessment_tracker_entry.last_updated)
+    update_logs["commit"] = latest_commit
+    update_logs["timestamp"] = str(assessment_tracker_entry.last_updated)
     logs.append(update_logs)
     assessment_tracker_entry.log = logs
 

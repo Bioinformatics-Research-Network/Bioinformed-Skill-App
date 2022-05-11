@@ -335,7 +335,7 @@ def test_update_assessment_log(db: Session):
     assert assessment_tracker_entry.user_id == 1
     assert assessment_tracker_entry.latest_commit == commit
     logs = list(assessment_tracker_entry.log)
-    assert logs[-1]['Test update log']
+    assert logs[-1]["Test update log"]
 
     ## Unsuccessful update
     ## Due to incorrect assessment tracker ID

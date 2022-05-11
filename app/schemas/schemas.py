@@ -58,7 +58,7 @@ class UpdateRequest(BaseModel):
 
     github_username: str
     assessment_name: str
-    commit: str
+    latest_commit: str
     log: dict
 
 
@@ -67,7 +67,7 @@ class ReviewRequest(BaseModel):
     Pydantic request model schema used by `/api/review` endpoint
     """
 
-    commit: str
+    latest_commit: str
 
 
 ## Response schemas
@@ -80,3 +80,12 @@ class InitResponse(BaseModel):
 
     Initiated: bool
     User_first_name: str
+
+
+class ReviewResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/review` endpoint
+    """
+
+    reviewer_id: int
+    reviewer_username: str

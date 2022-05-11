@@ -108,8 +108,8 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
         crud.update_assessment_log(
             db=db,
             assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
-            latest_commit=update_request.commit,
-            update_logs=update_request.log,
+            latest_commit=update_request.latest_commit,
+            update_logs=update_request.log.copy(),
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -186,7 +186,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
             db=db,
             assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
             latest_commit=check_request.latest_commit,
-            update_logs=update_logs,
+            update_logs=update_logs.copy(),
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -196,7 +196,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
     return {"Check": True}
 
 
-@router.post("/review")
+@router.post("/review", response_model=schemas.ReviewResponse)
 def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewRequest):
     """
     Assign the assessment tracker entry for the given user and assessment to a reviewer.
@@ -217,7 +217,7 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
     """
     try:
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
-            db=db, commit=review_request.commit
+            db=db, commit=review_request.latest_commit
         )
         if assessment_tracker_entry.status != "Initiated":
             raise ValueError(

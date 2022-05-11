@@ -77,7 +77,7 @@ def create_assessments(random_assessments: int, db: Session):
         db_obj = models.Assessments(
             name=name,
             version_number="1",
-            change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
+            change_log=[{"version": "1", "last_updated": str(datetime.utcnow())}],
             description=desc,
             pre_requisites_ids=pre_req,
             goals=desc,
@@ -112,9 +112,9 @@ def create_random_assessment_tracker(random_assessment_tracker: int, db: Session
             latest_commit=commit,
             log=[
                 {
-                    "Status": "Initiated",
-                    "Updated": str(datetime.utcnow()),
-                    "Commit": commit,
+                    "status": "Initiated",
+                    "timestamp": str(datetime.utcnow()),
+                    "commit": commit,
                 }
             ],
         )

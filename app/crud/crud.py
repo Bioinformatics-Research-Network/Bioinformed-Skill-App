@@ -244,9 +244,9 @@ def init_assessment_tracker(
             status="Initiated",
             log=[
                 {
-                    "Status": "Initiated",
-                    "Updated": str(datetime.utcnow()),
-                    "Commit": init_request.latest_commit,
+                    "status": "Initiated",
+                    "timestamp": str(datetime.utcnow()),
+                    "commit": init_request.latest_commit,
                 }
             ],
         )
@@ -332,7 +332,7 @@ def assign_reviewer(
         db=db,
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
-        update_logs=reviewer_info,
+        update_logs=reviewer_info.copy(),
     )  # Update logs
 
     return True
@@ -398,9 +398,9 @@ def approve_assessment(
     assessment_tracker_entry.status = "Approved"
     assessment_tracker_entry.last_updated = datetime.utcnow()
     log = {
-        "Updated": str(datetime.utcnow()),
-        "Status": "Approved",
-        "Commit": latest_commit,
+        "timestamp": str(datetime.utcnow()),
+        "status": "Approved",
+        "commit": latest_commit,
         "Reviewer": reviewer.reviewer_id,
     }
     logs = list(assessment_tracker_entry.log)
@@ -436,6 +436,8 @@ def update_assessment_log(
     assessment_tracker_entry.last_updated = datetime.utcnow()
     assessment_tracker_entry.latest_commit = latest_commit
     logs = list(assessment_tracker_entry.log)
+    update_logs['commit'] = latest_commit
+    update_logs['timestamp'] = str(assessment_tracker_entry.last_updated)
     logs.append(update_logs)
     assessment_tracker_entry.log = logs
 

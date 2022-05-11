@@ -173,8 +173,8 @@ def test_approve_assessment(
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
-            "Checks_passed": True,
-            "Commit": assessment_tracker_entry.latest_commit,
+            "checks_passed": True,
+            "commit": assessment_tracker_entry.latest_commit,
         },
     )
     # Approve assessment
@@ -233,8 +233,8 @@ def test_approve_assessment(
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
-            "Checks_passed": False,
-            "Commit": assessment_tracker_entry.latest_commit,
+            "checks_passed": False,
+            "commit": assessment_tracker_entry.latest_commit,
         },
     )
     # Approve assessment
@@ -285,8 +285,8 @@ def test_approve_assessment(
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
-            "Checks_passed": True,
-            "Commit": assessment_tracker_entry.latest_commit,
+            "checks_passed": True,
+            "commit": assessment_tracker_entry.latest_commit,
         },
     )
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
@@ -324,7 +324,7 @@ def test_update_assessment_log(db: Session):
         db=db,
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=commit,
-        update_logs=test_log,
+        update_logs=test_log.copy(),
     )
     assert update_logs
     # Verify that the log is updated
@@ -335,7 +335,7 @@ def test_update_assessment_log(db: Session):
     assert assessment_tracker_entry.user_id == 1
     assert assessment_tracker_entry.latest_commit == commit
     logs = list(assessment_tracker_entry.log)
-    assert test_log in logs
+    assert logs[-1]['Test update log']
 
     ## Unsuccessful update
     ## Due to incorrect assessment tracker ID
@@ -344,6 +344,6 @@ def test_update_assessment_log(db: Session):
             db=db,
             assessment_tracker_entry_id=0,
             latest_commit=commit,
-            update_logs=test_log,
+            update_logs=test_log.copy(),
         )
     assert "Assessment tracker entry unavailable." in str(exc.value)

@@ -69,7 +69,6 @@ def test_view(client: TestClient, db: Session):
         "github_username": github_username,
     }
     response = client.get("/api/view", json=request_json)
-    print(response.json())
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "Initiated"
@@ -247,7 +246,7 @@ def test_review(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
     # Therefore, successful query
     request_json = {
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 200
@@ -260,13 +259,14 @@ def test_review(client: TestClient, db: Session):
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
-            "Checks_passed": False,
-            "Commit": assessment_tracker_entry.latest_commit,
+            "checks_passed": False,
+            "commit": assessment_tracker_entry.latest_commit,
         },
     )
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
     # Therefore, successful query
     request_json = {
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 422
@@ -276,7 +276,7 @@ def test_review(client: TestClient, db: Session):
 
     # Error commit not found
     request_json = {
-        "commit": "error",
+        "latest_commit": "error",
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 422
@@ -289,7 +289,7 @@ def test_review(client: TestClient, db: Session):
     db.commit()
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
     request_json = {
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 422
@@ -355,8 +355,8 @@ def test_approve(client: TestClient, db: Session):
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
-            "Checks_passed": False,
-            "Commit": assessment_tracker_entry.latest_commit,
+            "checks_passed": False,
+            "commit": assessment_tracker_entry.latest_commit,
         },
     )
     request_json = {
@@ -392,7 +392,7 @@ def test_update(client: TestClient, db: Session):
     request_json = {
         "github_username": github_username,
         "assessment_name": assessment_name,
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,
     }
     response = client.patch("/api/update", json=request_json)
@@ -403,7 +403,7 @@ def test_update(client: TestClient, db: Session):
     request_json = {
         "github_username": github_username,
         "assessment_name": "error",
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,
     }
     response = client.patch("/api/update", json=request_json)
@@ -414,7 +414,7 @@ def test_update(client: TestClient, db: Session):
     request_json = {
         "github_username": "error",
         "assessment_name": assessment_name,
-        "commit": assessment_tracker_entry.latest_commit,
+        "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,
     }
     response = client.patch("/api/update", json=request_json)

@@ -12,9 +12,9 @@ def run_gha(commit: str):
     :returns: logs from the GHA
     """
     log = {
-        "Updated": str(datetime.utcnow()),
-        "Checks_passed": True,
-        "Commit": commit,
+        "timestamp": str(datetime.utcnow()),
+        "checks_passed": True,
+        "commit": commit,
     }
     return log
 
@@ -39,18 +39,17 @@ def verify_check(assessment_tracker_entry: models.AssessmentTracker):
     last_log_by_commit = [
         lg
         for lg in log
-        if lg.get("Commit", "NA") == assessment_tracker_entry.latest_commit
+        if lg.get("commit", "NA") == assessment_tracker_entry.latest_commit
     ]
     if last_log_by_commit == []:
         raise ValueError("No logs found for latest commit.")
 
     # Get the logs where checks were run
     commit_log_checks = [
-        lg for lg in last_log_by_commit if "Checks_passed" in lg.keys()
+        lg for lg in last_log_by_commit if "checks_passed" in lg.keys()
     ]
     if commit_log_checks == []:
         raise ValueError("Check results not available for latest commit.")
-    last_log = last_log_by_commit[-1]
-
+    last_log = commit_log_checks[-1]
     # Return checks results
-    return last_log["Checks_passed"]
+    return last_log["checks_passed"]

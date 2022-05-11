@@ -57,7 +57,7 @@ def bot_testing_data(db: Session):
     db_obj = models.Assessments(
         name="Test",
         version_number="1",
-        change_log=[{"Version No.": "1", "Updated": str(datetime.utcnow())}],
+        change_log=[{"version": "1", "last_updated": str(datetime.utcnow())}],
         description="Test decription",
         pre_requisites_ids=None,
         goals="Test goals",
@@ -76,9 +76,9 @@ def bot_testing_data(db: Session):
         status="Initiated",
         log=[
             {
-                "Status": "Initiated",
-                "Updated": str(datetime.utcnow()),
-                "Commit": cmt,
+                "status": "Initiated",
+                "timestamp": str(datetime.utcnow()),
+                "commit": cmt,
             }
         ],
     )

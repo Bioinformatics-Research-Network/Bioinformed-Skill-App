@@ -23,6 +23,7 @@ token_fp = "access_tokens.json"
 installation_ids = {
     "Python Programming II": 25476585,
     "Test": 25533349,
+    "Python Programming": 25616884,
 }
 
 # Dict of valid commands
@@ -31,7 +32,7 @@ cmds = ["hello", "help", "init", "view", "delete"]
 # Read the bot certificate
 try:
     app_key = os.environ["BOT_KEY"]
-except KeyError:
+except KeyError:  # pragma: no cover
     with open(os.path.normpath(os.path.expanduser(bot_key_path)), "r") as cert_file:
         app_key = cert_file.read()
 

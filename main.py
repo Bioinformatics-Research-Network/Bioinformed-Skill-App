@@ -1,23 +1,25 @@
-from bot.utils import *
-from bot.const import *
-from bot.bot import *
+from bot import bot, utils
 from fastapi import FastAPI, Body
 
 app = FastAPI()
-brnbot = Bot()
+brnbot = bot.Bot()
 
 
 @app.post("/")
 def bot(payload: dict = Body(...)):
 
     print("Processing payload")
-    sender = payload["sender"]["login"]
-    message = payload["comment"]["body"]
-    print(sender)
-    print(message)
 
-    if forbot(payload):
+    if utils.forbot(payload):
+        sender = payload["sender"]["login"]
+        message = payload["comment"]["body"]
+        print(sender)
+        print(message)
         cmd = brnbot.process_cmd(payload)
-        print(cmd)
+        print("Command: " + cmd)
+    elif utils.is_commit(payload=payload):
+        print("is commit")
+        response = brnbot.process_commit(payload)
+        print("Commit: " + response.json()["commit"])
 
     return "ok"

@@ -1,6 +1,7 @@
 import pytest
 import requests
-from bot import bot, const, utils
+import copy
+from bot import bot, utils
 
 # instantiate the bot
 bot = bot.Bot()
@@ -8,6 +9,13 @@ bot = bot.Bot()
 # Payload for test repo
 # https://github.com/Bioinformatics-Research-Network/test-bot/pull/1
 payload = {
+    "number": 1,
+    "pull_request": {
+        "url": "https://api.github.com/repos/brn-test-assessment/test-millerh1/pulls/1",
+        "head": {
+            "sha": "OIJSADJSAODJASJDOJASD",
+        },
+    },
     "sender": {
         "login": "millerh1",
     },
@@ -19,6 +27,9 @@ payload = {
     },
     "issue": {
         "number": 1,
+        "pull_request": {
+            "url": "https://api.github.com/repos/brn-test-assessment/test-millerh1/pulls/1"
+        },
     },
     "repository": {
         "owner": {
@@ -33,7 +44,7 @@ def test_hello():
     """
     Test the bot's hello command
     """
-    kwarg_dict = bot.parse_payload(payload)
+    kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
     response = utils.get_recent_comments(**kwarg_dict)
     assert response.json()[-1]["body"] == f"Hello, @{kwarg_dict['sender']}! 😊"
@@ -44,7 +55,7 @@ def test_invalid():
     Test invalid bot command
     """
     payload["comment"]["body"] = "@brnbot invalid"
-    kwarg_dict = bot.parse_payload(payload)
+    kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
     response = utils.get_recent_comments(**kwarg_dict)
     assert response.json()[-1]["body"] == "Invalid command. Try @brnbot help"
@@ -55,11 +66,11 @@ def test_help():
     Test the bot's help command
     """
     payload["comment"]["body"] = "@brnbot help"
-    kwarg_dict = bot.parse_payload(payload)
+    kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
     response = utils.get_recent_comments(**kwarg_dict)
     assert response.json()[-1]["body"] == "Available commands: \n" + "\n".join(bot.cmds)
-    
+
 
 def test_view():
     """
@@ -70,7 +81,8 @@ def test_view():
     try:
         payload["comment"]["body"] = "@brnbot init"
         bot.process_cmd(payload)
-    except: pass
+    except:
+        pass
 
     ## Successful view command
     payload["comment"]["body"] = "@brnbot view"
@@ -78,8 +90,8 @@ def test_view():
     assert response.status_code == 200
     assert response.json()["user_id"] == 1
     # Confirm the latest comment is the output of the view command
-    response2 = utils.get_recent_comments(**bot.parse_payload(payload))
-    assert response.json()['latest_commit'] in response2.json()[-1]["body"]
+    response2 = utils.get_recent_comments(**bot.parse_comment_payload(payload))
+    assert response.json()["latest_commit"] in response2.json()[-1]["body"]
     # Confirm the sender is correct
     assert payload["sender"]["login"] in response2.json()[-1]["body"]
 
@@ -93,14 +105,18 @@ def test_update():
     try:
         payload["comment"]["body"] = "@brnbot init"
         bot.process_cmd(payload)
-    except: pass
+    except:
+        pass
 
     ## Successful update command
     payload["comment"]["body"] = "@brnbot update Hello world!"
-    kwarg_dict = bot.parse_payload(payload)
+    kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
     response = utils.get_recent_comments(**kwarg_dict)
-    assert response.json()[-1]["body"] == "Assessment entry updated with message: \nHello world!"
+    assert (
+        response.json()[-1]["body"]
+        == "Assessment entry updated with message: \nHello world!"
+    )
     # Confirm update
     payload["comment"]["body"] = "@brnbot view"
     response = bot.process_cmd(payload)
@@ -116,7 +132,8 @@ def test_delete():
     try:
         payload["comment"]["body"] = "@brnbot init"
         bot.process_cmd(payload)
-    except: pass
+    except:
+        pass
 
     ## Successful delete command
     # Delete the assessment
@@ -143,11 +160,12 @@ def test_init():
     try:
         payload["comment"]["body"] = "@brnbot delete"
         bot.process_cmd(payload)
-    except: pass
+    except:
+        pass
 
     ## Init the assessment
     payload["comment"]["body"] = "@brnbot init"
-    kwarg_dict = bot.parse_payload(payload)
+    kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
     response = utils.get_recent_comments(**kwarg_dict)
     assert response.json()[-1]["body"] == "Initialized assessment. 🚀"
@@ -155,9 +173,151 @@ def test_init():
     payload["comment"]["body"] = "@brnbot init"
     with pytest.raises(requests.exceptions.HTTPError):
         bot.process_cmd(payload)
-    
 
 
+def test_update_on_commit():
+    """
+    Test the bot's update command on a commit
+    """
+
+    # Initialize the assessment if needed
+    try:
+        payload["comment"]["body"] = "@brnbot delete"
+        bot.process_cmd(payload)
+    except:
+        pass
+    try:
+        payload["comment"]["body"] = "@brnbot init"
+        bot.process_cmd(payload)
+    except:
+        pass
+
+    ## Successful update command
+    response = bot.process_commit(payload)
+    kwarg_dict = bot.parse_commit_payload(payload)
+    assert response.json()
+    assert response.status_code == 200
+    # Confirm the latest comment is the output of the command
+    response2 = utils.get_recent_comments(**kwarg_dict)
+    assert kwarg_dict["last_commit"] in response2.json()[-1]["body"]
 
 
+def test_check():
+    """
+    Test the bot's check command
+    """
 
+    # Initialize the assessment if needed
+    try:
+        payload["comment"]["body"] = "@brnbot delete"
+        bot.process_cmd(payload)
+    except:
+        pass
+    try:
+        payload["comment"]["body"] = "@brnbot init"
+        bot.process_cmd(payload)
+    except:
+        pass
+
+    ## Successful check command
+    payload["comment"]["body"] = "@brnbot check"
+    kwarg_dict = bot.parse_comment_payload(payload)
+    assert bot.process_cmd(payload)
+    response = utils.get_recent_comments(**kwarg_dict)
+    assert (
+        response.json()[-1]["body"]
+        == "Checks run 🔥. Please check the comments for results."
+    )
+
+    ## Second person on the repo can request a check
+    payload2 = copy.deepcopy(payload)
+    payload2["sender"]["login"] = "bioresnet"
+    assert bot.process_cmd(payload2)
+    response = utils.get_recent_comments(**kwarg_dict)
+    assert (
+        response.json()[-1]["body"]
+        == "Checks run 🔥. Please check the comments for results."
+    )
+
+
+def test_review():
+    """
+    Test the bot's review command
+    """
+
+    # Initialize the assessment if needed
+    try:
+        print("Delete")
+        payload["comment"]["body"] = "@brnbot delete"
+        bot.process_cmd(payload)
+    except:
+        pass
+    try:
+        print("Init")
+        payload["comment"]["body"] = "@brnbot init"
+        bot.process_cmd(payload)
+    except:
+        pass
+
+    # Ensure passing checks
+    print("Passing checks")
+    payload["comment"]["body"] = "@brnbot check"
+    assert bot.process_cmd(payload)
+
+    ## Successful review command
+    print("Review")
+    payload["comment"]["body"] = "@brnbot review"
+    kwarg_dict = bot.parse_comment_payload(payload)
+    response = bot.process_cmd(payload)
+    assert response.status_code == 200
+    assert response.json()["reviewer_username"] == "bioresnet"
+    # Confirm the reviewer is correct
+    reviewer_response = utils.get_reviewer(**kwarg_dict)
+    assert (
+        reviewer_response.json()["users"][0]["login"]
+        == response.json()["reviewer_username"]
+    )
+
+    ## Confirm that delete command removes the reviewer
+    payload["comment"]["body"] = "@brnbot delete"
+    response = bot.process_cmd(payload)
+    assert response.status_code == 200
+    assert response.json() == {"Entry deleted": True}
+    # Confirm no reviewer
+    reviewer_response = utils.get_reviewer(**kwarg_dict)
+    assert reviewer_response.status_code == 200
+    assert reviewer_response.json()["users"] == []
+
+
+def test_approve():
+    """
+    Test the bot's approve command
+    """
+    # Initialize the assessment if needed
+    try:
+        payload["comment"]["body"] = "@brnbot delete"
+        bot.process_cmd(payload)
+    except:
+        pass
+    try:
+        payload["comment"]["body"] = "@brnbot init"
+        bot.process_cmd(payload)
+    except:
+        pass
+
+    # Ensure passing checks
+    payload["comment"]["body"] = "@brnbot check"
+    assert bot.process_cmd(payload)
+
+    # Ensure it is under review
+    payload["comment"]["body"] = "@brnbot review"
+    response = bot.process_cmd(payload)
+    assert response.status_code == 200
+
+    # Successful approve command
+    payload["comment"]["body"] = "@brnbot approve"
+    payload2 = copy.deepcopy(payload)
+    payload2["sender"]["login"] = "bioresnet"
+    response = bot.process_cmd(payload2)
+    assert response.status_code == 200
+    assert response.json() == {"Assessment Approved": True}

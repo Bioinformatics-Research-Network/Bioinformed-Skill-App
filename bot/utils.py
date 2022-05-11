@@ -1,7 +1,9 @@
 import requests
 import json
+import time
 from datetime import datetime, timedelta, timezone
 from bot import const
+
 
 def post_comment(text: str, **kwargs):
     """
@@ -10,7 +12,7 @@ def post_comment(text: str, **kwargs):
     Args:
         text: The text to post
         **kwargs: The keyword arguments
-    
+
     Returns:
         The response from the GitHub API
     """
@@ -20,10 +22,62 @@ def post_comment(text: str, **kwargs):
     }
 
     request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    time.sleep(1)  # Sleep for 1 second to avoid rate limiting
     response = requests.post(
         request_url,
         headers=headers,
         json={"body": text},
+    )
+    response.raise_for_status()
+    return response
+
+
+def assign_reviewer(reviewer_username: str, **kwarg_dict):
+    """
+    Assign a reviewer to the assessment via API
+    """
+    headers = {
+        "Authorization": f"Bearer {kwarg_dict['access_token']}",
+        "Accept": const.accept_header,
+    }
+    request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
+    response = requests.post(
+        request_url,
+        headers=headers,
+        json={"reviewers": [reviewer_username]},
+    )
+    return response
+
+
+def get_reviewer(**kwarg_dict):
+    """
+    Get the reviewer from github API
+    """
+    headers = {
+        "Authorization": f"Bearer {kwarg_dict['access_token']}",
+        "Accept": const.accept_header,
+    }
+    request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
+    response = requests.get(
+        request_url,
+        headers=headers,
+    )
+    return response
+
+
+def remove_reviewer(reviewer_username: str, **kwarg_dict):
+    """
+    Remove the reviewer from the PR
+    """
+    headers = {
+        "Authorization": f"Bearer {kwarg_dict['access_token']}",
+        "Accept": const.accept_header,
+    }
+    request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
+    response = response = requests.delete(
+        request_url,
+        headers=headers,
+        json={"reviewers": [reviewer_username]},
     )
     return response
 
@@ -52,12 +106,21 @@ def get_recent_comments(delt: timedelta = timedelta(minutes=1), **kwargs):
     request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     one_minute_ago = datetime.now(tz=timezone.utc) - delt
     response = requests.get(
-        request_url,
-        headers=headers,
-        params = {
-            "since": one_minute_ago.isoformat()
-        }
+        request_url, headers=headers, params={"since": one_minute_ago.isoformat()}
     )
+    return response
+
+
+def get_last_comment(**kwargs):
+    """
+    Get the last comment
+    """
+    headers = {
+        "Authorization": f"Bearer {kwargs['access_token']}",
+        "Accept": const.accept_header,
+    }
+    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    response = requests.get(request_url, headers=headers)
     return response
 
 
@@ -79,7 +142,9 @@ def get_assessment_name(payload: dict):
     Get the assessment name based on installation ID
     """
     install_id = payload["installation"]["id"]
-    assessment = [key for key, value in const.installation_ids.items() if value == install_id][0]
+    assessment = [
+        key for key, value in const.installation_ids.items() if value == install_id
+    ][0]
     if assessment is None:
         return "Unknown"
     return assessment
@@ -116,10 +181,25 @@ def forbot(payload: dict):
     """
     Check if the payload is for the bot
     """
-    splt = payload["comment"]["body"].split()
-    if len(splt) > 0:
-        return splt[0] == "@brnbot"
-    else:
+    try:
+        splt = payload["comment"]["body"].split()
+        if len(splt) > 0:
+            return splt[0] == "@brnbot"
+        else:
+            return False
+    except KeyError:
+        return False
+
+
+def is_commit(payload: dict):
+    """
+    Check if the payload is a commit on the PR
+    """
+    # TODO: What else could cause this to trigger?
+    try:
+        payload["pull_request"]["head"]["sha"]
+        return True
+    except KeyError:
         return False
 
 

@@ -36,7 +36,7 @@ def test_approve():
     """
     payload["comment"]["body"] = "@brnbot approve"
     payload["sender"]["login"] = "Steven_Shortridge89"
-    assert bot.process_cmd(payload) == "Approving assessment. 🤔"
+    assert bot.process_cmd(payload) == "Assessment approved. 🤘"
 
 
 # def test_approve_no_auth():

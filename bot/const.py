@@ -22,11 +22,11 @@ token_fp = "access_tokens.json"
 # Dict of valid App install IDs
 installation_ids = {
     "Python Programming II": 25476585,
-    "Test": 25500143,
+    "Test": 25533349,
 }
 
 # Dict of valid commands
-cmds = ["hello", "help"]
+cmds = ["hello", "help", "init", "view", "delete"]
 
 # Read the bot certificate
 try:

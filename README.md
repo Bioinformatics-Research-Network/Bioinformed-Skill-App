@@ -6,6 +6,8 @@ Primary maintainer: Henry Miller
 
 This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
 
+This is a GitHub app which can be installed at the organization level via: https://github.com/apps/brn-bot
+
 ## Dev notes
 
 ### Quick start

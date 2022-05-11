@@ -1,9 +1,7 @@
-from bot.const import *
-from bot.utils import *
-from bot.bot import *
+from bot import utils, bot
 
 # instantiate the bot
-bot = Bot()
+bot = bot.Bot()
 
 # Payload for test repo
 # https://github.com/Bioinformatics-Research-Network/test-bot/pull/1
@@ -34,7 +32,8 @@ def test_init():
     Test the bot's init command
     """
     payload["comment"]["body"] = "@brnbot init"
-    assert bot.process_cmd(payload) == "Initialized assessment. 🚀"
+    assert bot.process_cmd(payload)
+    assert utils.retrieve_last_comment(payload) == "Initialized assessment. 🚀"
 
 
 # def test_init_again():

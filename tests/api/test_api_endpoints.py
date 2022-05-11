@@ -163,50 +163,19 @@ def test_check(client: TestClient, db: Session):
     ## Successful query
     user = crud.get_user_by_id(db, 1)
     assessment = crud.get_assessment_by_id(db, 2)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db, user.user_id, assessment.assessment_id
+    )
     request_json = {
-        "github_username": user.github_username,
-        "assessment_name": assessment.name,
-        "latest_commit": "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=10)
-        ),
+        "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 200
     assert response.json() == {"Check": True}
 
-    ## Error on username
+    ## Error on invalid commit
     request_json = {
-        "github_username": "error",
-        "assessment_name": assessment.name,
-        "latest_commit": "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=10)
-        ),
-    }
-    response = client.post("/api/check", json=request_json)
-    assert response.status_code == 422
-    assert response.json() == {"detail": "User name does not exist"}
-
-    ## Error on assessment name
-    request_json = {
-        "github_username": user.github_username,
-        "assessment_name": "error",
-        "latest_commit": "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=10)
-        ),
-    }
-    response = client.post("/api/check", json=request_json)
-    assert response.status_code == 422
-    assert response.json() == {"detail": "Assessment does not exist"}
-
-    ## Error on not initiated
-    user = crud.get_user_by_id(db, 1)
-    assessment = crud.get_assessment_by_id(db, 3)
-    request_json = {
-        "github_username": user.github_username,
-        "assessment_name": assessment.name,
-        "latest_commit": "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=10)
-        ),
+        "latest_commit": assessment_tracker_entry.latest_commit + "error",
     }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
@@ -221,13 +190,7 @@ def test_check(client: TestClient, db: Session):
     assessment_tracker_entry.status = "Approved"
     db.add(assessment_tracker_entry)
     db.commit()
-    request_json = {
-        "github_username": user.github_username,
-        "assessment_name": assessment.name,
-        "latest_commit": "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=10)
-        ),
-    }
+    request_json = {"latest_commit": assessment_tracker_entry.latest_commit}
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment already approved"}
@@ -250,7 +213,7 @@ def test_review(client: TestClient, db: Session):
     }
     response = client.post("/api/review", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"reviewer_id": 1, "reviewer_username": "Betsy_Enos29"}
+    assert response.json() == {"reviewer_id": 3, "reviewer_username": "Betsy_Enos29"}
 
     ## Error: The repo is not passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)

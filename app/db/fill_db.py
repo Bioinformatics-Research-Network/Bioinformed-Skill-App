@@ -18,11 +18,17 @@ users = [
         "first_name": "Henry",
         "last_name": "Miller",
     },
+    # {
+    #     "email": "test2@bioresnet.org",
+    #     "github_username": "itchytummy",
+    #     "first_name": "Anmol",
+    #     "last_name": "Singh",
+    # },
     {
         "email": "test2@bioresnet.org",
-        "github_username": "itchytummy",
-        "first_name": "Anmol",
-        "last_name": "Singh",
+        "github_username": "bioresnet",
+        "first_name": "Henry (bioresnet)",
+        "last_name": "Miller",
     },
 ]
 reviewers = [
@@ -37,7 +43,7 @@ reviewers = [
 ]
 assessments = [
     {
-        "name": "Test Assessment",
+        "name": "Test",
         "version_number": 1,
         "change_log": [{"version": "1", "last_updated": str(datetime.utcnow())}],
         "description": "Test decription",

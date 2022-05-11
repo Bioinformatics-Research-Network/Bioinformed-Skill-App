@@ -19,8 +19,6 @@ class CheckRequest(BaseModel):
     Pydantic request model schema used by `/api/check` endpoint
     """
 
-    github_username: str
-    assessment_name: str
     latest_commit: str
 
 

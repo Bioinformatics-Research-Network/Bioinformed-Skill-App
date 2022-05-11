@@ -170,14 +170,8 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         - Assessment tracker entry does not exist
     """
     try:
-        user = crud.get_user_by_username(db=db, username=check_request.github_username)
-        assessment = crud.get_assessment_by_name(
-            db=db, assessment_name=check_request.assessment_name
-        )
-        assessment_tracker_entry = crud.get_assessment_tracker_entry(
-            db=db,
-            user_id=user.user_id,
-            assessment_id=assessment.assessment_id,
+        assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
+            db=db, commit=check_request.latest_commit
         )
         if assessment_tracker_entry.status == "Approved":
             raise ValueError("Assessment already approved")
@@ -309,9 +303,13 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
             bearer_token=bt,
             config=badgr_config,
         )
+    except KeyError as e:  # pragma: no cover
+        msg = "Badgr: Unable to locate assessment: " + str(e)
+        raise HTTPException(status_code=500, detail=msg)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment Approved": True}

@@ -96,6 +96,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
         - Assessment tracker entry does not exist
     """
     try:
+        
         user = crud.get_user_by_username(db=db, username=update_request.github_username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=update_request.assessment_name

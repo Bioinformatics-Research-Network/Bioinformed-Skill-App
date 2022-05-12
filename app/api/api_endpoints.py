@@ -1,3 +1,4 @@
+import copy
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.services import get_db
@@ -110,7 +111,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             db=db,
             assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
             latest_commit=update_request.latest_commit,
-            update_logs=update_request.log.copy(),
+            update_logs=copy.deepcopy(update_request.log),
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -181,7 +182,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
             db=db,
             assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
             latest_commit=check_request.latest_commit,
-            update_logs=update_logs.copy(),
+            update_logs=copy.deepcopy(update_logs),
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))

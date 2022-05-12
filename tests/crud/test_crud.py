@@ -2,6 +2,7 @@ import random
 import string
 from sqlalchemy.orm import Session
 import pytest
+import copy
 from app import crud, schemas, models, utils
 
 
@@ -324,7 +325,7 @@ def test_update_assessment_log(db: Session):
         db=db,
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=commit,
-        update_logs=test_log.copy(),
+        update_logs=copy.deepcopy(test_log),
     )
     assert update_logs
     # Verify that the log is updated
@@ -344,6 +345,6 @@ def test_update_assessment_log(db: Session):
             db=db,
             assessment_tracker_entry_id=0,
             latest_commit=commit,
-            update_logs=test_log.copy(),
+            update_logs=copy.deepcopy(test_log),
         )
     assert "Assessment tracker entry unavailable." in str(exc.value)

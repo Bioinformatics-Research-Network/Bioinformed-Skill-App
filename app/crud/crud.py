@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 import random
+import copy
 from app import models, schemas, utils
 
 
@@ -332,7 +333,7 @@ def assign_reviewer(
         db=db,
         assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
         latest_commit=assessment_tracker_entry.latest_commit,
-        update_logs=reviewer_info.copy(),
+        update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
 
     return True

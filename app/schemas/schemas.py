@@ -20,6 +20,7 @@ class CheckRequest(BaseModel):
     """
 
     latest_commit: str
+    passed: bool
 
 
 class ApproveRequest(BaseModel):

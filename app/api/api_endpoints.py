@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.services import get_db
@@ -177,7 +178,11 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         )
         if assessment_tracker_entry.status == "Approved":
             raise ValueError("Assessment already approved")
-        update_logs = utils.run_gha(commit=check_request.latest_commit)
+        update_logs = {
+            "timestamp": str(datetime.utcnow()),
+            "checks_passed": check_request.passed,
+            "commit": check_request.latest_commit,
+        }
         crud.update_assessment_log(
             db=db,
             assessment_tracker_entry_id=assessment_tracker_entry.entry_id,

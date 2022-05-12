@@ -3,15 +3,6 @@ from app import utils, crud, schemas
 import pytest
 
 
-# app.utils.runGHA
-def test_run_gha(db: Session):
-    log = utils.run_gha(commit="123456789")
-
-    assert type(log["timestamp"]) == str
-    assert log["checks_passed"] is True
-    assert type(log["commit"]) == str
-
-
 def test_verify_check(db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
         db=db, assessment_tracker_entry_id=1

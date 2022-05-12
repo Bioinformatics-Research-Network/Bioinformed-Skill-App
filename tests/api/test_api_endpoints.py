@@ -168,6 +168,21 @@ def test_check(client: TestClient, db: Session):
     )
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": False,
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Check": True}
+
+    ## Successful query with passed checks
+    user = crud.get_user_by_id(db, 1)
+    assessment = crud.get_assessment_by_id(db, 2)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db, user.user_id, assessment.assessment_id
+    )
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": True,
     }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 200
@@ -176,6 +191,7 @@ def test_check(client: TestClient, db: Session):
     ## Error on invalid commit
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit + "error",
+        "passed": True,
     }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
@@ -190,7 +206,10 @@ def test_check(client: TestClient, db: Session):
     assessment_tracker_entry.status = "Approved"
     db.add(assessment_tracker_entry)
     db.commit()
-    request_json = {"latest_commit": assessment_tracker_entry.latest_commit}
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": True,
+    }
     response = client.post("/api/check", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment already approved"}
@@ -212,6 +231,7 @@ def test_review(client: TestClient, db: Session):
         "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/review", json=request_json)
+    print(response.json())
     assert response.status_code == 200
     assert response.json() == {"reviewer_id": 3, "reviewer_username": "Betsy_Enos29"}
 

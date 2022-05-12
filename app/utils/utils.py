@@ -2,23 +2,6 @@ from datetime import datetime
 from app import schemas, models
 
 
-def run_gha(commit: str):
-    """
-    Invoked by /api/check endpoint
-    Used to run the GitHub Actions checks on the commit reuired
-
-    :param check: user's github username, assessment name and latest commit
-
-    :returns: logs from the GHA
-    """
-    log = {
-        "timestamp": str(datetime.utcnow()),
-        "checks_passed": True,
-        "commit": commit,
-    }
-    return log
-
-
 def verify_check(assessment_tracker_entry: models.AssessmentTracker):
     """
     Verifies that the commit is passing the checks.

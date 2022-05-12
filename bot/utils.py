@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from bot import const
 
 
-def post_comment(text: str, **kwargs):
+def post_comment(text: str, **kwargs) -> requests.Response:
     """
     Post a comment to the issue
 
@@ -32,7 +32,7 @@ def post_comment(text: str, **kwargs):
     return response
 
 
-def assign_reviewer(reviewer_username: str, **kwarg_dict):
+def assign_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
     """
     Assign a reviewer to the assessment via API
     """
@@ -49,7 +49,7 @@ def assign_reviewer(reviewer_username: str, **kwarg_dict):
     return response
 
 
-def get_reviewer(**kwarg_dict):
+def get_reviewer(**kwarg_dict) -> requests.Response:
     """
     Get the reviewer from github API
     """
@@ -65,7 +65,7 @@ def get_reviewer(**kwarg_dict):
     return response
 
 
-def remove_reviewer(reviewer_username: str, **kwarg_dict):
+def remove_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
     """
     Remove the reviewer from the PR
     """
@@ -82,7 +82,7 @@ def remove_reviewer(reviewer_username: str, **kwarg_dict):
     return response
 
 
-def get_comment_by_id(comment_id, **kwargs):
+def get_comment_by_id(comment_id, **kwargs) -> requests.Response:
     """
     Get the comment by ID
     """
@@ -95,7 +95,7 @@ def get_comment_by_id(comment_id, **kwargs):
     return response
 
 
-def get_recent_comments(delt: timedelta = timedelta(minutes=1), **kwargs):
+def get_recent_comments(delt: timedelta = timedelta(minutes=1), **kwargs) -> requests.Response:
     """
     Retrieve the last comment
     """
@@ -111,7 +111,7 @@ def get_recent_comments(delt: timedelta = timedelta(minutes=1), **kwargs):
     return response
 
 
-def get_last_comment(**kwargs):
+def get_last_comment(**kwargs) -> requests.Response:
     """
     Get the last comment
     """
@@ -124,7 +124,7 @@ def get_last_comment(**kwargs):
     return response
 
 
-def delete_comment(comment_id, **kwargs):
+def delete_comment(comment_id, **kwargs) -> requests.Response:
     """
     Delete a comment
     """
@@ -137,7 +137,7 @@ def delete_comment(comment_id, **kwargs):
     return response
 
 
-def get_assessment_name(payload: dict):
+def get_assessment_name(payload: dict) -> str:
     """
     Get the assessment name based on installation ID
     """
@@ -150,7 +150,7 @@ def get_assessment_name(payload: dict):
     return assessment
 
 
-def get_last_commit(owner, repo_name, access_token):
+def get_last_commit(owner, repo_name, access_token) -> dict:
     """
     Get the last commit
 
@@ -171,13 +171,12 @@ def get_last_commit(owner, repo_name, access_token):
     commits = response.json()
     if len(commits) > 0:
         commit = commits[0]
-        commit_sha = commit["sha"]
-        return commit_sha
+        return commit
     else:
         return None
 
 
-def forbot(payload: dict):
+def forbot(payload: dict) -> bool:
     """
     Check if the payload is for the bot
     """
@@ -191,7 +190,7 @@ def forbot(payload: dict):
         return False
 
 
-def is_commit(payload: dict):
+def is_commit(payload: dict) -> bool:
     """
     Check if the payload is a commit on the PR
     """
@@ -203,7 +202,18 @@ def is_commit(payload: dict):
         return False
 
 
-def get_access_token(installation_id, jwt):
+def is_workflow_run(payload: dict) -> bool:
+    """
+    Check if the payload is a workflow run
+    """
+    try:
+        payload["workflow_run"]["head_sha"]
+        return payload["action"] == "completed"
+    except KeyError:
+        return False
+
+
+def get_access_token(installation_id, jwt) -> dict:
     """
     Get the access token for the installation
 
@@ -225,7 +235,7 @@ def get_access_token(installation_id, jwt):
     return response_dict
 
 
-def get_all_access_tokens(installation_ids, jwt):
+def get_all_access_tokens(installation_ids, jwt) -> dict:
     """
     Get the access tokens for the installations
     """
@@ -250,3 +260,24 @@ def get_all_access_tokens(installation_ids, jwt):
 
     # Return the access tokens
     return current_tokens
+
+
+def dispatch_workflow(**kwarg_dict) -> requests.Response:
+    # Dispatch workflow file
+    request_url = (
+        f"{const.gh_url}/repos/{kwarg_dict['owner']}/" +
+        f"{kwarg_dict['repo_name']}/actions/workflows/{const.workflow_filename}/dispatches"
+    )
+    headers = {
+        "Authorization": f"Bearer {kwarg_dict['access_token']}",
+        "Accept": const.accept_header,
+    }
+    response = requests.post(
+        request_url,
+        headers=headers,
+        json={
+            "ref": const.git_ref,
+        }
+    )
+    return response
+

@@ -12,8 +12,10 @@ class Bot:
 
     def __init__(self):
         self.gh_url = const.gh_url
+        self.gh_http = const.gh_http
         self.brn_url = const.brn_url
         self.accept_header = const.accept_header
+        self.worlflow_filename = const.workflow_filename
         self.installation_ids = const.installation_ids
         self.cmds = const.cmds
         self.token_fp = const.token_fp
@@ -66,6 +68,23 @@ class Bot:
             "pr_url": payload["pull_request"]["url"],
             "last_commit": payload["pull_request"]["head"]["sha"],
         }
+
+    
+    def parse_workflow_run_payload(self, payload: dict):
+        """
+        Parse the payload for workflow run
+        """
+        install_id = payload["installation"]["id"]
+        access_token = self.current_tokens["tokens"][str(install_id)]
+        return {
+            "issue_number": payload["workflow_run"]['pull_requests'][0]['number'],
+            "owner": payload["repository"]["owner"]["login"],
+            "repo_name": payload["repository"]["name"],
+            "access_token": access_token,
+            "last_commit": payload["workflow_run"]["head_sha"],
+            "conclusion": payload["workflow_run"]["conclusion"],
+        }
+
 
     def process_cmd(self, payload):
         """
@@ -171,7 +190,7 @@ class Bot:
                 owner=kwarg_dict["owner"],
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
-            ),
+            )["sha"],
         }
         response = requests.post(
             request_url,
@@ -299,7 +318,7 @@ class Bot:
                 owner=kwarg_dict["owner"],
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
-            ),
+            )["sha"],
             "log": {"message": log},
         }
         response = requests.patch(
@@ -332,27 +351,63 @@ class Bot:
         """
         Check the skill assessment using automated tests via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload)      
+        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"    
+        try:
+            response = utils.dispatch_workflow(**kwarg_dict)
+            response.raise_for_status()
+            text = "Automated checks ✅ in progress ⏳. View them here: " + actions_url
+            utils.post_comment(text, **kwarg_dict)
+        except requests.exceptions.HTTPError as e:
+            err = f"**Error**: {str(e)}" + "\n"
+            utils.post_comment(err, **kwarg_dict)
+            raise e
+        except Exception as e:  # pragma: no cover
+            err = (
+                f"**Error**: {e}"
+                + "\n\n"
+                + "**Please contact the maintainer for this bot.**"
+            )
+            utils.post_comment(err, **kwarg_dict)
+            raise e
+
+
+    def process_done_check(self, payload: dict):
+        kwarg_dict = self.parse_workflow_run_payload(payload)
+        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/" 
         print(kwarg_dict)
-        print("A")
+        
+        # Confirm that latest commit is the same as the one in the database
+        latest_commit = utils.get_last_commit(
+            owner=kwarg_dict["owner"],
+            repo_name=kwarg_dict["repo_name"],
+            access_token=kwarg_dict["access_token"],
+        )["sha"]
+        if latest_commit != kwarg_dict["last_commit"]:
+            msg = (
+                "Checks are complete 🔥! However, the current commit has changed since the "
+                + "checks were initiated. Re-run the checks with `@brnbot check`." 
+            )
+            utils.post_comment(msg, **kwarg_dict)
+            return None
+
         # Check the skill assessment in the database using API
+        passed = kwarg_dict["conclusion"] != "failure"
         request_url = f"{self.brn_url}/api/check"
         body = {
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            ),
+            "latest_commit": latest_commit,
+            "passed": passed
         }
-        print("B")
-        print(body)
         response = requests.post(
             request_url,
             json=body,
         )
         try:
             response.raise_for_status()
-            text = "Checks run 🔥. Please check the comments for results."
+            if passed:
+                text = "Checks have **passed** 💯. You can now request manual review with `@brnbot review`."
+            else:
+                text = "Checks have **failed** 💥. Please check the logs for more information: " + actions_url
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
@@ -368,6 +423,7 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
+
     def review(self, payload: dict):
         """
         Find a reviewer for the assessment via API
@@ -380,7 +436,7 @@ class Bot:
                 owner=kwarg_dict["owner"],
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
-            ),
+            )["sha"],
         }
         response = requests.post(
             request_url,
@@ -449,7 +505,7 @@ class Bot:
                 owner=kwarg_dict["owner"],
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
-            ),
+            )["sha"],
         }
         response = requests.patch(
             request_url,

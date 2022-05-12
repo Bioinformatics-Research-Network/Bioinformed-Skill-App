@@ -1,3 +1,4 @@
+from urllib import request
 from bot import bot, utils
 from fastapi import FastAPI, Body
 
@@ -15,11 +16,12 @@ def bot(payload: dict = Body(...)):
         message = payload["comment"]["body"]
         print(sender)
         print(message)
-        cmd = brnbot.process_cmd(payload)
-        print("Command: " + cmd)
+        brnbot.process_cmd(payload)
     elif utils.is_commit(payload=payload):
         print("is commit")
-        response = brnbot.process_commit(payload)
-        print("Commit: " + response.json()["commit"])
+        brnbot.process_commit(payload)
+    elif utils.is_workflow_run(payload=payload):
+        print("is workflow run")
+        brnbot.process_done_check(payload)
 
     return "ok"

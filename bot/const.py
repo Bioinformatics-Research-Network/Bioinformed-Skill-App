@@ -10,11 +10,21 @@ bot_key_path = os.environ["BOT_KEY_PATH"]
 # Base URL for the GitHub API
 gh_url = "https://api.github.com"
 
+# Base HTTP URL for GitHub.com
+gh_http = "https://github.com"
+
 # Base URL for the BRN CRUD API
 brn_url = "http://localhost:8000"
 
 # Header for the GitHub API
 accept_header = "application/vnd.github.v3+json"
+
+# Filename for all actions workflows
+workflow_filename = "tests.yml"
+# workflow_filename = 1
+
+# ref for all trainee git
+git_ref = "main"
 
 # file for storing temporary access tokens
 token_fp = "access_tokens.json"
@@ -22,12 +32,13 @@ token_fp = "access_tokens.json"
 # Dict of valid App install IDs
 installation_ids = {
     "Python Programming II": 25476585,
-    "Test": 25533349,
+    # "Test": 25533349,
+    "Test": 25630785,
     "Python Programming": 25616884,
 }
 
 # Dict of valid commands
-cmds = ["hello", "help", "init", "view", "delete"]
+cmds = ["hello", "help", "init", "view", "delete", "review", "approve"]
 
 # Read the bot certificate
 try:

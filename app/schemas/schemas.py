@@ -1,7 +1,19 @@
+import email
 from pydantic import BaseModel
 
 
 ## Request schemas
+
+
+class RegisterRequest(BaseModel):
+    """
+    Pydantic request model schema used by `/api/register` endpoint
+    """
+
+    email: str
+    first_name: str
+    last_name: str
+    github_username: str
 
 
 class InitRequest(BaseModel):
@@ -70,6 +82,14 @@ class ReviewRequest(BaseModel):
 
 
 ## Response schemas
+
+
+class RegisterResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/register` endpoint
+    """
+
+    registered: bool
 
 
 class InitResponse(BaseModel):

@@ -8,12 +8,9 @@ from app.models import *
 from sqlalchemy.orm import Session
 
 
-init_db_real()
-
-
 users = [
     {
-        "email": "test@bioresnet.org",
+        "email": "millerh1@livemail.uthscsa.edu",
         "github_username": "millerh1",
         "first_name": "Henry",
         "last_name": "Miller",
@@ -25,7 +22,7 @@ users = [
     #     "last_name": "Singh",
     # },
     {
-        "email": "test2@bioresnet.org",
+        "email": "henry@bioresnet.org",
         "github_username": "bioresnet",
         "first_name": "Henry (bioresnet)",
         "last_name": "Miller",
@@ -111,7 +108,9 @@ def add_assessment(assessment_entry: dict, db: Session):
 
 
 def create_database():
-
+    """
+    To create the database.
+    """
     db = SessionLocalReal()
     [add_user(user, db) for user in users]
     [add_reviewer(reviewer, db) for reviewer in reviewers]
@@ -120,4 +119,6 @@ def create_database():
     db.close()
 
 
-create_database()
+if __name__ == "__main__":
+    init_db_real()
+    create_database()

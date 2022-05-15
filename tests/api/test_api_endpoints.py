@@ -57,6 +57,25 @@ def test_init(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment does not exist"}
 
 
+def test_register(client: TestClient, db: Session):
+    ## Successful query
+    request_json = {
+        "first_name": "new",
+        "last_name": "user",
+        "github_username": "newuser",
+        "email": "newuser@test.com",
+    }
+    response = client.post("/api/register", json=request_json)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["registered"]
+
+    ## Error on registering for a second time
+    response = client.post("/api/register", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User with this email already exists in the system"}
+
+
 def test_view(client: TestClient, db: Session):
     user_id = 1
     assessment_id = 2

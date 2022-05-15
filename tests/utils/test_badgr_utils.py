@@ -1,27 +1,9 @@
 from app.utils import badgr_utils
-import os
-
-
-# TODO: Should this go here?
-config_test = {
-    "BADGR_USERNAME": os.environ["BADGR_TEST_USERNAME"],
-    "BADGR_PASSWORD": os.environ["BADGR_TEST_PASSWORD"],
-    "BADGR_BASE_URL": "https://api.test.badgr.com",
-    "BADGR_SCOPE": "rw:issuer rw:backpack",
-    "BADGR_ISSUER_ID": "4aQWejKFThS1NtViZk6GnQ",
-    "BADGR_GRANT_TYPE": "password",
-    "BADGR_CLIENT_ID": "public",
-    "BADGE_IDs": {
-        "Python Programming I": "OcVxPZEORASs4dBL0h5mOw",
-        "Python Programming II": "OcVxPZEORASs4dBL0h5mOw",
-        "R Programming I": "OcVxPZEORASs4dBL0h5mOw",
-        "R Programming II": "OcVxPZEORASs4dBL0h5mOw-g",
-    },
-}
+from app.config import badgr_config_test
 
 # TODO: Should this go here?
 # Get the bearer token
-brearer_token = badgr_utils.get_bearer_token(config_test)
+brearer_token = badgr_utils.get_bearer_token(badgr_config_test)
 
 
 def test_issue_badge():
@@ -36,7 +18,7 @@ def test_issue_badge():
         user_last="User",
         assessment_name="Python Programming I",
         bearer_token=brearer_token,
-        config=config_test,
+        config=badgr_config_test,
     )
 
     # Wrangle the response
@@ -58,7 +40,7 @@ def test_get_assertion():
         assessment_name="Python Programming I",
         user_email="tests@bioresnet.org",
         bearer_token=brearer_token,
-        config=config_test,
+        config=badgr_config_test,
     )
 
     # Wrangle the badge JSON
@@ -70,4 +52,4 @@ def test_get_assertion():
     assert badge_assertion.status_code == 200
     assert badge_assertion.json()["status"]["success"]
     assert recip == "tests@bioresnet.org"
-    assert assessment_name == config_test["BADGE_IDs"]["Python Programming I"]
+    assert assessment_name == badgr_config_test["BADGE_IDs"]["Python Programming I"]

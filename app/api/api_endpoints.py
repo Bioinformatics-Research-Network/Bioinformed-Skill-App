@@ -1,13 +1,15 @@
 import copy
 from datetime import datetime
+from urllib import response
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.api.services import get_db
-from app import schemas, crud, utils
+from app import schemas, crud, utils, config
 
 
 ## TODO: Fix this later -- should be parameterized using fastapi config
-badgr_config = utils.config_test
+badgr_config = config.badgr_config_test
 
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -15,6 +17,42 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 # the endpoints are defined according to:
 # https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
+
+
+@router.post("/register", response_model=schemas.RegisterResponse)
+def register(*, register_request: schemas.RegisterRequest, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+    """
+    try:
+        crud.create_user(db, register_request=register_request)
+        # Notify the user that they have been registered
+        utils.successful_register_notify(
+            register_request.email,
+            register_request.first_name,
+            register_request.last_name,
+            register_request.github_username,
+        )
+    except IntegrityError:
+        # Notify the user that they have been registered
+        utils.successful_register_notify(
+            register_request.email,
+            register_request.first_name,
+            register_request.last_name,
+            register_request.github_username,
+        )
+        raise HTTPException(
+            status_code=422,
+            detail="User with this email already exists in the system",
+        )    
+    except Exception as e: # pragma: no cover
+        print("Other error:\n" + str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail="An uncaught error occurred registering the user:\n" + str(e)
+        )
+
+    return schemas.RegisterResponse(registered=True)
 
 
 @router.post("/init", response_model=schemas.InitResponse)

@@ -59,65 +59,79 @@ git checkout -b <name_of_branch>
 3. Install poetry
 
 ```shell
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-4. Install app developer deps with `poetry` into a `.venv/` environment
+4. Install deps with `poetry`
 
 ```shell
-source $HOME/.poetry/env
-poetry config virtualenvs.create true
-poetry config virtualenvs.in-project true
+export PATH="$HOME/.local/bin/poetry:$PATH"
 poetry install
 ```
 
 You might encounter a `ModuleNotFoundError` in this step -- if so, see the solution [here](https://stackoverflow.com/questions/71086270/no-module-named-virtualenv-activation-xonsh).
 
 
-5. Source the venv
+5. Source the poetry env
 
 ```shell
-source .venv/bin/activate
+poetry shell
 ```
 
-6. Set environmental variables: For badgr
+6. Set environmental variables
 
 ```shell
 export BADGR_TEST_USERNAME="**************"
 export BADGR_TEST_PASSWORD="**************"
+export MANDRILL_API_KEY="**************"
 ```
 
-7. Test that the venv is working by running unit tests:
+7. Install and configure AWS CLI
+
+```shell
+conda install -c conda-forge aws-cli
+aws configure --profile brn
+```
+
+8. AWS sync with `skill-assessment-app/` bucket to a local folder `s3_data/`
+
+```shell
+aws s3 --profile brn sync s3://skill-assessment-app s3_data/
+```
+
+9. Run unit tests:
 
 ```shell
 pytest
 ```
 
-## Setup database with fake data
+## Run API locally
 
-To create fake data for the database. This will adds fake data to the pre-existing database.
-
-If database doesn't exist already it will create the database `fake_skill_cert.db`. 
-The name of db can be altered from app/db/session.py .
-
-To create the database suitable for the SKILL-CERT-API:
-
-1. Run the following command:
+1. Run the following command to create and fill the database.
 
 ```shell
-python app/db/create_fake_data.py
+python app/db/fill_db.py
 ```
 
-To alter the amount of fake data created `create_fake_data.py` file can edited accordingly.
-
-## Starting the API
-
-To start the api follow the steps:
-
-1. Starting the app using `uvicorn`:
+2. Install smee client (and NodeJS) to recieve event payloads from registration form
 
 ```shell
-uvicorn main:app --reload
+curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
+sudo bash /tmp/nodesource_setup.sh
+sudo apt install nodejs
+sudo npm install -g smee-client
+```
+
+3. Start the local smee.io channel (must be running whenever the API is running)
+
+```shell
+smee -u http://smee.io/iOvYAmrkN5sMkT0h --port 8000 --path /api/register
+```
+
+4. In a separate terminal, start the app using `uvicorn`:
+
+```shell
+uvicorn main:app --reload --port 8000
 ```
 
 To test out the API locally use the Swagger UI docs:

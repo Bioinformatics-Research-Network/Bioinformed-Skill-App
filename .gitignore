@@ -10,3 +10,6 @@ codecov
 */*.db
 *.db
 .vscode
+*nodesource*
+s3_data/
+.aws

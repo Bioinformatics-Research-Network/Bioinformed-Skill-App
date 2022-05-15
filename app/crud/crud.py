@@ -86,6 +86,7 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
+
     return reviewer
 
 
@@ -200,6 +201,27 @@ def get_assessment_tracker_entry_by_commit(db: Session, commit: str):
         raise ValueError("Assessment tracker entry unavailable.")
 
     return assessment_tracker
+
+
+def create_user(db: Session, register_request: schemas.RegisterRequest):
+    """
+    Create a new user in the database.
+
+    :param db: Generator for Session of database
+    :param register_request: RegisterRequest object
+
+    :returns: Entry in Users table as a sqlalchemy query object.
+    """
+    user = models.Users(
+        github_username=register_request.github_username,
+        first_name=register_request.first_name,
+        last_name=register_request.last_name,
+        email=register_request.email,
+    )
+    db.add(user)
+    db.commit()
+
+    return user
 
 
 def init_assessment_tracker(

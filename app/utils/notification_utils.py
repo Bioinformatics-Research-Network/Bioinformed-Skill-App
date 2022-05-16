@@ -42,7 +42,7 @@ def html_parse_py(html: str, **kwargs):
     return html
 
 
-def successful_register_notify(
+def register_notify(
     email: str,
     first_name: str,
     last_name: str,

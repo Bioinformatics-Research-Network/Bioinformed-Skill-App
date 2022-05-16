@@ -34,12 +34,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-session-name: GitHubActions
-          role-duration-seconds: 1200
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
+      - name: Get AWS Buck
+        run: |
+          aws s3 sync s3://skill-assessment-app s3_data/
       - name: Poetry install
         run: |
           pip install poetry

@@ -27,7 +27,7 @@ def register(*, register_request: schemas.RegisterRequest, db: Session = Depends
     try:
         crud.create_user(db, register_request=register_request)
         # Notify the user that they have been registered
-        utils.successful_register_notify(
+        utils.register_notify(
             register_request.email,
             register_request.first_name,
             register_request.last_name,
@@ -35,7 +35,7 @@ def register(*, register_request: schemas.RegisterRequest, db: Session = Depends
         )
     except IntegrityError:
         # Notify the user that they have been registered
-        utils.successful_register_notify(
+        utils.register_notify(
             register_request.email,
             register_request.first_name,
             register_request.last_name,

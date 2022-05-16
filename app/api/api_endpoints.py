@@ -20,7 +20,9 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 
 @router.post("/register", response_model=schemas.RegisterResponse)
-def register(*, register_request: schemas.RegisterRequest, db: Session = Depends(get_db)):
+def register(
+    *, register_request: schemas.RegisterRequest, db: Session = Depends(get_db)
+):
     """
     Register a new user.
     """
@@ -44,12 +46,12 @@ def register(*, register_request: schemas.RegisterRequest, db: Session = Depends
         raise HTTPException(
             status_code=422,
             detail="User with this email already exists in the system",
-        )    
-    except Exception as e: # pragma: no cover
+        )
+    except Exception as e:  # pragma: no cover
         print("Other error:\n" + str(e))
         raise HTTPException(
-            status_code=500, 
-            detail="An uncaught error occurred registering the user:\n" + str(e)
+            status_code=500,
+            detail="An uncaught error occurred registering the user:\n" + str(e),
         )
 
     return schemas.RegisterResponse(registered=True)

@@ -9,6 +9,7 @@ from app.api import api_endpoints
 
 app = FastAPI()
 
+
 @app.get("/")
 def root(db: Session = Depends(get_db)):
     """

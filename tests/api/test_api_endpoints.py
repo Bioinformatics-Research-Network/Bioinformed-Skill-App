@@ -73,7 +73,9 @@ def test_register(client: TestClient, db: Session):
     ## Error on registering for a second time
     response = client.post("/api/register", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {"detail": "User with this email already exists in the system"}
+    assert response.json() == {
+        "detail": "User with this email already exists in the system"
+    }
 
 
 def test_view(client: TestClient, db: Session):

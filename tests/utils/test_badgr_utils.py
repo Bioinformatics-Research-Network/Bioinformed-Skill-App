@@ -53,3 +53,27 @@ def test_get_assertion():
     assert badge_assertion.json()["status"]["success"]
     assert recip == "tests@bioresnet.org"
     assert assessment_name == badgr_config_test["BADGE_IDs"]["Python Programming I"]
+
+
+def test_get_all_assertions():
+    """
+    Test the get_all_assertions function
+    """
+
+    # Get the badge JSON
+    badge_assertions = badgr_utils.get_all_assertions(
+        assessment_name="Python Programming I",
+        bearer_token=brearer_token,
+        config=badgr_config_test,
+    )
+
+    # Wrangle the badge JSON
+    print(badge_assertions.json())
+    result = badge_assertions.json()["result"]
+    recip = result[0]["recipient"]["plaintextIdentity"]
+    assessment_name = result[0]["badgeclass"]
+
+    # Assert that the badge JSON is correct
+    assert badge_assertions.status_code == 200
+    assert badge_assertions.json()["status"]["success"]
+

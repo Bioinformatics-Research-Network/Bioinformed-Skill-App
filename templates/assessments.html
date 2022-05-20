@@ -1,45 +1,52 @@
-{% extends '_dashboard.html' %}
-
-{% block head %}
+{% extends '_dashboard.html' %} {% block head %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
-  $(function(){
+  $(function () {
     // bind change event to select
-    $('#programming_language').on('change', function () {
-        var url = "/assessments?languages=" + $(this).val(); // get selected value
-        if (url) { // require a URL
-            window.location = url; // redirect
-        }
-        return false;
+    $("#programming_language").on("change", function () {
+      var url = "/assessments?languages=" + $(this).val(); // get selected value
+      if (url) {
+        // require a URL
+        window.location = url; // redirect
+      }
+      return false;
     });
   });
 </script>
 
-{% endblock head %}
-
-
-{% block content_body %}
+{% endblock head %} {% block content_body %}
 <div class="row">
   <div class="col-8">
     <div class="row">
       {% for assessment in assessments %}
-        <div class="col-3">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title">{{assessment.name}}</h5>
-            </div>
-            <div class="card-body">
-              <p class="card-text">{{assessment.description}}</p>
-              {% if assessment.classroom_url == '' %}
-                <a target="_blank" href="{{assessment.classroom_url}}" class="btn btn-primary disabled" aria-disabled="true">In development</a>
-              {% else %}
-                <a target="_blank" href="{{assessment.classroom_url}}" class="btn btn-primary">Start Assessment</a>
-              {% endif %}
-            </div>
+      <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">{{assessment.name}}</h5>
           </div>
-          <br>
+          <div class="card-body">
+            <p class="card-text">{{assessment.description}}</p>
+            {% if assessment.classroom_url == '' %}
+            <a
+              target="_blank"
+              href="{{assessment.classroom_url}}"
+              class="btn btn-primary disabled"
+              aria-disabled="true"
+              >In development</a
+            >
+            {% else %}
+            <a
+              target="_blank"
+              href="{{assessment.classroom_url}}"
+              class="btn btn-primary"
+              >Start Assessment</a
+            >
+            {% endif %}
+          </div>
         </div>
+        <br />
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -47,16 +54,16 @@
     <!--select programming language-->
     <div class="input-group mb-3">
       <div class="input-group-prepend">
-        <label class="input-group-text" for="inputGroupSelect01">Language</label>
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Language</label
+        >
       </div>
       <select class="form-control" id="programming_language">
-        {% for language in languages %}
-          {% if language == "All" %}
-            <option value="">{{language}}</option>
-          {% else %}
-            <option value="{{language}}">{{language}}</option>
-          {% endif %}
-        {% endfor %}
+        {% for language in languages %} {% if language == "All" %}
+        <option value="">{{language}}</option>
+        {% else %}
+        <option value="{{language}}">{{language}}</option>
+        {% endif %} {% endfor %}
       </select>
     </div>
   </div>

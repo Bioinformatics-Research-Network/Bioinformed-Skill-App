@@ -1,87 +1,228 @@
-{% extends '_dashboard.html' %}
-
-{% block content_body %}
+{% extends '_dashboard.html' %} {% block content_body %}
 <div class="row">
-    <div class="col-12">
-      <hr style="width: 100%;">
-      <br><br>
-      <div class="row">
-        <div class="col-lg-4 col-sm-12 col-xs-12">
-          <div class="row">
-            <div class="col-4">
-              <!--Add github icon with circular borders-->
-              <a>
-                <img src="{{current_user.avatar_url}}" alt="GitHub" style="width:90px; border-radius: 100%;">
-              </a>
+  <div class="col-12">
+    <hr style="width: 100%" />
+    <br /><br />
+    <div class="row">
+      <div class="col-lg-4 col-sm-12 col-xs-12">
+        <div class="row">
+          <div class="col-4">
+            <!--Add github icon with circular borders-->
+            <a>
+              <img
+                src="{{current_user.avatar_url}}"
+                alt="GitHub"
+                style="width: 90px; border-radius: 100%"
+              />
+            </a>
+          </div>
+          <div class="col-7">
+            <!--Add github icon with circular borders-->
+            <div class="row">
+              <h2>{{current_user.name}}</h2>
             </div>
-            <div class="col-7">
-              <!--Add github icon with circular borders-->
-              <div class="row">
-                <h2>
-                  {{current_user.name}}
-                </h2>
+            <div class="row">
+              <!--Add github font awesome icon-->
+              <div class="col-1">
+                <a href="{{current_user.html_url}}">
+                  <i
+                    class="fa fa-github"
+                    style="font-size: 2rem; color: black"
+                  ></i>
+                </a>
               </div>
-              <div class="row">
-                <!--Add github font awesome icon-->
-                <div class="col-1">
-                  <a href="{{current_user.html_url}}">
-                    <i class="fa fa-github" style="font-size: 2rem; color: black;"></i>
-                  </a>
-                </div>
-                <div class="col-9 ms-2">
-                  <h3 style="color: darkgray;" class="ms-2">
-                    <em>{{current_user.username}}</em>
-                  </h3>
-                </div>
+              <div class="col-9 ms-2">
+                <h3 style="color: darkgray" class="ms-2">
+                  <em>{{current_user.username}}</em>
+                </h3>
               </div>
-            </div>            
-          </div>
-          <div class="row pt-2">
-            <p class="col-12">
-              <em>
-                {{current_user.bio}}
-              </em>
-            </p>
-          </div>
-          <div class="row pt-2">
-            <div class="col-12">
-              <a href="{{url_for('logout')}}" class="btn btn-outline-secondary btn-lg w-100" role="button" aria-pressed="true">Logout</a>
             </div>
           </div>
         </div>
-        <div class="col-lg-1 col-sm-12"></div>
-        <div class="col-lg-7 col-sm-12 col-xs-12">
-          <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-              <h3>Badges earned</h3>
-            </div>
-            <br><br>
-            <hr>
-            <br>
+        <div class="row pt-2">
+          <p class="col-12">
+            <em> {{current_user.bio}} </em>
+          </p>
+        </div>
+        <div class="row pt-2">
+          <!-- Button trigger modal -->
+          <div class="col-12">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100 btn-lg"
+              data-bs-toggle="modal"
+              data-bs-target="#editModal"
+            >
+              Edit profile
+            </button>
           </div>
-          <div class="row">
-            <div>
-              <blockquote class="badgr-badge" style="font-family: Helvetica, Roboto, 'Segoe UI', Calibri, sans-serif;">
-                <a href="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew?identity__email=henry%40bioresnet.org">
-                  <img width="120px" height="120px" src="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew/image">
-                </a>
-                <p class="badgr-badge-name" style="hyphens: auto; overflow-wrap: break-word; word-wrap: break-word; margin: 0; font-size: 16px; font-weight: 600; font-style: normal; font-stretch: normal; line-height: 1.25; letter-spacing: normal; text-align: left; color: #05012c;">
-                  R Programming I
-                </p>
-                <p class="badgr-badge-date" style="margin: 0; font-size: 12px; font-style: normal; font-stretch: normal; line-height: 1.67; letter-spacing: normal; text-align: left; color: #555555;">
-                  <strong style="font-size: 12px; font-weight: bold; font-style: normal; font-stretch: normal; line-height: 1.67; letter-spacing: normal; text-align: left; color: #000;">
-                    Awarded: 
-                  </strong>
-                  May 4, 2022
-                </p>
-                <script async="async" src="https://badgr.com/assets/widgets.bundle.js">
-                </script>
-              </blockquote> 
+          <!-- Modal -->
+          <div
+            class="modal fade"
+            id="editModal"
+            tabindex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">
+                    Edit my profile
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  <form
+                    class="container"
+                    action="{{url_for('edit_profile')}}"
+                    method="post"
+                  >
+                    <div class="row justify-content-center">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text" id="first_name"
+                          >First name</span
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="first_name"
+                          value="{{current_user.first_name}}"
+                          aria-label="first_name"
+                          aria-describedby="first_name"
+                        />
+                      </div>
+
+                      <div class="input-group mb-3">
+                        <span class="input-group-text" id="last_name"
+                          >Last name</span
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="last_name"
+                          value="{{current_user.last_name}}"
+                          aria-label="last_name"
+                          aria-describedby="last_name"
+                        />
+                      </div>
+                    </div>
+                    <div class="row justify-content-center">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text" id="bio">Bio</span>
+                        <textarea
+                          class="form-control"
+                          name="bio"
+                          aria-label="bio"
+                          aria-describedby="bio"
+                        >
+{{current_user.bio}}</textarea
+                        >
+                      </div>
+                      <button
+                        type="submit"
+                        class="btn btn-primary btn-lg col-12"
+                      >
+                        Edit profile
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-1 col-sm-12"></div>
+      <div class="col-lg-7 col-sm-12 col-xs-12">
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto">
+            <h3>Badges earned</h3>
+          </div>
+          <br /><br />
+          <hr />
+          <br />
+        </div>
+        <div class="row">
+          <div>
+            <blockquote
+              class="badgr-badge"
+              style="
+                font-family: Helvetica, Roboto, 'Segoe UI', Calibri, sans-serif;
+              "
+            >
+              <a
+                href="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew?identity__email=henry%40bioresnet.org"
+              >
+                <img
+                  width="120px"
+                  height="120px"
+                  src="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew/image"
+                />
+              </a>
+              <p
+                class="badgr-badge-name"
+                style="
+                  hyphens: auto;
+                  overflow-wrap: break-word;
+                  word-wrap: break-word;
+                  margin: 0;
+                  font-size: 16px;
+                  font-weight: 600;
+                  font-style: normal;
+                  font-stretch: normal;
+                  line-height: 1.25;
+                  letter-spacing: normal;
+                  text-align: left;
+                  color: #05012c;
+                "
+              >
+                R Programming I
+              </p>
+              <p
+                class="badgr-badge-date"
+                style="
+                  margin: 0;
+                  font-size: 12px;
+                  font-style: normal;
+                  font-stretch: normal;
+                  line-height: 1.67;
+                  letter-spacing: normal;
+                  text-align: left;
+                  color: #555555;
+                "
+              >
+                <strong
+                  style="
+                    font-size: 12px;
+                    font-weight: bold;
+                    font-style: normal;
+                    font-stretch: normal;
+                    line-height: 1.67;
+                    letter-spacing: normal;
+                    text-align: left;
+                    color: #000;
+                  "
+                >
+                  Awarded:
+                </strong>
+                May 4, 2022
+              </p>
+              <script
+                async="async"
+                src="https://badgr.com/assets/widgets.bundle.js"
+              ></script>
+            </blockquote>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
 {% endblock content_body %}

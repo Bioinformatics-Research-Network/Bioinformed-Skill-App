@@ -13,7 +13,7 @@ class RegisterRequest(BaseModel):
     email: str
     first_name: str
     last_name: str
-    github_username: str
+    username: str
 
 
 class InitRequest(BaseModel):
@@ -21,7 +21,7 @@ class InitRequest(BaseModel):
     Pydantic request model schema used by `/api/init` endpoint
     """
 
-    github_username: str
+    username: str
     assessment_name: str
     latest_commit: str
 
@@ -49,7 +49,7 @@ class ViewRequest(BaseModel):
     Pydantic request model schema used by `/api/view` endpoint
     """
 
-    github_username: str
+    username: str
     assessment_name: str
 
 
@@ -58,7 +58,7 @@ class DeleteRequest(BaseModel):
     Pydantic request model schema used by `/api/delete` endpoint
     """
 
-    github_username: str
+    username: str
     assessment_name: str
 
 
@@ -67,7 +67,7 @@ class UpdateRequest(BaseModel):
     Pydantic request model schema used by the `/api/update` endpoint
     """
 
-    github_username: str
+    username: str
     assessment_name: str
     latest_commit: str
     log: dict
@@ -106,5 +106,5 @@ class ReviewResponse(BaseModel):
     Pydantic response model schema used by `/api/review` endpoint
     """
 
-    reviewer_id: int
+    id: int
     reviewer_username: str

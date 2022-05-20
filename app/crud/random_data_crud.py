@@ -21,14 +21,12 @@ def create_random_user(random_users: int, db: Session):
 
     for i in range(random_users):
         first, last = random_data_utils.random_name()
+        name = first + " " + last
         username = random_data_utils.random_username(first, last)
-        email = random_data_utils.random_email(username)
 
         db_obj = models.Users(
-            email=email,
-            github_username=username,
-            first_name=first,
-            last_name=last,
+            username=username,
+            name=name,
         )
         db.add(db_obj)
         db.commit()
@@ -46,10 +44,10 @@ def create_random_reviewers(random_reviewers: int, db: Session):
 
     :returns: Reviewer object for the last fake entry generated
     """
-    user_id_count = db.query(models.Users).count()
+    id_count = db.query(models.Users).count()
 
     for i in range(random_reviewers):
-        userid = random.randint(1, user_id_count)
+        userid = random.randint(1, id_count)
         db_obj = models.Reviewers(user_id=userid)
 
         db.add(db_obj)
@@ -76,11 +74,14 @@ def create_assessments(random_assessments: int, db: Session):
 
         db_obj = models.Assessments(
             name=name,
-            version_number="1",
-            change_log=[{"version": "1", "last_updated": str(datetime.utcnow())}],
+            orig_id=" ",
+            core_skill_areas=" ",
+            languages=" ",
+            types=" ",
+            release_url=" ",
             description=desc,
-            pre_requisites_ids=pre_req,
-            goals=desc,
+            prerequisites=" ",
+            classroom_url=" ",
         )
         db.add(db_obj)
         db.commit()
@@ -98,12 +99,12 @@ def create_random_assessment_tracker(random_assessment_tracker: int, db: Session
 
     :returns: Assessment_tracker object for the last fake entry generated
     """
-    user_id_count = db.query(models.Users).count()
-    assessment_id_count = db.query(models.Assessments).count()
+    id_count = db.query(models.Users).count()
+    id_count = db.query(models.Assessments).count()
     for i in range(random_assessment_tracker):
         commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
-        userid = random.randint(1, user_id_count)
-        assessmentid = random.randint(2, assessment_id_count)
+        userid = random.randint(1, id_count)
+        assessmentid = random.randint(2, id_count)
         db_obj = models.AssessmentTracker(
             user_id=userid,
             assessment_id=assessmentid,

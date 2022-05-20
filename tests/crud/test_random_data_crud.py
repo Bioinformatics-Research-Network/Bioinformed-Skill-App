@@ -9,7 +9,7 @@ def test_create_random_user(db: Session):
 
     assert db_obj.first_name in random_data_utils.first_list
     assert db_obj.last_name in random_data_utils.last_list
-    assert type(db_obj.github_username) == str
+    assert type(db_obj.username) == str
     assert type(db_obj.email) == str
 
 
@@ -17,7 +17,7 @@ def test_create_random_reviewers(db: Session):
 
     db_obj = random_data_crud.create_random_reviewers(db=db, random_reviewers=1)
 
-    assert type(db_obj.user_id) == int
+    assert type(db_obj.id) == int
 
 
 def test_create_assessments(db: Session):
@@ -37,5 +37,5 @@ def test_create_random_assessment_tracker(db: Session):
 
     assert db_obj.status == "Initiated"
     assert type(db_obj.latest_commit) == str
-    assert type(db_obj.assessment_id) == int
-    assert type(db_obj.user_id) == int
+    assert type(db_obj.id) == int
+    assert type(db_obj.id) == int

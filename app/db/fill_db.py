@@ -2,40 +2,28 @@
 
 from datetime import datetime
 from app import models
-from app.db.initiate_db import init_db_real
-from app.db.session import SessionLocalReal
+from app.db.initiate_db import init_db
+from app.db.session import SessionLocal
 from app.models import *
 from sqlalchemy.orm import Session
 
 
 users = [
     {
-        "email": "millerh1@livemail.uthscsa.edu",
-        "github_username": "millerh1",
-        "first_name": "Henry",
-        "last_name": "Miller",
+        "username": "millerh1",
+        "name": "Henry Miller"
     },
-    # {
-    #     "email": "test2@bioresnet.org",
-    #     "github_username": "itchytummy",
-    #     "first_name": "Anmol",
-    #     "last_name": "Singh",
-    # },
     {
-        "email": "henry@bioresnet.org",
-        "github_username": "bioresnet",
-        "first_name": "Henry (bioresnet)",
-        "last_name": "Miller",
+        "username": "bioresnet",
+        "name": "Henry (bioresnet)",
     },
 ]
 reviewers = [
     {
-        "user_id": 1,
-        "assessment_reviewing_id": 1,
+        "id": 1,
     },
     {
-        "user_id": 2,
-        "assessment_reviewing_id": 1,
+        "id": 2,
     },
 ]
 assessments = [
@@ -44,8 +32,19 @@ assessments = [
         "version_number": 1,
         "change_log": [{"version": "1", "last_updated": str(datetime.utcnow())}],
         "description": "Test decription",
-        "pre_requisites_ids": None,
         "goals": "Test goals",
+    },
+]
+
+assessment_tracker = [
+    {
+        "id": 1,
+        "id": 1,
+        "status": "completed",
+        "last_updated": str(datetime.utcnow()),
+        "latest_commit": "commit_hash",
+        "id": 2,
+        "log": [{"version": "1", "last_updated": str(datetime.utcnow())}],
     },
 ]
 
@@ -57,16 +56,14 @@ def add_user(user_entry: dict, db: Session):
     :param user_entry: dictionary of user data.
     :param db: database session.
     """
-    print("Adding user: {}".format(user_entry["email"]))
+    print("Adding user: {}".format(user_entry["name"]))
     db_obj = models.Users(
-        email=user_entry["email"],
-        github_username=user_entry["github_username"],
-        first_name=user_entry["first_name"],
-        last_name=user_entry["last_name"],
+        username=user_entry["username"],
+        name=user_entry["name"],
     )
     # Add the entry
-    db.add(db_obj)
     db.commit()
+    db.add(db_obj)
 
 
 def add_reviewer(reviewer_entry: dict, db: Session):
@@ -76,14 +73,13 @@ def add_reviewer(reviewer_entry: dict, db: Session):
     :param reviewer_entry: dictionary of reviewer data.
     :param db: database session.
     """
-    print("Adding reviewer: {}".format(reviewer_entry["user_id"]))
+    print("Adding reviewer: {}".format(reviewer_entry["id"]))
     db_obj = models.Reviewers(
-        user_id=reviewer_entry["user_id"],
-        assessment_reviewing_id=reviewer_entry["assessment_reviewing_id"],
+        reviewer_id=reviewer_entry["id"],
     )
     # Add the entry
-    db.add(db_obj)
     db.commit()
+    db.add(db_obj)
 
 
 def add_assessment(assessment_entry: dict, db: Session):
@@ -99,26 +95,54 @@ def add_assessment(assessment_entry: dict, db: Session):
         version_number=assessment_entry["version_number"],
         change_log=assessment_entry["change_log"],
         description=assessment_entry["description"],
-        pre_requisites_ids=assessment_entry["pre_requisites_ids"],
         goals=assessment_entry["goals"],
     )
     # Add the entry
-    db.add(db_obj)
     db.commit()
+    db.add(db_obj)
+
+
+def add_assessment_tracker(assessment_tracker_entry: dict, db: Session):
+    """
+    To add an assessment tracker to the database.
+
+    :param assessment_tracker_entry: dictionary of assessment tracker data.
+    :param db: database session.
+    """
+    print("Adding assessment tracker: {}".format(assessment_tracker_entry["id"]))
+    db_obj = models.AssessmentTracker(
+        assessment_id=assessment_tracker_entry["id"],
+        assessment_id=assessment_tracker_entry["id"],
+        status=assessment_tracker_entry["status"],
+        last_updated=assessment_tracker_entry["last_updated"],
+        latest_commit=assessment_tracker_entry["latest_commit"],
+        assessment_id=assessment_tracker_entry["id"],
+        log=assessment_tracker_entry["log"],
+    )
+    # Add the entry
+    db.commit()
+    db.add(db_obj)
 
 
 def create_database():
     """
     To create the database.
     """
-    db = SessionLocalReal()
+    db = SessionLocal()
+
+
+    # # Delete database if it exists
+    # db.execute("DROP DATABASE IF EXISTS `skill-db`")
+
+
     [add_user(user, db) for user in users]
     [add_reviewer(reviewer, db) for reviewer in reviewers]
     [add_assessment(assessment, db) for assessment in assessments]
+    [add_assessment_tracker(assessment_tracker, db) for assessment_tracker in assessment_tracker]
     db.flush()
     db.close()
 
 
 if __name__ == "__main__":
-    init_db_real()
+    init_db()
     create_database()

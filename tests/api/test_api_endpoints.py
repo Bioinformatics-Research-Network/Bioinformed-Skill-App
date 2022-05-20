@@ -8,7 +8,7 @@ from app import crud
 
 
 def test_init(client: TestClient, db: Session):
-    github_username = crud.get_user_by_id(db, 1).github_username
+    username = crud.get_user_by_id(db, 1).username
     assessment_name = crud.get_assessment_by_id(db, 2).name
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
@@ -16,7 +16,7 @@ def test_init(client: TestClient, db: Session):
     request_json = {
         "assessment_name": assessment_name,
         "latest_commit": commit,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 200
@@ -39,18 +39,18 @@ def test_init(client: TestClient, db: Session):
     request_json = {
         "assessment_name": assessment_name,
         "latest_commit": commit,
-        "github_username": "error",
+        "username": "error",
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "User name does not exist"}
 
     # Error for initializing with an incorrect assessment name
-    github_username = crud.get_user_by_id(db, 2).github_username
+    username = crud.get_user_by_id(db, 2).username
     request_json = {
         "assessment_name": "error",
         "latest_commit": commit,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
@@ -62,7 +62,7 @@ def test_register(client: TestClient, db: Session):
     request_json = {
         "first_name": "new",
         "last_name": "user",
-        "github_username": "newuser",
+        "username": "newuser",
         "email": "newuser@test.com",
     }
     response = client.post("/api/register", json=request_json)
@@ -79,27 +79,27 @@ def test_register(client: TestClient, db: Session):
 
 
 def test_view(client: TestClient, db: Session):
-    user_id = 1
-    assessment_id = 2
-    github_username = crud.get_user_by_id(db, user_id).github_username
-    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+    id = 1
+    id = 2
+    username = crud.get_user_by_id(db, id).username
+    assessment_name = crud.get_assessment_by_id(db, id).name
 
     ## Successful query
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "Initiated"
-    assert data["user_id"] == user_id
-    assert data["assessment_id"] == assessment_id
+    assert data["id"] == id
+    assert data["id"] == id
 
     ## Error on invalid username
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": "error",
+        "username": "error",
     }
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 422
@@ -108,18 +108,18 @@ def test_view(client: TestClient, db: Session):
     ## Error on invalid assessment name
     request_json = {
         "assessment_name": "error",
-        "github_username": github_username,
+        "username": username,
     }
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment does not exist"}
 
     ## Error on missing entry
-    assessment_id = 3
-    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+    id = 3
+    assessment_name = crud.get_assessment_by_id(db, id).name
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 422
@@ -127,15 +127,15 @@ def test_view(client: TestClient, db: Session):
 
 
 def test_delete(client: TestClient, db: Session):
-    user_id = 1
-    assessment_id = 3
-    github_username = crud.get_user_by_id(db, user_id).github_username
-    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
+    id = 1
+    id = 3
+    username = crud.get_user_by_id(db, id).username
+    assessment_name = crud.get_assessment_by_id(db, id).name
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
     # Create entry
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": github_username,
+        "username": username,
         "latest_commit": commit,
     }
     response = client.post("/api/init", json=request_json)
@@ -143,18 +143,18 @@ def test_delete(client: TestClient, db: Session):
     ## Success: Delete entry
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 200
     with pytest.raises(Exception) as exc:
-        crud.get_assessment_tracker_entry(db, user_id, assessment_id)
+        crud.get_assessment_tracker_entry(db, id, id)
     assert str(exc.value) == "Assessment tracker entry unavailable."
 
     ## Error: Delete entry that does not exist
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": github_username,
+        "username": username,
     }
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 422
@@ -163,7 +163,7 @@ def test_delete(client: TestClient, db: Session):
     ## Error: Delete entry with incorrect username
     request_json = {
         "assessment_name": assessment_name,
-        "github_username": "error",
+        "username": "error",
     }
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 422
@@ -172,7 +172,7 @@ def test_delete(client: TestClient, db: Session):
     ## Error: Delete entry with incorrect assessment name
     request_json = {
         "assessment_name": "error",
-        "github_username": github_username,
+        "username": username,
     }
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 422
@@ -185,7 +185,7 @@ def test_check(client: TestClient, db: Session):
     user = crud.get_user_by_id(db, 1)
     assessment = crud.get_assessment_by_id(db, 2)
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db, user.user_id, assessment.assessment_id
+        db, user.id, assessment.id
     )
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit,
@@ -199,7 +199,7 @@ def test_check(client: TestClient, db: Session):
     user = crud.get_user_by_id(db, 1)
     assessment = crud.get_assessment_by_id(db, 2)
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db, user.user_id, assessment.assessment_id
+        db, user.id, assessment.id
     )
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit,
@@ -222,7 +222,7 @@ def test_check(client: TestClient, db: Session):
     user = crud.get_user_by_id(db, 1)
     assessment = crud.get_assessment_by_id(db, 2)
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db, user.user_id, assessment.assessment_id
+        db, user.id, assessment.id
     )
     assessment_tracker_entry.status = "Approved"
     db.add(assessment_tracker_entry)
@@ -236,7 +236,7 @@ def test_check(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment already approved"}
     # Revert back to initial state for subsequent tests
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db, user.user_id, assessment.assessment_id
+        db, user.id, assessment.id
     )
     assessment_tracker_entry.status = "Initiated"
     db.add(assessment_tracker_entry)
@@ -254,13 +254,13 @@ def test_review(client: TestClient, db: Session):
     response = client.post("/api/review", json=request_json)
     print(response.json())
     assert response.status_code == 200
-    assert response.json() == {"reviewer_id": 3, "reviewer_username": "Betsy_Enos29"}
+    assert response.json() == {"id": 3, "reviewer_username": "Betsy_Enos29"}
 
     ## Error: The repo is not passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        assessment_tracker_assessment_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -306,9 +306,9 @@ def test_approve(client: TestClient, db: Session):
 
     # Tracker entry for which checks are passing
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-    reviewer_id = assessment_tracker_entry.reviewer_id
-    reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id)
-    reviewer_username = crud.get_user_by_id(db, reviewer_userid.user_id).github_username
+    id = assessment_tracker_entry.id
+    reviewer_userid = crud.get_reviewer_by_id(db, id)
+    reviewer_username = crud.get_user_by_id(db, reviewer_userid.id).username
 
     # Successful query
     request_json = {
@@ -356,7 +356,7 @@ def test_approve(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        assessment_tracker_assessment_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -384,17 +384,17 @@ def test_approve(client: TestClient, db: Session):
 
 def test_update(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-    github_username = crud.get_user_by_id(
-        db, assessment_tracker_entry.user_id
-    ).github_username
+    username = crud.get_user_by_id(
+        db, assessment_tracker_entry.id
+    ).username
     assessment_name = crud.get_assessment_by_id(
-        db, assessment_tracker_entry.assessment_id
+        db, assessment_tracker_entry.id
     ).name
 
     # Successful query
     log = {"Test": "Tested"}
     request_json = {
-        "github_username": github_username,
+        "username": username,
         "assessment_name": assessment_name,
         "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,
@@ -405,7 +405,7 @@ def test_update(client: TestClient, db: Session):
 
     # Incorrect assessment
     request_json = {
-        "github_username": github_username,
+        "username": username,
         "assessment_name": "error",
         "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,
@@ -416,7 +416,7 @@ def test_update(client: TestClient, db: Session):
 
     # Incorrect username
     request_json = {
-        "github_username": "error",
+        "username": "error",
         "assessment_name": assessment_name,
         "latest_commit": assessment_tracker_entry.latest_commit,
         "log": log,

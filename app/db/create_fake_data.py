@@ -22,7 +22,7 @@ def bot_testing_data(db: Session):
     # creating users for bot testing
     db_obj = models.Users(
         email="tests@bioresnet.org",
-        github_username="millerh1",
+        username="millerh1",
         first_name="BotUser",
         last_name="Tests",
     )
@@ -32,7 +32,7 @@ def bot_testing_data(db: Session):
 
     db_obj = models.Users(
         email="tests2@bioresnet.org",
-        github_username="itchytummy",
+        username="itchytummy",
         first_name="BotReviewer",
         last_name="Reviews",
     )
@@ -41,13 +41,13 @@ def bot_testing_data(db: Session):
     db.refresh(db_obj)
 
     # reviewers for bot testing
-    db_obj = models.Reviewers(user_id=1)
+    db_obj = models.Reviewers(id=1)
 
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
 
-    db_obj = models.Reviewers(user_id=2)
+    db_obj = models.Reviewers(id=2)
 
     db.add(db_obj)
     db.commit()
@@ -69,8 +69,8 @@ def bot_testing_data(db: Session):
     # assessment tracker for bot testing
     cmt = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
     db_obj = models.AssessmentTracker(
-        assessment_id=1,
         user_id=1,
+        assessment_id=1,
         latest_commit=cmt,
         last_updated=datetime.utcnow(),
         status="Initiated",

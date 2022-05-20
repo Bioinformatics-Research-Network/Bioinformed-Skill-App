@@ -1,4 +1,4 @@
-from app.db.session import SessionLocalReal
+from app.db.session import SessionLocal
 
 
 # to get local DB
@@ -9,8 +9,7 @@ def get_db():
     :yields: Generator object for the local session. finally closes the session.
     """
     try:
-        # db = SessionLocal()
-        db = SessionLocalReal()
+        db = SessionLocal()
         yield db
     finally:
         db.close()

@@ -30,18 +30,14 @@ def register(
         crud.create_user(db, register_request=register_request)
         # Notify the user that they have been registered
         utils.register_notify(
-            register_request.email,
-            register_request.first_name,
-            register_request.last_name,
-            register_request.github_username,
+            register_request.name,
+            register_request.username,
         )
     except IntegrityError:
         # Notify the user that they have been registered
         utils.register_notify(
-            register_request.email,
-            register_request.first_name,
-            register_request.last_name,
-            register_request.github_username,
+            register_request.name,
+            register_request.username,
         )
         raise HTTPException(
             status_code=422,
@@ -76,17 +72,19 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     # If member is not valid, raise 422 error
     # If other error occurs, raise 500 error
     try:
-        user = crud.get_user_by_username(db=db, username=init_request.github_username)
+        user = crud.get_user_by_username(db=db, username=init_request.username)
         crud.init_assessment_tracker(
-            db=db, init_request=init_request, user_id=user.user_id
+            db=db, init_request=init_request, user_id=user.id
         )
     except ValueError as e:
+        print(e)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
-    return {"Initiated": True, "User_first_name": user.first_name}
+    return {"Initiated": True, "User_Name": user.name}
 
 
 @router.get("/view")
@@ -105,14 +103,14 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
         - Assessment tracker entry does not exist
     """
     try:
-        user = crud.get_user_by_username(db=db, username=view_request.github_username)
+        user = crud.get_user_by_username(db=db, username=view_request.username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=view_request.assessment_name
         )
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
-            user_id=user.user_id,
-            assessment_id=assessment.assessment_id,
+            user_id=user.id,
+            assessment_id=assessment.id,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -139,18 +137,18 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
     """
     try:
 
-        user = crud.get_user_by_username(db=db, username=update_request.github_username)
+        user = crud.get_user_by_username(db=db, username=update_request.username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=update_request.assessment_name
         )
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
-            user_id=user.user_id,
-            assessment_id=assessment.assessment_id,
+            user_id=user.id,
+            assessment_id=assessment.id,
         )
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+            assessment_tracker_assessment_id=assessment_tracker_entry.id,
             latest_commit=update_request.latest_commit,
             update_logs=copy.deepcopy(update_request.log),
         )
@@ -178,14 +176,14 @@ def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest
         - Assessment tracker entry does not exist
     """
     try:
-        user = crud.get_user_by_username(db=db, username=view_request.github_username)
+        user = crud.get_user_by_username(db=db, username=view_request.username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=view_request.assessment_name
         )
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
-            user_id=user.user_id,
-            assessment_id=assessment.assessment_id,
+            user_id=user.id,
+            assessment_id=assessment.id,
         )
         db.delete(assessment_tracker_entry)
         db.commit()
@@ -225,7 +223,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         }
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+            assessment_tracker_assessment_id=assessment_tracker_entry.id,
             latest_commit=check_request.latest_commit,
             update_logs=copy.deepcopy(update_logs),
         )
@@ -273,10 +271,10 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
         reviewer = crud.select_reviewer(
             db=db, assessment_tracker_entry=assessment_tracker_entry
         )
-        reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
+        reviewer_user = crud.get_user_by_id(db=db, reviewer_id=reviewer.id)
         reviewer_info = {
-            "reviewer_id": reviewer.reviewer_id,
-            "reviewer_username": reviewer_user.github_username,
+            "id": reviewer.id,
+            "reviewer_username": reviewer_user.username,
         }
         crud.assign_reviewer(
             db=db,
@@ -319,14 +317,14 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
             db=db, commit=approve_request.latest_commit
         )
         # Get the trainee info
-        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+        user = crud.get_user_by_id(db=db, assessment_id=assessment_tracker_entry.id)
         # Get the reviewer info; error if not exists
         reviewer = crud.get_reviewer_by_username(
             db=db, username=approve_request.reviewer_username
         )
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
-            db=db, assessment_id=assessment_tracker_entry.assessment_id
+            db=db, assessment_id=assessment_tracker_entry.id
         )
         # Approve assessment, update logs, issue badge
         # Error if reviewer is not the one assigned;

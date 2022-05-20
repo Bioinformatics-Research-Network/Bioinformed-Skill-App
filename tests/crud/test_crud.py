@@ -9,15 +9,15 @@ from app import crud, schemas, models, utils
 def test_get_user_by_username(db: Session):
 
     ## Success
-    github_username = (
+    username = (
         db.query(models.Users)
-        .filter(models.Users.user_id == 1)
-        .with_entities(models.Users.github_username)
+        .filter(models.Users.id == 1)
+        .with_entities(models.Users.username)
         .scalar()
     )
 
-    user_id = crud.get_user_by_username(db=db, username=github_username).user_id
-    assert user_id == 1
+    id = crud.get_user_by_username(db=db, username=username).id
+    assert id == 1
 
     ## Unsuccessful
     with pytest.raises(ValueError) as exc:
@@ -27,8 +27,8 @@ def test_get_user_by_username(db: Session):
 
 def test_get_user_by_id(db: Session):
     ## Success
-    user_id = crud.get_user_by_id(db=db, user_id=1).user_id
-    assert user_id == 1
+    id = crud.get_user_by_id(db=db, user_id=1).id
+    assert id == 1
 
     ## Unsuccessful
     with pytest.raises(ValueError) as exc:
@@ -41,20 +41,20 @@ def test_get_reviewer_by_username(db: Session):
     ## Success
     reviewer = (
         db.query(models.Reviewers)
-        .filter(models.Reviewers.reviewer_id == 1)
-        .with_entities(models.Reviewers.user_id)
+        .filter(models.Reviewers.id == 1)
+        .with_entities(models.Reviewers.id)
         .first()
     )
-    github_username = (
+    username = (
         db.query(models.Users)
-        .filter(models.Users.user_id == reviewer.user_id)
-        .with_entities(models.Users.github_username)
+        .filter(models.Users.id == reviewer.id)
+        .with_entities(models.Users.username)
         .scalar()
     )
-    reviewer_id = crud.get_reviewer_by_username(
-        db=db, username=github_username
-    ).reviewer_id
-    assert reviewer_id == 1
+    id = crud.get_reviewer_by_username(
+        db=db, username=username
+    ).id
+    assert id == 1
 
     ## Unsuccessful
     with pytest.raises(ValueError) as exc:
@@ -64,8 +64,8 @@ def test_get_reviewer_by_username(db: Session):
 
 def test_get_reviewer_by_id(db: Session):
     ## Success
-    reviewer_id = crud.get_reviewer_by_id(db=db, reviewer_id=1).reviewer_id
-    assert reviewer_id == 1
+    id = crud.get_reviewer_by_id(db=db, reviewer_id=1).id
+    assert id == 1
 
     ## Unsuccessful
     with pytest.raises(ValueError) as exc:
@@ -77,12 +77,12 @@ def test_get_assessment_by_name(db: Session):
     ## Success
     assessment_name = (
         db.query(models.Assessments)
-        .filter(models.Assessments.assessment_id == 1)
+        .filter(models.Assessments.id == 1)
         .with_entities(models.Assessments.name)
         .scalar()
     )
     assessment = crud.get_assessment_by_name(db=db, assessment_name=assessment_name)
-    assert assessment.assessment_id == 1
+    assert assessment.id == 1
     assert assessment.name == assessment_name
 
     ## Unsuccessful
@@ -94,7 +94,7 @@ def test_get_assessment_by_name(db: Session):
 def test_get_assessment_by_id(db: Session):
     ## Success
     assessment = crud.get_assessment_by_id(db=db, assessment_id=3)
-    assert assessment.assessment_id == 3
+    assert assessment.id == 3
 
     ## Unsuccessful
     with pytest.raises(ValueError) as exc:
@@ -103,22 +103,22 @@ def test_get_assessment_by_id(db: Session):
 
 
 def test_get_assessment_tracker_entry(db: Session):
-    user = crud.get_user_by_id(db=db, user_id=1)
-    assessment = crud.get_assessment_by_id(db=db, assessment_id=2)
+    user = crud.get_user_by_id(db=db, entry_id=1)
+    assessment = crud.get_assessment_by_id(db=db, entry_id=2)
 
     ## Successful query
     tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.user_id, assessment_id=assessment.assessment_id
+        db=db, user_id=user.id, assessment_id=assessment.id
     )
-    assert tracker_entry.entry_id == 6
-    assert tracker_entry.user_id == 1
-    assert tracker_entry.assessment_id == 2
+    assert tracker_entry.id == 6
+    assert tracker_entry.id == 1
+    assert tracker_entry.id == 2
 
     ## Unsuccessful query
-    user_id = 0
+    id = 0
     with pytest.raises(ValueError) as exc:
         crud.get_assessment_tracker_entry(
-            db=db, user_id=user_id, assessment_id=assessment.assessment_id
+            db=db, user_id=id, assessment_id=assessment.id
         )
     assert "Assessment tracker entry unavailable." in str(exc.value)
 
@@ -129,30 +129,30 @@ def test_init_assessment_tracker(db: Session):
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
     init_request = schemas.InitRequest(
         assessment_name=assessment.name,
-        github_username=user.github_username,
+        username=user.username,
         latest_commit=commit,
     )
     initiate_assessment = crud.init_assessment_tracker(
-        db=db, init_request=init_request, user_id=user.user_id
+        db=db, init_request=init_request, user_id=user.id
     )
     assert initiate_assessment
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.user_id, assessment_id=assessment.assessment_id
+        db=db, user_id=user.id, assessment_id=assessment.id
     )
     assert assessment_tracker_entry.status == "Initiated"
-    assert assessment_tracker_entry.assessment_id == assessment.assessment_id
-    assert assessment_tracker_entry.user_id == user.user_id
+    assert assessment_tracker_entry.id == assessment.id
+    assert assessment_tracker_entry.id == user.id
     assert assessment_tracker_entry.latest_commit == commit
 
 
 def test_select_reviewer(db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=1
+        db=db, entry_id=1
     )
     reviewer = crud.select_reviewer(
         db=db, assessment_tracker_entry=assessment_tracker_entry
     )
-    assert reviewer.user_id != assessment_tracker_entry.user_id
+    assert reviewer.id != assessment_tracker_entry.id
 
 
 def test_approve_assessment(
@@ -163,15 +163,15 @@ def test_approve_assessment(
     assessment = crud.get_assessment_by_id(db=db, assessment_id=2)
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=1)
     reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).github_username
+        db=db, reviewer_id=reviewer.id
+    ).username
     # Ensure checks are passed
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=trainee.user_id, assessment_id=assessment.assessment_id
+        db=db, user_id=trainee.id, assessment_id=assessment.id
     )
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": True,
@@ -189,11 +189,11 @@ def test_approve_assessment(
     assert approve_assess
     # Verify that the assessment is approved
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=trainee.user_id, assessment_id=assessment.assessment_id
+        db=db, user_id=trainee.id, assessment_id=assessment.id
     )
     assert assessment_tracker_entry.status == "Approved"
-    assert assessment_tracker_entry.assessment_id == 2
-    assert assessment_tracker_entry.user_id == 1
+    assert assessment_tracker_entry.id == 2
+    assert assessment_tracker_entry.id == 1
 
     ## Unsuccessful approval
     ## Due to no reviewer assigned
@@ -209,17 +209,17 @@ def test_approve_assessment(
     assert "No reviewer is assigned to the assessment." in str(exc.value)
     # Verify that the assessment is not approved
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=trainee.user_id, assessment_id=assessment.assessment_id
+        db=db, user_id=trainee.id, assessment_id=assessment.id
     )
     assert assessment_tracker_entry.status != "Approved"
-    assert assessment_tracker_entry.assessment_id == 4
-    assert assessment_tracker_entry.user_id == 1
+    assert assessment_tracker_entry.id == 4
+    assert assessment_tracker_entry.id == 1
 
     ## Unsuccessful approval
     ## Due to checks failing
     # Refresh status to be "Under review"
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=6
+        db=db, entry_id=6
     )
     assessment_tracker_entry.status = "Under review"  # Reset status
     db.add(assessment_tracker_entry)
@@ -227,11 +227,11 @@ def test_approve_assessment(
     db.refresh(assessment_tracker_entry)
     # Update logs to fail checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=6
+        db=db, entry_id=6
     )
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -239,15 +239,15 @@ def test_approve_assessment(
         },
     )
     # Approve assessment
-    trainee = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+    trainee = crud.get_user_by_id(db=db, assessment_id=assessment_tracker_entry.id)
     reviewer = crud.get_reviewer_by_id(
-        db=db, reviewer_id=assessment_tracker_entry.reviewer_id
+        db=db, assessment_id=assessment_tracker_entry.id
     )
     reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).github_username
+        db=db, reviewer_id=reviewer.id
+    ).username
     assessment = crud.get_assessment_by_id(
-        db=db, assessment_id=assessment_tracker_entry.assessment_id
+        db=db, assessment_id=assessment_tracker_entry.id
     )
     with pytest.raises(ValueError) as exc:
         crud.approve_assessment(
@@ -263,8 +263,8 @@ def test_approve_assessment(
     ## Due to reviewer being same as trainee
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=2)
     reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).github_username
+        db=db, reviewer_id=reviewer.id
+    ).username
     with pytest.raises(ValueError) as exc:
         crud.approve_assessment(
             db=db,
@@ -279,11 +279,11 @@ def test_approve_assessment(
     ## Due to reviewer being different from the assessment tracker record
     # Update logs to pass checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=6
+        db=db, entry_id=6
     )
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": True,
@@ -291,12 +291,12 @@ def test_approve_assessment(
         },
     )
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_entry_id=6
+        db=db, entry_id=6
     )
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=4)
     reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).github_username
+        db=db, reviewer_id=reviewer.id
+    ).username
     with pytest.raises(ValueError) as exc:
         crud.approve_assessment(
             db=db,
@@ -323,7 +323,7 @@ def test_update_assessment_log(db: Session):
     test_log = {"Test update log": True}
     update_logs = crud.update_assessment_log(
         db=db,
-        assessment_tracker_entry_id=assessment_tracker_entry.entry_id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=commit,
         update_logs=copy.deepcopy(test_log),
     )
@@ -332,8 +332,8 @@ def test_update_assessment_log(db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=1, assessment_id=2
     )
-    assert assessment_tracker_entry.assessment_id == 2
-    assert assessment_tracker_entry.user_id == 1
+    assert assessment_tracker_entry.id == 2
+    assert assessment_tracker_entry.id == 1
     assert assessment_tracker_entry.latest_commit == commit
     logs = list(assessment_tracker_entry.log)
     assert logs[-1]["Test update log"]
@@ -343,7 +343,7 @@ def test_update_assessment_log(db: Session):
     with pytest.raises(ValueError) as exc:
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_entry_id=0,
+            entry_id=0,
             latest_commit=commit,
             update_logs=copy.deepcopy(test_log),
         )

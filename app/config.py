@@ -41,3 +41,12 @@ badgr_config_test = {
         "Test": "OcVxPZEORASs4dBL0h5mOw",
     },
 }
+
+# Connection details for RDS
+RDS_ENDPOINT = os.environ.get("RDS_ENDPOINT")
+RDS_PORT = os.environ.get("RDS_PORT")
+RDS_DB_NAME = os.environ.get("RDS_DB_NAME")
+RDS_USERNAME = os.environ.get("RDS_USERNAME")
+RDS_PASSWORD = os.environ.get("RDS_PASSWORD")
+
+

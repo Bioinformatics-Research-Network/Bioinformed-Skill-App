@@ -37,7 +37,7 @@ def html_parse_py(html: str, **kwargs):
     return html
 
 
-def register_notify(email: str, first_name: str, last_name: str, github_username: str):
+def register_notify(email: str, first_name: str, last_name: str, username: str):
     """
     Sends an email to the user when they successfully register
     """
@@ -47,7 +47,7 @@ def register_notify(email: str, first_name: str, last_name: str, github_username
         **{
             "first_name": first_name,
             "last_name": last_name,
-            "github_username": github_username,
+            "username": username,
             "email": email,
         }
     )

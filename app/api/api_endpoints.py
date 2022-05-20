@@ -1,6 +1,5 @@
 import copy
 from datetime import datetime
-from urllib import response
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -17,40 +16,6 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 # the endpoints are defined according to:
 # https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
-
-
-@router.post("/register", response_model=schemas.RegisterResponse)
-def register(
-    *, register_request: schemas.RegisterRequest, db: Session = Depends(get_db)
-):
-    """
-    Register a new user.
-    """
-    try:
-        crud.create_user(db, register_request=register_request)
-        # Notify the user that they have been registered
-        utils.register_notify(
-            register_request.name,
-            register_request.username,
-        )
-    except IntegrityError:
-        # Notify the user that they have been registered
-        utils.register_notify(
-            register_request.name,
-            register_request.username,
-        )
-        raise HTTPException(
-            status_code=422,
-            detail="User with this email already exists in the system",
-        )
-    except Exception as e:  # pragma: no cover
-        print("Other error:\n" + str(e))
-        raise HTTPException(
-            status_code=500,
-            detail="An uncaught error occurred registering the user:\n" + str(e),
-        )
-
-    return schemas.RegisterResponse(registered=True)
 
 
 @router.post("/init", response_model=schemas.InitResponse)
@@ -84,7 +49,7 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
-    return {"Initiated": True, "User_Name": user.name}
+    return {"Initiated": True, "username": user.username}
 
 
 @router.get("/view")
@@ -117,7 +82,7 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
-    return assessment_tracker_entry.as_dict()
+    return assessment_tracker_entry.__dict__
 
 
 @router.patch("/update")
@@ -148,7 +113,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
         )
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_assessment_id=assessment_tracker_entry.id,
+            entry_id=assessment_tracker_entry.id,
             latest_commit=update_request.latest_commit,
             update_logs=copy.deepcopy(update_request.log),
         )
@@ -223,7 +188,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         }
         crud.update_assessment_log(
             db=db,
-            assessment_tracker_assessment_id=assessment_tracker_entry.id,
+            entry_id=assessment_tracker_entry.id,
             latest_commit=check_request.latest_commit,
             update_logs=copy.deepcopy(update_logs),
         )
@@ -271,9 +236,9 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
         reviewer = crud.select_reviewer(
             db=db, assessment_tracker_entry=assessment_tracker_entry
         )
-        reviewer_user = crud.get_user_by_id(db=db, reviewer_id=reviewer.id)
+        reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
         reviewer_info = {
-            "id": reviewer.id,
+            "reviewer_id": reviewer.id,
             "reviewer_username": reviewer_user.username,
         }
         crud.assign_reviewer(
@@ -317,14 +282,14 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
             db=db, commit=approve_request.latest_commit
         )
         # Get the trainee info
-        user = crud.get_user_by_id(db=db, assessment_id=assessment_tracker_entry.id)
+        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         # Get the reviewer info; error if not exists
         reviewer = crud.get_reviewer_by_username(
             db=db, username=approve_request.reviewer_username
         )
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
-            db=db, assessment_id=assessment_tracker_entry.id
+            db=db, assessment_id=assessment_tracker_entry.assessment_id
         )
         # Approve assessment, update logs, issue badge
         # Error if reviewer is not the one assigned;
@@ -352,6 +317,7 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
         msg = "Badgr: Unable to locate assessment: " + str(e)
         raise HTTPException(status_code=500, detail=msg)
     except ValueError as e:
+        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
         print(str(e))

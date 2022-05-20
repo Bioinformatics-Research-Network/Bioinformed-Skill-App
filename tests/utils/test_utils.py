@@ -5,7 +5,7 @@ import pytest
 
 def test_verify_check(db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_id=1
+        db=db, entry_id=2
     )
     # Fail due to missing checks
     with pytest.raises(ValueError) as exc:
@@ -32,11 +32,11 @@ def test_verify_check(db: Session):
 
     # Checks passed
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_id=1
+        db=db, entry_id=1
     )
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_assessment_id=assessment_tracker_entry.id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": True,
@@ -44,7 +44,7 @@ def test_verify_check(db: Session):
         },
     )
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_id=1
+        db=db, entry_id=1
     )
     assert utils.verify_check(
         assessment_tracker_entry=assessment_tracker_entry,
@@ -53,7 +53,7 @@ def test_verify_check(db: Session):
     # Checks failed
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_assessment_id=assessment_tracker_entry.id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -61,7 +61,7 @@ def test_verify_check(db: Session):
         },
     )
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, assessment_tracker_id=1
+        db=db, entry_id=1
     )
     assert not utils.verify_check(
         assessment_tracker_entry=assessment_tracker_entry,

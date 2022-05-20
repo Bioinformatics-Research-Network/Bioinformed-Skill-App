@@ -59,7 +59,7 @@ def get_reviewer_by_username(db: Session, username: str):
     user_id = get_user_by_username(db=db, username=username).id
     reviewer = (
         db.query(models.Reviewers)
-        .filter(models.Reviewers.id == user_id)
+        .filter(models.Reviewers.user_id == user_id)
         .first()
     )
     if reviewer is None:
@@ -267,23 +267,19 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
 
     :raises: Uncaught error if no reviewer is available (should not happen).
     """
-    user = get_user_by_id(db=db, assessment_id=assessment_tracker_entry.id)
-    try:
-        invalid_rev = get_reviewer_by_username(
-            db=db,
-            username=user.username,
-        ).id
-    except ValueError as e:
-        if str(e) != "Reviewer does not exist":  # pragma: no cover
-            raise ValueError(str(e))  # Raise error if not expected
-        else:
-            invalid_rev = 0  # trainee is not a reviewer
+    invalid_rev = (
+        db.query(models.Reviewers)
+        .filter(models.Reviewers.user_id == assessment_tracker_entry.user_id)
+        .with_entities(models.Reviewers.id)
+        .all()
+    )
+    invalid_rev = [i[0] for i in invalid_rev]
 
     # Get all reviewers
     valid_reviewers = (
         db.query(models.Reviewers)
         .filter(
-            models.Reviewers.id != invalid_rev,
+            models.Reviewers.id.notin_(invalid_rev),
             # Uncomment to filter by assessments the reviewer can do
             # assessment.id in models.Reviewers.assessment_reviewing_info,
         )
@@ -297,12 +293,15 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
         random_id = valid_reviewers[
             random.randint(0, len(valid_reviewers) - 1)
         ][0]
+        print(random_id)
 
         # Return the reviewer's db entry
-        random_reviewer = get_reviewer_by_id(db=db, id=random_id)
+        random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
         return random_reviewer
     except IndexError as e:  # pragma: no cover
         raise ValueError("No reviewer available. Contact the administrator.")
+    except Exception as e:  # pragma: no cover
+        raise e
 
 
 def assign_reviewer(
@@ -314,14 +313,14 @@ def assign_reviewer(
     :param db: Generator for Session of database
     :param assessment_tracker_entry: assessment tracker entry
     :param reviewer_info: reviewer info. Dict following the format:
-        { "id": int, "reviewer_username": str }
+        { "reviewer_id": int, "reviewer_username": str }
 
     :returns: True
 
     :raises: None (hopefully)
     """
     # Update the assessment tracker entry
-    assessment_tracker_entry.id = reviewer_info["id"]
+    assessment_tracker_entry.reviewer_id = reviewer_info["reviewer_id"]
     assessment_tracker_entry.status = "Under review"
     assessment_tracker_entry.last_updated = datetime.utcnow()
     db.add(assessment_tracker_entry)
@@ -330,7 +329,7 @@ def assign_reviewer(
     # Update the assessment tracker entry log
     update_assessment_log(
         db=db,
-        assessment_tracker_assessment_id=assessment_tracker_entry.id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
@@ -366,14 +365,14 @@ def approve_assessment(
         - Reviewer is not the same as the reviewer assigned in the assessment tracker entry
     """
     # Get user ids and confirm they are different
-    if reviewer.id == trainee.id:
+    if reviewer.user_id == trainee.id:
         raise ValueError("Reviewer cannot be the same as the trainee.")
 
     # Verify checks passing on latest commit
     assessment_tracker_entry = get_assessment_tracker_entry(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
-    if assessment_tracker_entry.id is None:
+    if assessment_tracker_entry.reviewer_id is None:
         raise ValueError("No reviewer is assigned to the assessment.")
     if assessment_tracker_entry.status != "Under review":
         raise ValueError("Assessment is not under review.")
@@ -381,10 +380,11 @@ def approve_assessment(
         raise ValueError("Last commit checks failed.")
 
     # Get the reviewer, based on the assessment_tracker entry
+    print(assessment_tracker_entry.reviewer_id)
     reviewer_real = get_reviewer_by_id(
-        db=db, assessment_id=assessment_tracker_entry.id
+        db=db, reviewer_id=assessment_tracker_entry.reviewer_id
     )
-    reviewer_real_user = get_user_by_id(db=db, reviewer_id=reviewer_real.id)
+    reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
     # Verify the approval request is from the reviewer
     if reviewer_real_user.username != reviewer_username:
         raise ValueError(

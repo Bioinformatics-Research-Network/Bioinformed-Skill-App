@@ -57,40 +57,6 @@ def get_assertion(
     return response
 
 
-def get_all_assertions(
-    assessment_name: str,
-    bearer_token: str,
-    config: dict,
-):
-    """
-    Get all assertions for a user
-
-    :param user_email: The user's email
-    :param user_first: The user's first name
-    :param user_last: The user's last name
-    :param assessment_name: The assessment name
-    :param bearer_token: The bearer token (from the Badgr API)
-    :param config: The configuration dictionary for the Badgr API
-
-    :return: The assertion as a response object
-    """
-    # Get the URL for the badge, based on assessment name
-    url = (
-        config["BADGR_BASE_URL"]
-        + "/v2/badgeclasses/"
-        + config["BADGE_IDs"][assessment_name]
-        + "/assertions"
-    )
-
-    # Prepare the payload with custom text and evidence
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + bearer_token,
-    }
-    response = requests.request("GET", url, headers=headers)
-    return response
-
-
 # TODO: Pydantic schema for this?
 def issue_badge(
     user_email: str,

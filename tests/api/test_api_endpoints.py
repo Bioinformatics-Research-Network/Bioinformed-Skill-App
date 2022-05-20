@@ -22,7 +22,7 @@ def test_init(client: TestClient, db: Session):
     assert response.status_code == 200
     data = response.json()
     assert data["Initiated"] is True
-    assert type(data["User_first_name"]) == str
+    assert type(data["username"]) == str
 
     # Error on initializing for a second time
     response = client.post("/api/init", json=request_json)
@@ -57,32 +57,11 @@ def test_init(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment does not exist"}
 
 
-def test_register(client: TestClient, db: Session):
-    ## Successful query
-    request_json = {
-        "first_name": "new",
-        "last_name": "user",
-        "username": "newuser",
-        "email": "newuser@test.com",
-    }
-    response = client.post("/api/register", json=request_json)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["registered"]
-
-    ## Error on registering for a second time
-    response = client.post("/api/register", json=request_json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": "User with this email already exists in the system"
-    }
-
-
 def test_view(client: TestClient, db: Session):
-    id = 1
-    id = 2
-    username = crud.get_user_by_id(db, id).username
-    assessment_name = crud.get_assessment_by_id(db, id).name
+    user_id = 1
+    assessment_id = 2
+    username = crud.get_user_by_id(db, user_id).username
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
 
     ## Successful query
     request_json = {
@@ -93,8 +72,8 @@ def test_view(client: TestClient, db: Session):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "Initiated"
-    assert data["id"] == id
-    assert data["id"] == id
+    assert data["user_id"] == user_id
+    assert data["assessment_id"] == assessment_id
 
     ## Error on invalid username
     request_json = {
@@ -115,8 +94,8 @@ def test_view(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment does not exist"}
 
     ## Error on missing entry
-    id = 3
-    assessment_name = crud.get_assessment_by_id(db, id).name
+    assessment_id = 3
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
     request_json = {
         "assessment_name": assessment_name,
         "username": username,
@@ -127,10 +106,10 @@ def test_view(client: TestClient, db: Session):
 
 
 def test_delete(client: TestClient, db: Session):
-    id = 1
-    id = 3
-    username = crud.get_user_by_id(db, id).username
-    assessment_name = crud.get_assessment_by_id(db, id).name
+    user_id = 1
+    assessment_id = 3
+    username = crud.get_user_by_id(db, user_id).username
+    assessment_name = crud.get_assessment_by_id(db, assessment_id).name
     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
     # Create entry
     request_json = {
@@ -148,7 +127,7 @@ def test_delete(client: TestClient, db: Session):
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 200
     with pytest.raises(Exception) as exc:
-        crud.get_assessment_tracker_entry(db, id, id)
+        crud.get_assessment_tracker_entry(db, user_id=user_id, assessment_id=assessment_id)
     assert str(exc.value) == "Assessment tracker entry unavailable."
 
     ## Error: Delete entry that does not exist
@@ -247,6 +226,8 @@ def test_review(client: TestClient, db: Session):
 
     ## Success: The repo is passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    print(assessment_tracker_entry.user_id)
+    print(assessment_tracker_entry.reviewer_id)
     # Therefore, successful query
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit,
@@ -254,13 +235,13 @@ def test_review(client: TestClient, db: Session):
     response = client.post("/api/review", json=request_json)
     print(response.json())
     assert response.status_code == 200
-    assert response.json() == {"id": 3, "reviewer_username": "Betsy_Enos29"}
+    assert response.json() == {"reviewer_id": 1, "reviewer_username": "Bonnie_Stumpe94"}
 
     ## Error: The repo is not passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_assessment_id=assessment_tracker_entry.id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -306,9 +287,12 @@ def test_approve(client: TestClient, db: Session):
 
     # Tracker entry for which checks are passing
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-    id = assessment_tracker_entry.id
-    reviewer_userid = crud.get_reviewer_by_id(db, id)
-    reviewer_username = crud.get_user_by_id(db, reviewer_userid.id).username
+    reviewer_id = assessment_tracker_entry.reviewer_id
+    print(reviewer_id)
+    reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id=reviewer_id)
+    print(reviewer_userid)
+    reviewer_username = crud.get_user_by_id(db, user_id=reviewer_userid.user_id).username
+    print(reviewer_username)
 
     # Successful query
     request_json = {
@@ -356,7 +340,7 @@ def test_approve(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
     crud.update_assessment_log(
         db=db,
-        assessment_tracker_assessment_id=assessment_tracker_entry.id,
+        entry_id=assessment_tracker_entry.id,
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs={
             "checks_passed": False,
@@ -383,12 +367,15 @@ def test_approve(client: TestClient, db: Session):
 
 
 def test_update(client: TestClient, db: Session):
-    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
+        db=db, 
+        entry_id=6
+    )
     username = crud.get_user_by_id(
-        db, assessment_tracker_entry.id
+        db, user_id=assessment_tracker_entry.user_id
     ).username
     assessment_name = crud.get_assessment_by_id(
-        db, assessment_tracker_entry.id
+        db, assessment_id=assessment_tracker_entry.assessment_id
     ).name
 
     # Successful query

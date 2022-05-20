@@ -4,18 +4,6 @@ from pydantic import BaseModel
 
 ## Request schemas
 
-
-class RegisterRequest(BaseModel):
-    """
-    Pydantic request model schema used by `/api/register` endpoint
-    """
-
-    email: str
-    first_name: str
-    last_name: str
-    username: str
-
-
 class InitRequest(BaseModel):
     """
     Pydantic request model schema used by `/api/init` endpoint
@@ -98,7 +86,7 @@ class InitResponse(BaseModel):
     """
 
     Initiated: bool
-    User_first_name: str
+    username: str
 
 
 class ReviewResponse(BaseModel):
@@ -106,5 +94,5 @@ class ReviewResponse(BaseModel):
     Pydantic response model schema used by `/api/review` endpoint
     """
 
-    id: int
+    reviewer_id: int
     reviewer_username: str

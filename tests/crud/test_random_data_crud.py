@@ -6,11 +6,8 @@ from app.crud import random_data_crud
 
 def test_create_random_user(db: Session):
     db_obj = random_data_crud.create_random_user(db=db, random_users=1)
-
-    assert db_obj.first_name in random_data_utils.first_list
-    assert db_obj.last_name in random_data_utils.last_list
     assert type(db_obj.username) == str
-    assert type(db_obj.email) == str
+    assert type(db_obj.name) == str
 
 
 def test_create_random_reviewers(db: Session):
@@ -25,9 +22,6 @@ def test_create_assessments(db: Session):
 
     assert db_obj.name in random_data_utils.assessments_name
     assert db_obj.description in random_data_utils.assessment_desc
-    assert db_obj.goals in random_data_utils.assessment_desc
-    assert db_obj.pre_requisites_ids in random_data_utils.pre_requisite_id
-    assert db_obj.version_number == "1"
 
 
 def test_create_random_assessment_tracker(db: Session):

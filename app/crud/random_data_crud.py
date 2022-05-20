@@ -23,10 +23,12 @@ def create_random_user(random_users: int, db: Session):
         first, last = random_data_utils.random_name()
         name = first + " " + last
         username = random_data_utils.random_username(first, last)
-
         db_obj = models.Users(
             username=username,
             name=name,
+            email=username + "@gmail.com",
+            first_name=first,
+            last_name=last,
         )
         db.add(db_obj)
         db.commit()
@@ -70,18 +72,10 @@ def create_assessments(random_assessments: int, db: Session):
     for i in range(random_assessments):
         name = random_data_utils.assessments_name[i]
         desc = random_data_utils.assessment_desc[i]
-        pre_req = random_data_utils.pre_requisite_id[i]
 
         db_obj = models.Assessments(
             name=name,
-            orig_id=" ",
-            core_skill_areas=" ",
-            languages=" ",
-            types=" ",
-            release_url=" ",
             description=desc,
-            prerequisites=" ",
-            classroom_url=" ",
         )
         db.add(db_obj)
         db.commit()

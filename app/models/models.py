@@ -37,7 +37,8 @@ class Users(db.Base):
     profile_picture = Column(String(250))
     linkedin_url = Column(String(250))
     cv_url = Column(String(250))
-    twitter_url = Column(String(250))
+    personal_site = Column(String(250))
+    twitter_handle = Column(String(250))
     orcid_id = Column(String(250))
     country = Column(String(250))
     city = Column(String(250))
@@ -54,7 +55,7 @@ class Users(db.Base):
     onboarded = Column(Boolean)
     reviewer = Column(Boolean)
     
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"<Users: {self.username}>"
 
 

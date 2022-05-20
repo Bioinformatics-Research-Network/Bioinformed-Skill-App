@@ -10,10 +10,10 @@ SQLALCHEMY_DATABASE_URI = (
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
-if not database_exists(engine.url): # Checks for the first time  
+if not database_exists(engine.url): # pragma: no cover
     create_database(engine.url)     # Create new DB    
     print("New Database Created") # Verifies if database is there or not.
-else:
+else: # pragma: no cover
     print("Database Already Exists")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

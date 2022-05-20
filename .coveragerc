@@ -1,8 +1,10 @@
 [run]
 branch = True
+
+[report]
 omit =
     .venv/
     __pycache__/
     .pytest_cache/
-    tests/
+    tests/*
     app/db/initiate_db.py

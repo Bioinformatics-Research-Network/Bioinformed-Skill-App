@@ -1,27 +1,39 @@
-from urllib import request
+import json
 from bot import bot, utils
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Header
 
 app = FastAPI()
 brnbot = bot.Bot()
 
 
 @app.post("/")
-def bot(payload: dict = Body(...)):
+def bot(
+    payload: dict = Body(...),
+    x_github_event: str = Header(...),
+):
 
-    print("Processing payload")
+    action = payload["action"]
+    event = x_github_event
+    print(event + ": " + action)
 
-    if utils.forbot(payload):
-        sender = payload["sender"]["login"]
-        message = payload["comment"]["body"]
-        print(sender)
-        print(message)
-        brnbot.process_cmd(payload)
-    elif utils.is_commit(payload=payload):
-        print("is commit")
+    if event == "issue_comment" and action == "created":
+        # Check if comment is for the bot
+        if utils.is_for_bot(payload):
+            sender = payload["sender"]["login"]
+            message = payload["comment"]["body"]
+            print(sender + ": " + message)
+            brnbot.process_cmd(payload)
+    elif utils.is_pr_commit(payload=payload, event=event):
+        print("is PR commit")
         brnbot.process_commit(payload)
     elif utils.is_workflow_run(payload=payload):
         print("is workflow run")
         brnbot.process_done_check(payload)
+    elif utils.is_assessment_init(payload=payload, event=event):
+        print("is new repo")
+        brnbot.process_new_repo(payload)
+    elif utils.is_delete_repo(payload=payload, event=event):
+        print("is delete repo")
+        # brnbot.process_delete_repo(payload)
 
     return "ok"

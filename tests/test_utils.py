@@ -32,20 +32,6 @@ payload = {
 }
 
 
-def test_get_last_commit():
-    """
-    Test the bot's get_last_commit command
-    """
-    kwarg_dict = bot.parse_comment_payload(payload)
-    last_commit = utils.get_last_commit(
-        owner=kwarg_dict["owner"],
-        repo_name=kwarg_dict["repo_name"],
-        access_token=kwarg_dict["access_token"],
-    )
-    # Commit should be "5859532a05b2523593ee4059c01b3ec06e3f5827" for the test repo
-    assert last_commit == "5859532a05b2523593ee4059c01b3ec06e3f5827"
-
-
 def test_get_assessment_name():
     """
     Test the bot's get_assessment_name command
@@ -55,13 +41,13 @@ def test_get_assessment_name():
     assert assessment_name == "Test"
 
 
-def test_forbot():
+def test_is_for_bot():
     """
     Test the bot's forbot command
     """
-    assert utils.forbot(payload)
+    assert utils.is_for_bot(payload)
     payload["comment"]["body"] = "@brnbottt"
-    assert not utils.forbot(payload)
+    assert not utils.is_for_bot(payload)
 
 
 def test_get_recent_comments():

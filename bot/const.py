@@ -14,7 +14,7 @@ gh_url = "https://api.github.com"
 gh_http = "https://github.com"
 
 # Base URL for the BRN CRUD API
-brn_url = "http://localhost:8000"
+brn_url = "http://localhost:2000"
 
 # Header for the GitHub API
 accept_header = "application/vnd.github.v3+json"
@@ -29,11 +29,18 @@ git_ref = "main"
 # file for storing temporary access tokens
 token_fp = "access_tokens.json"
 
+# BRN bot name
+bot_name = "brn-bot[bot]"
+
+# Admin usernames
+admins = ["millerh1", "itchytummy", "bioresnet"]
+
 # Dict of valid App install IDs
 installation_ids = {
     "Python Programming II": 25476585,
-    # "Test": 25533349,
-    "Test": 25630785,
+    "Test": 25533349,
+    "Skill Assessment Tutorial (Python)": 25630785,
+    "Skill Assessment Tutorial (R)": 25901888,
     "Python Programming": 25616884,
 }
 

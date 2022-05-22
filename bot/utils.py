@@ -95,7 +95,9 @@ def get_comment_by_id(comment_id, **kwargs) -> requests.Response:
     return response
 
 
-def get_recent_comments(delt: timedelta = timedelta(minutes=1), **kwargs) -> requests.Response:
+def get_recent_comments(
+    delt: timedelta = timedelta(minutes=1), **kwargs
+) -> requests.Response:
     """
     Retrieve the last comment
     """
@@ -176,7 +178,7 @@ def get_last_commit(owner, repo_name, access_token) -> dict:
         return None
 
 
-def forbot(payload: dict) -> bool:
+def is_for_bot(payload: dict) -> bool:
     """
     Check if the payload is for the bot
     """
@@ -190,15 +192,55 @@ def forbot(payload: dict) -> bool:
         return False
 
 
-def is_commit(payload: dict) -> bool:
+def is_pr_commit(payload: dict, event: str) -> bool:
     """
-    Check if the payload is a commit on the PR
+    Check if the payload is a user commit on the PR
     """
     # TODO: What else could cause this to trigger?
-    try:
-        payload["pull_request"]["head"]["sha"]
-        return True
-    except KeyError:
+    # TODO: What about a non-user committing something?
+    if event == "pull_request" and payload["action"] == "synchronize":
+        try:
+            payload["pull_request"]["head"]["sha"]
+            valid_ids = const.installation_ids.values()
+            return (
+                payload["sender"]["login"] != "github-classroom[bot]"
+                and payload["installation"]["id"] in valid_ids
+            )
+        except KeyError:
+            return False
+    else:
+        return False
+
+
+def is_delete_repo(payload: dict, event: str) -> bool:
+    """
+    Check if the payload is a delete repo event
+    """
+    if event == "repository" and payload["action"] == "deleted":
+        try:
+            valid_ids = const.installation_ids.values()
+            return payload["installation"]["id"] in valid_ids
+        except KeyError:
+            return False
+    else:
+        return False
+
+
+def is_assessment_init(payload: dict, event: str) -> bool:
+    """
+    Check if the payload is a new repo event
+    """
+    if event == "pull_request" and payload["action"] == "edited":
+        try:
+            payload["pull_request"]["head"]["sha"]
+            valid_ids = const.installation_ids.values()
+            return (
+                payload["sender"]["login"] == "github-classroom[bot]"
+                and payload["installation"]["id"] in valid_ids
+            )
+        except KeyError:
+            return False
+    else:
         return False
 
 
@@ -265,8 +307,8 @@ def get_all_access_tokens(installation_ids, jwt) -> dict:
 def dispatch_workflow(**kwarg_dict) -> requests.Response:
     # Dispatch workflow file
     request_url = (
-        f"{const.gh_url}/repos/{kwarg_dict['owner']}/" +
-        f"{kwarg_dict['repo_name']}/actions/workflows/{const.workflow_filename}/dispatches"
+        f"{const.gh_url}/repos/{kwarg_dict['owner']}/"
+        + f"{kwarg_dict['repo_name']}/actions/workflows/{const.workflow_filename}/dispatches"
     )
     headers = {
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
@@ -277,7 +319,6 @@ def dispatch_workflow(**kwarg_dict) -> requests.Response:
         headers=headers,
         json={
             "ref": const.git_ref,
-        }
+        },
     )
     return response
-

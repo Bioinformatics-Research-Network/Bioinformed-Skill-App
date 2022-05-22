@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import requests
 from datetime import datetime
 from bot import utils, const
@@ -69,7 +70,6 @@ class Bot:
             "last_commit": payload["pull_request"]["head"]["sha"],
         }
 
-    
     def parse_workflow_run_payload(self, payload: dict):
         """
         Parse the payload for workflow run
@@ -77,14 +77,13 @@ class Bot:
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         return {
-            "issue_number": payload["workflow_run"]['pull_requests'][0]['number'],
+            "issue_number": payload["workflow_run"]["pull_requests"][0]["number"],
             "owner": payload["repository"]["owner"]["login"],
             "repo_name": payload["repository"]["name"],
             "access_token": access_token,
             "last_commit": payload["workflow_run"]["head_sha"],
             "conclusion": payload["workflow_run"]["conclusion"],
         }
-
 
     def process_cmd(self, payload):
         """
@@ -93,7 +92,7 @@ class Bot:
         Returns:
             str: The comment text
         """
-        if utils.forbot(payload):
+        if utils.is_for_bot(payload):
             cmd = payload["comment"]["body"].split(" ")[1]
             return getattr(self, str(cmd), self.invalid)(payload)
         else:
@@ -106,10 +105,11 @@ class Bot:
         # TODO: This will only capture the HEAD on pushes, not all commits
         kwarg_dict = self.parse_commit_payload(payload)
         log = {"type": "commit"}
+        print(kwarg_dict["sender"])
         # Update the assessment in the database using API
         request_url = f"{self.brn_url}/api/update"
         body = {
-            "github_username": kwarg_dict["sender"],
+            "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
             "latest_commit": kwarg_dict["last_commit"],
             "log": {"message": log},
@@ -128,11 +128,65 @@ class Bot:
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
+            err = f"**Error**: {response.json()['detail']}"
+            utils.post_comment(err, **kwarg_dict)
+            raise e
+        except Exception as e:  # pragma: no cover
             err = (
-                f"**Error**: {response.json()['detail']}"
+                f"**Error**: {e}"
                 + "\n\n"
-                + "Re-initialize this assessment with `@brnbot init`."
+                + "**Please contact the maintainer for this bot.**"
             )
+            utils.post_comment(err, **kwarg_dict)
+            raise e
+
+    def parse_new_repo_payload(self, payload: dict):
+        """
+        Parse the payload for new repo
+        """
+        install_id = payload["installation"]["id"]
+        access_token = self.current_tokens["tokens"][str(install_id)]
+        ghbot_message = payload["pull_request"]["body"]
+        trainee = re.search(r"@(.*?)$", ghbot_message).group(1)
+        return {
+            "owner": payload["repository"]["owner"]["login"],
+            "repo_name": payload["repository"]["name"],
+            "issue_number": payload["pull_request"]["number"],
+            "trainee": trainee,
+            "repo_url": payload["repository"]["html_url"],
+            "access_token": access_token,
+        }
+
+    def process_new_repo(self, payload):
+        """
+        Process a new skill assessment repo
+        """
+        kwarg_dict = self.parse_new_repo_payload(payload)
+        print(kwarg_dict)
+        text = "Initialized assessment. 🚀"
+
+        # Initialize the skill assessment in the database using API
+        request_url = f"{self.brn_url}/api/init"
+        body = {
+            "github_username": kwarg_dict["trainee"],
+            "assessment_name": utils.get_assessment_name(payload),
+            "latest_commit": utils.get_last_commit(
+                owner=kwarg_dict["owner"],
+                repo_name=kwarg_dict["repo_name"],
+                access_token=kwarg_dict["access_token"],
+            )["sha"],
+            # "repo_url": kwarg_dict["repo_url"],
+        }
+        response = requests.post(
+            request_url,
+            json=body,
+        )
+        try:
+            response.raise_for_status()
+            utils.post_comment(text, **kwarg_dict)
+            return True
+        except requests.exceptions.HTTPError as e:
+            err = f"**Error**: {response.json()['detail']}"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover
@@ -184,7 +238,7 @@ class Bot:
         # Initialize the skill assessment in the database using API
         request_url = f"{self.brn_url}/api/init"
         body = {
-            "github_username": kwarg_dict["sender"],
+            "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
             "latest_commit": utils.get_last_commit(
                 owner=kwarg_dict["owner"],
@@ -221,7 +275,7 @@ class Bot:
         # Get the assessment data from the database using API
         request_url = f"{self.brn_url}/api/view"
         body = {
-            "github_username": kwarg_dict["sender"],
+            "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
         }
         response = requests.get(
@@ -240,11 +294,7 @@ class Bot:
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
-            err = (
-                f"**Error**: {response.json()['detail']}"
-                + "\n\n"
-                + "Re-initialize this assessment with `@brnbot init`."
-            )
+            err = f"**Error**: {response.json()['detail']}"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover
@@ -272,7 +322,7 @@ class Bot:
             # Delete the assessment from the database using API
             request_url = f"{self.brn_url}/api/delete"
             body = {
-                "github_username": kwarg_dict["sender"],
+                "username": kwarg_dict["sender"],
                 "assessment_name": utils.get_assessment_name(payload),
             }
             response = requests.post(
@@ -285,11 +335,7 @@ class Bot:
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
-            err = (
-                f"**Error**: {response.json()['detail']}"
-                + "\n\n"
-                + "Re-initialize this assessment with `@brnbot init`."
-            )
+            err = f"**Error**: {response.json()['detail']}"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover
@@ -312,7 +358,7 @@ class Bot:
         kwarg_dict = self.parse_comment_payload(payload)
         request_url = f"{self.brn_url}/api/update"
         body = {
-            "github_username": kwarg_dict["sender"],
+            "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
             "latest_commit": utils.get_last_commit(
                 owner=kwarg_dict["owner"],
@@ -331,11 +377,7 @@ class Bot:
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
-            err = (
-                f"**Error**: {response.json()['detail']}"
-                + "\n\n"
-                + "Re-initialize this assessment with `@brnbot init`."
-            )
+            err = f"**Error**: {response.json()['detail']}"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover
@@ -351,13 +393,16 @@ class Bot:
         """
         Check the skill assessment using automated tests via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)      
-        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"    
+        kwarg_dict = self.parse_comment_payload(payload)
+        actions_url = (
+            f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
+        )
         try:
             response = utils.dispatch_workflow(**kwarg_dict)
             response.raise_for_status()
             text = "Automated checks ✅ in progress ⏳. View them here: " + actions_url
             utils.post_comment(text, **kwarg_dict)
+            return True
         except requests.exceptions.HTTPError as e:
             err = f"**Error**: {str(e)}" + "\n"
             utils.post_comment(err, **kwarg_dict)
@@ -371,12 +416,13 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-
     def process_done_check(self, payload: dict):
         kwarg_dict = self.parse_workflow_run_payload(payload)
-        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/" 
+        actions_url = (
+            f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
+        )
         print(kwarg_dict)
-        
+
         # Confirm that latest commit is the same as the one in the database
         latest_commit = utils.get_last_commit(
             owner=kwarg_dict["owner"],
@@ -386,7 +432,7 @@ class Bot:
         if latest_commit != kwarg_dict["last_commit"]:
             msg = (
                 "Checks are complete 🔥! However, the current commit has changed since the "
-                + "checks were initiated. Re-run the checks with `@brnbot check`." 
+                + "checks were initiated. Re-run the checks with `@brnbot check`."
             )
             utils.post_comment(msg, **kwarg_dict)
             return None
@@ -394,10 +440,7 @@ class Bot:
         # Check the skill assessment in the database using API
         passed = kwarg_dict["conclusion"] != "failure"
         request_url = f"{self.brn_url}/api/check"
-        body = {
-            "latest_commit": latest_commit,
-            "passed": passed
-        }
+        body = {"latest_commit": latest_commit, "passed": passed}
         response = requests.post(
             request_url,
             json=body,
@@ -405,9 +448,12 @@ class Bot:
         try:
             response.raise_for_status()
             if passed:
-                text = "Checks have **passed** 💯. You can now request manual review with `@brnbot review`."
+                text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
             else:
-                text = "Checks have **failed** 💥. Please check the logs for more information: " + actions_url
+                text = (
+                    "Checks have **failed** 💥. Please check the logs for more information: "
+                    + actions_url
+                )
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
@@ -422,7 +468,6 @@ class Bot:
             )
             utils.post_comment(err, **kwarg_dict)
             raise e
-
 
     def review(self, payload: dict):
         """

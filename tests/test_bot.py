@@ -1,7 +1,8 @@
+from distutils.command.config import config
 import pytest
 import requests
 import copy
-from bot import bot, utils
+from bot import bot, utils, const
 
 # instantiate the bot
 bot = bot.Bot()
@@ -88,7 +89,7 @@ def test_view():
     payload["comment"]["body"] = "@brnbot view"
     response = bot.process_cmd(payload)
     assert response.status_code == 200
-    assert response.json()["user_id"] == 1
+    assert response.json()["user_id"] == 3
     # Confirm the latest comment is the output of the view command
     response2 = utils.get_recent_comments(**bot.parse_comment_payload(payload))
     assert response.json()["latest_commit"] in response2.json()[-1]["body"]
@@ -223,21 +224,11 @@ def test_check():
     payload["comment"]["body"] = "@brnbot check"
     kwarg_dict = bot.parse_comment_payload(payload)
     assert bot.process_cmd(payload)
-    response = utils.get_recent_comments(**kwarg_dict)
-    assert (
-        response.json()[-1]["body"]
-        == "Checks run 🔥. Please check the comments for results."
-    )
 
     ## Second person on the repo can request a check
     payload2 = copy.deepcopy(payload)
     payload2["sender"]["login"] = "bioresnet"
     assert bot.process_cmd(payload2)
-    response = utils.get_recent_comments(**kwarg_dict)
-    assert (
-        response.json()[-1]["body"]
-        == "Checks run 🔥. Please check the comments for results."
-    )
 
 
 def test_review():
@@ -259,10 +250,22 @@ def test_review():
     except:
         pass
 
-    # Ensure passing checks
-    print("Passing checks")
-    payload["comment"]["body"] = "@brnbot check"
-    assert bot.process_cmd(payload)
+    # Set the assessment to be passing checks using the update command
+    kwarg_dict = bot.parse_comment_payload(payload)
+    request_url = f"{const.brn_url}/api/check"
+    latest_commit = utils.get_last_commit(
+        owner=kwarg_dict["owner"],
+        repo_name=kwarg_dict["repo_name"],
+        access_token=kwarg_dict["access_token"],
+    )["sha"]
+    body = {"latest_commit": latest_commit, "passed": True}
+    print(body)
+    print(request_url)
+    response = requests.post(
+        request_url,
+        json=body,
+    )
+    response.raise_for_status()
 
     ## Successful review command
     print("Review")

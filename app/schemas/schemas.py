@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 ## Request schemas
 
+
 class InitRequest(BaseModel):
     """
     Pydantic request model schema used by `/api/init` endpoint

@@ -1,11 +1,6 @@
-# Contains the configuration for the app
-# See example:
-# https://github.com/tiangolo/full-stack-fastapi-postgresql/blob/master/%7B%7Bcookiecutter.project_slug%7D%7D/backend/app/app/core/config.py
-
 import os
+from pydantic import BaseSettings
 
-# API key for Mandrill (email transactions)
-MANDRILL_API_KEY = os.environ.get("MANDRILL_API_KEY")
 
 # Config for Badgr
 badgr_config_prod = {
@@ -42,11 +37,14 @@ badgr_config_test = {
     },
 }
 
-# Connection details for RDS
-RDS_ENDPOINT = os.environ.get("RDS_ENDPOINT")
-RDS_PORT = os.environ.get("RDS_PORT")
-RDS_DB_NAME = os.environ.get("RDS_DB_NAME")
-RDS_USERNAME = os.environ.get("RDS_USERNAME")
-RDS_PASSWORD = os.environ.get("RDS_PASSWORD")
 
-
+class Settings(BaseSettings):
+    MANDRILL_API_KEY: str = os.environ.get("MANDRILL_API_KEY")
+    RDS_ENDPOINT: str = os.environ.get("RDS_ENDPOINT")
+    RDS_PORT: str = os.environ.get("RDS_PORT")
+    RDS_DB_NAME: str = os.environ.get("RDS_DB_NAME")
+    RDS_USERNAME: str = os.environ.get("RDS_USERNAME")
+    RDS_PASSWORD: str = os.environ.get("RDS_PASSWORD")
+    BADGR_CONFIG_PROD: dict = badgr_config_prod
+    BADGR_CONFIG_TEST: dict = badgr_config_test
+    BADGR_CONFIG: dict = badgr_config_prod

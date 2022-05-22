@@ -2,20 +2,12 @@ import copy
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from app.api.services import get_db
-from app import schemas, crud, utils, config
-
-
-## TODO: Fix this later -- should be parameterized using fastapi config
-badgr_config = config.badgr_config_test
+from app.api.services import get_db, get_settings
+from app.config import Settings
+from app import schemas, crud, utils
 
 
 router = APIRouter(prefix="/api", tags=["api"])
-
-
-# the endpoints are defined according to:
-# https://lucid.app/lucidchart/b45b7344-4270-404c-a4c0-877bf494d4cd/edit?invitationId=inv_f2d14e7e-1d22-4665-bf60-711bf47dd067&page=0_0#
 
 
 @router.post("/init", response_model=schemas.InitResponse)
@@ -38,9 +30,7 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     # If other error occurs, raise 500 error
     try:
         user = crud.get_user_by_username(db=db, username=init_request.username)
-        crud.init_assessment_tracker(
-            db=db, init_request=init_request, user_id=user.id
-        )
+        crud.init_assessment_tracker(db=db, init_request=init_request, user_id=user.id)
     except ValueError as e:
         print(e)
         raise HTTPException(status_code=422, detail=str(e))
@@ -255,7 +245,12 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
 
 
 @router.patch("/approve")
-def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRequest):
+def approve(
+    *,
+    db: Session = Depends(get_db),
+    approve_request: schemas.ApproveRequest,
+    settings: Settings = Depends(get_settings),
+):
     """
     Approve the assessment tracker entry for the given user and assessment.
 
@@ -276,11 +271,22 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
         - The reviewer is the same as the user
         - The reviewer is not listed as a reviewer for this assessment
     """
+    print("A")
     try:
-        # Get the assessment_tracker entry
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=approve_request.latest_commit
         )
+    except ValueError as e:
+        print(str(e))
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # pragma: no cover
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+    print("B")
+    orig_status = copy.deepcopy(assessment_tracker_entry.status)
+    print("C")
+    try:
         # Get the trainee info
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         # Get the reviewer info; error if not exists
@@ -304,23 +310,40 @@ def approve(*, db: Session = Depends(get_db), approve_request: schemas.ApproveRe
             assessment=assessment,
         )
         # Issue badge
-        bt = utils.get_bearer_token(badgr_config)
-        utils.issue_badge(
+        bt = utils.get_bearer_token(settings.BADGR_CONFIG)
+        print(bt)
+        resp = utils.issue_badge(
             user_email=user.email,
             user_first=user.first_name,
             user_last=user.last_name,
             assessment_name=assessment.name,
             bearer_token=bt,
-            config=badgr_config,
+            config=settings.BADGR_CONFIG,
         )
+        print(resp)
     except KeyError as e:  # pragma: no cover
         msg = "Badgr: Unable to locate assessment: " + str(e)
+
+        # If any error, revert status to original
+        assessment_tracker_entry.status = orig_status
+        db.commit()
+
         raise HTTPException(status_code=500, detail=msg)
     except ValueError as e:
         print(str(e))
+
+        # If any error, revert status to original
+        assessment_tracker_entry.status = orig_status
+        db.commit()
+
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
         print(str(e))
+
+        # If any error, revert status to original
+        assessment_tracker_entry.status = orig_status
+        db.commit()
+
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment Approved": True}

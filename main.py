@@ -1,17 +1,16 @@
-# FastAPI should be called here
-# Global Security should go here -- see https://fastapi.tiangolo.com/tutorial/security/first-steps/
-
-from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
-from app.api.services import get_db
+from fastapi import FastAPI
 from app.api import api_endpoints
 
-
-app = FastAPI()
+app = FastAPI(
+    title="BRN API",
+    description="BRN API",
+    version="0.1.0",
+    docs_url="/api/docs",
+)
 
 
 @app.get("/")
-def root(db: Session = Depends(get_db)):
+def root():
     """
     Root api endpoint, has no specific function. Was created to test API.
 

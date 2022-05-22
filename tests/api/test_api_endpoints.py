@@ -127,7 +127,9 @@ def test_delete(client: TestClient, db: Session):
     response = client.post("/api/delete", json=request_json)
     assert response.status_code == 200
     with pytest.raises(Exception) as exc:
-        crud.get_assessment_tracker_entry(db, user_id=user_id, assessment_id=assessment_id)
+        crud.get_assessment_tracker_entry(
+            db, user_id=user_id, assessment_id=assessment_id
+        )
     assert str(exc.value) == "Assessment tracker entry unavailable."
 
     ## Error: Delete entry that does not exist
@@ -291,7 +293,9 @@ def test_approve(client: TestClient, db: Session):
     print(reviewer_id)
     reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id=reviewer_id)
     print(reviewer_userid)
-    reviewer_username = crud.get_user_by_id(db, user_id=reviewer_userid.user_id).username
+    reviewer_username = crud.get_user_by_id(
+        db, user_id=reviewer_userid.user_id
+    ).username
     print(reviewer_username)
 
     # Successful query
@@ -368,8 +372,7 @@ def test_approve(client: TestClient, db: Session):
 
 def test_update(client: TestClient, db: Session):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-        db=db, 
-        entry_id=6
+        db=db, entry_id=6
     )
     username = crud.get_user_by_id(
         db, user_id=assessment_tracker_entry.user_id

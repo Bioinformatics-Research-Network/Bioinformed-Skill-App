@@ -53,4 +53,3 @@ def test_get_assertion():
     assert badge_assertion.json()["status"]["success"]
     assert recip == "tests@bioresnet.org"
     assert assessment_name == badgr_config_test["BADGE_IDs"]["Python Programming I"]
-

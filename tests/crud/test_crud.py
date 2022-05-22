@@ -51,9 +51,7 @@ def test_get_reviewer_by_username(db: Session):
         .with_entities(models.Users.username)
         .scalar()
     )
-    user_id = crud.get_reviewer_by_username(
-        db=db, username=username
-    ).id
+    user_id = crud.get_reviewer_by_username(db=db, username=username).id
     assert user_id == 1
 
     ## Unsuccessful
@@ -182,9 +180,7 @@ def test_approve_assessment(
     assert a is not None
     assessment = crud.get_assessment_by_id(db=db, assessment_id=2)
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=1)
-    reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).username
+    reviewer_username = crud.get_user_by_id(db=db, user_id=reviewer.user_id).username
     # Ensure checks are passed
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=trainee.id, assessment_id=assessment.id
@@ -300,9 +296,7 @@ def test_approve_assessment(
     reviewer = crud.get_reviewer_by_id(
         db=db, reviewer_id=assessment_tracker_entry.reviewer_id
     )
-    reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).username
+    reviewer_username = crud.get_user_by_id(db=db, user_id=reviewer.user_id).username
     assessment = crud.get_assessment_by_id(
         db=db, assessment_id=assessment_tracker_entry.assessment_id
     )
@@ -319,9 +313,7 @@ def test_approve_assessment(
     ## Unsuccessful approval
     ## Due to reviewer being same as trainee
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=2)
-    reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).username
+    reviewer_username = crud.get_user_by_id(db=db, user_id=reviewer.user_id).username
     with pytest.raises(ValueError) as exc:
         crud.approve_assessment(
             db=db,
@@ -348,9 +340,7 @@ def test_approve_assessment(
         },
     )
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=5)
-    reviewer_username = crud.get_user_by_id(
-        db=db, user_id=reviewer.user_id
-    ).username
+    reviewer_username = crud.get_user_by_id(db=db, user_id=reviewer.user_id).username
     with pytest.raises(ValueError) as exc:
         crud.approve_assessment(
             db=db,

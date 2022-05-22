@@ -20,9 +20,7 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
-    user = (
-        db.query(models.Users).filter(models.Users.username == username).first()
-    )
+    user = db.query(models.Users).filter(models.Users.username == username).first()
     if user is None:
         raise ValueError("User name does not exist")
     return user
@@ -58,9 +56,7 @@ def get_reviewer_by_username(db: Session, username: str):
     """
     user_id = get_user_by_username(db=db, username=username).id
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.user_id == user_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.user_id == user_id).first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -80,9 +76,7 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     :raises: ValueError if reviewer does not exist.
     """
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.id == reviewer_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.id == reviewer_id).first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -290,9 +284,7 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
     try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_id = valid_reviewers[
-            random.randint(0, len(valid_reviewers) - 1)
-        ][0]
+        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
         print(random_id)
 
         # Return the reviewer's db entry

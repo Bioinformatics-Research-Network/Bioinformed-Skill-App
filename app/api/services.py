@@ -1,5 +1,6 @@
 from app.db.session import SessionLocal
-
+from functools import lru_cache
+from app.config import Settings
 
 # to get local DB
 def get_db():
@@ -13,3 +14,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@lru_cache()
+def get_settings():
+    return Settings()

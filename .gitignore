@@ -13,3 +13,4 @@ codecov
 *nodesource*
 s3_data/
 .aws
+*.env*

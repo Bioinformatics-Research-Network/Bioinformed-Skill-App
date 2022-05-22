@@ -237,7 +237,10 @@ def test_review(client: TestClient, db: Session):
     response = client.post("/api/review", json=request_json)
     print(response.json())
     assert response.status_code == 200
-    assert response.json() == {"reviewer_id": 1, "reviewer_username": "Bonnie_Stumpe94"}
+    assert response.json() == {
+        "reviewer_id": 5,
+        "reviewer_username": "Toni_Hernandez31",
+    }
 
     ## Error: The repo is not passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
@@ -289,6 +292,10 @@ def test_approve(client: TestClient, db: Session):
 
     # Tracker entry for which checks are passing
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    # Set the assessment to be "Test"
+    orig_assessment_id = assessment_tracker_entry.assessment_id
+    assessment_tracker_entry.assessment_id = 6
+    db.commit()
     reviewer_id = assessment_tracker_entry.reviewer_id
     print(reviewer_id)
     reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id=reviewer_id)
@@ -368,6 +375,11 @@ def test_approve(client: TestClient, db: Session):
     response = client.patch("/api/approve", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "No reviewer is assigned to the assessment."}
+
+    # Reset the assessment tracker entry #6 to its original assessment
+    assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
+    assessment_tracker_entry.assessment_id = orig_assessment_id
+    db.commit()
 
 
 def test_update(client: TestClient, db: Session):

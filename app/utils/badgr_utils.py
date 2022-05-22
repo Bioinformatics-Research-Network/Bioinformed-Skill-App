@@ -1,9 +1,10 @@
 # Script for issue badge to a user
 import requests
 import json
+from app.config import Settings
 
 
-def get_bearer_token(config: dict):
+def get_bearer_token(config: Settings):
     """
     Get the bearer token from the Badgr API.
     Scope is limited to read-only access for organization-level badges.
@@ -13,20 +14,27 @@ def get_bearer_token(config: dict):
 
     :return: The bearer token as a string
     """
-    url = config["BADGR_BASE_URL"] + "/o/token/"
+    url = config.BADGR_BASE_URL + "/o/token/"
     payload = {
-        "username": config["BADGR_USERNAME"],
-        "password": config["BADGR_PASSWORD"],
-        "scope": config["BADGR_SCOPE"],
-        "grant_type": config["BADGR_GRANT_TYPE"],
-        "client_id": config["BADGR_CLIENT_ID"],
+        "username": config.BADGR_USERNAME,
+        "password": config.BADGR_PASSWORD,
+        "scope": config.BADGR_SCOPE,
+        "grant_type": config.BADGR_GRANT_TYPE,
+        "client_id": config.BADGR_CLIENT_ID,
     }
+    print(payload)
     response = requests.request("POST", url, data=payload)
-    return response.json()["access_token"]
+    print(response)
+    try:
+        print(response.json())
+        token = response.json()["access_token"]
+        return token
+    except KeyError:  # pragma: no cover
+        raise Exception("Badgr API provided no access token.")
 
 
 def get_assertion(
-    assessment_name: str, user_email: str, bearer_token: str, config: dict
+    assessment_name: str, user_email: str, bearer_token: str, config: Settings
 ):
     """
     Get the badge assertion from the Badgr API
@@ -39,9 +47,9 @@ def get_assertion(
     :return: The assertion as a response object
     """
     url = (
-        config["BADGR_BASE_URL"]
+        config.BADGR_BASE_URL
         + "/v2/badgeclasses/"
-        + config["BADGE_IDs"][assessment_name]
+        + config.BADGE_IDs[assessment_name]
         + "/assertions"
         + "?recipient="
         + user_email
@@ -64,7 +72,7 @@ def issue_badge(
     user_last: str,
     assessment_name: str,
     bearer_token: str,
-    config: dict,
+    config: Settings,
 ):
     """
     Issue a badgr badge to a user
@@ -80,9 +88,9 @@ def issue_badge(
     """
     # Get the URL for the badge, based on assessment name
     url = (
-        config["BADGR_BASE_URL"]
+        config.BADGR_BASE_URL
         + "/v2/badgeclasses/"
-        + config["BADGE_IDs"][assessment_name]
+        + config.BADGE_IDs[assessment_name]
         + "/assertions"
     )
 

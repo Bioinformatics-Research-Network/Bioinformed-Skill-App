@@ -20,6 +20,7 @@ SQLAlchemy = "^1.4.32"
 mailchimp-transactional = "^1.0.47"
 PyMySQL = "^1.0.2"
 SQLAlchemy-Utils = "^0.38.2"
+python-dotenv = "^0.20.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.1"

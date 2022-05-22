@@ -11,7 +11,10 @@ from app.api.services import get_settings
 
 # Set Badgr test config
 def get_settings_override():
-    return Settings(BADGR_CONFIG=Settings().BADGR_CONFIG_TEST)
+    return Settings(
+        _env_file=".test.env",
+        _env_file_encoding="utf-8",
+    )
 
 
 @pytest.fixture(scope="session")

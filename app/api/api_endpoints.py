@@ -288,11 +288,14 @@ def approve(
     print("C")
     try:
         # Get the trainee info
+        print("D")
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         # Get the reviewer info; error if not exists
+        print("E")
         reviewer = crud.get_reviewer_by_username(
             db=db, username=approve_request.reviewer_username
         )
+        print("F")
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=assessment_tracker_entry.assessment_id
@@ -302,6 +305,7 @@ def approve(
         # Error if checks are not passed
         # Error if assessment is already approved;
         # Error if reviewer is same as trainee
+        print("G")
         crud.approve_assessment(
             db=db,
             trainee=user,
@@ -309,8 +313,10 @@ def approve(
             reviewer_username=approve_request.reviewer_username,
             assessment=assessment,
         )
+        print("H")
         # Issue badge
-        bt = utils.get_bearer_token(settings.BADGR_CONFIG)
+        bt = utils.get_bearer_token(settings)
+        print("I")
         print(bt)
         resp = utils.issue_badge(
             user_email=user.email,
@@ -318,10 +324,12 @@ def approve(
             user_last=user.last_name,
             assessment_name=assessment.name,
             bearer_token=bt,
-            config=settings.BADGR_CONFIG,
+            config=settings,
         )
+        print("J")
         print(resp)
     except KeyError as e:  # pragma: no cover
+        print(str(e))
         msg = "Badgr: Unable to locate assessment: " + str(e)
 
         # If any error, revert status to original

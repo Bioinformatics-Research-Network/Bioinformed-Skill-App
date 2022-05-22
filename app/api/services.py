@@ -18,4 +18,6 @@ def get_db():
 
 @lru_cache()
 def get_settings():
-    return Settings()
+    return Settings(
+        _env_file=".prod.env", _env_file_encoding="utf-8"
+    )  # pragma: no cover

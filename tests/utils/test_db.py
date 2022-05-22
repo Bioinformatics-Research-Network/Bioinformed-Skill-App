@@ -32,7 +32,7 @@ app.dependency_overrides[get_db] = override_get_db
 def create_random_data(db: Session):
     random_data_crud.create_random_user(db=db, random_users=5)
     random_data_crud.create_random_reviewers(db=db, random_reviewers=5)
-    random_data_crud.create_assessments(db=db, random_assessments=5)
+    random_data_crud.create_assessments(db=db)
     random_data_crud.create_random_assessment_tracker(
         db=db, random_assessment_tracker=5
     )

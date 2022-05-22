@@ -17,13 +17,6 @@ def test_create_random_reviewers(db: Session):
     assert type(db_obj.id) == int
 
 
-def test_create_assessments(db: Session):
-    db_obj = random_data_crud.create_assessments(db=db, random_assessments=1)
-
-    assert db_obj.name in random_data_utils.assessments_name
-    assert db_obj.description in random_data_utils.assessment_desc
-
-
 def test_create_random_assessment_tracker(db: Session):
     db_obj = random_data_crud.create_random_assessment_tracker(
         db=db, random_assessment_tracker=1

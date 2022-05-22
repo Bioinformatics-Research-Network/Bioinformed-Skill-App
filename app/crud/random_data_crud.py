@@ -5,6 +5,7 @@ from app.models import models
 from app.utils import random_data_utils
 import random
 import string
+import csv
 
 random.seed(42)
 
@@ -59,7 +60,7 @@ def create_random_reviewers(random_reviewers: int, db: Session):
     return db_obj
 
 
-def create_assessments(random_assessments: int, db: Session):
+def create_assessments(db: Session):
     """
     Creates random fake entries for assessment table
 
@@ -69,17 +70,40 @@ def create_assessments(random_assessments: int, db: Session):
     :returns: Assessment object for the last fake entry generated
     """
 
-    for i in range(random_assessments):
-        name = random_data_utils.assessments_name[i]
-        desc = random_data_utils.assessment_desc[i]
+    # Read from assessments.csv and get the data as a list of dictionaries
+    with open("data/assessments_test.csv", "r") as f:
+        readr = csv.reader(f)
+        next(readr)
+        assessments = [
+            {
+                "orig_id": int(row[0]),
+                "name": row[1],
+                "description": row[2],
+                "core_skill_areas": row[3],
+                "languages": row[4],
+                "types": row[5],
+                "release_url": row[6],
+                "prerequisites": row[7],
+                "classroom_url": row[9],
+            }
+            for row in readr
+        ]
 
+    for assessment_entry in assessments:
         db_obj = models.Assessments(
-            name=name,
-            description=desc,
+            orig_id=assessment_entry["orig_id"],
+            name=assessment_entry["name"],
+            description=assessment_entry["description"],
+            core_skill_areas=assessment_entry["core_skill_areas"],
+            languages=assessment_entry["languages"],
+            types=assessment_entry["types"],
+            release_url=assessment_entry["release_url"],
+            prerequisites=assessment_entry["prerequisites"],
+            classroom_url=assessment_entry["classroom_url"],
         )
+        # Add the entry
         db.add(db_obj)
         db.commit()
-        db.refresh(db_obj)
 
     return db_obj
 

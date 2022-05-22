@@ -1,22 +1,39 @@
-from bot.utils import *
-from bot.const import *
-from bot.bot import *
-from fastapi import FastAPI, Body
+import json
+from bot import bot, utils
+from fastapi import FastAPI, Body, Header
 
 app = FastAPI()
-
-brnbot = Bot()
+brnbot = bot.Bot()
 
 
 @app.post("/")
-def bot(payload: dict = Body(...)):
+def bot(
+    payload: dict = Body(...),
+    x_github_event: str = Header(...),
+):
 
-    print("Processing payload")
-    sender = payload["sender"]["login"]
-    print(sender)
+    action = payload["action"]
+    event = x_github_event
+    print(event + ": " + action)
 
-    if brnbot.forbot(payload):
-        cmd = brnbot.process_cmd(payload)
-        print(cmd)
+    if event == "issue_comment" and action == "created":
+        # Check if comment is for the bot
+        if utils.is_for_bot(payload):
+            sender = payload["sender"]["login"]
+            message = payload["comment"]["body"]
+            print(sender + ": " + message)
+            brnbot.process_cmd(payload)
+    elif utils.is_pr_commit(payload=payload, event=event):
+        print("is PR commit")
+        brnbot.process_commit(payload)
+    elif utils.is_workflow_run(payload=payload):
+        print("is workflow run")
+        brnbot.process_done_check(payload)
+    elif utils.is_assessment_init(payload=payload, event=event):
+        print("is new repo")
+        brnbot.process_new_repo(payload)
+    elif utils.is_delete_repo(payload=payload, event=event):
+        print("is delete repo")
+        # brnbot.process_delete_repo(payload)
 
     return "ok"

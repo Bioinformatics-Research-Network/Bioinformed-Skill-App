@@ -1,28 +1,53 @@
-## Create a flask app with GitHub OAuth
-from app import crud, auth
-from datetime import datetime, timedelta
-import secrets
+import atexit
+import os
+from datetime import datetime
+
 from flask import Flask, redirect, render_template, url_for, request, flash
 from flask_dance.contrib.github import github
 from flask_login import logout_user, login_required, current_user
+from apscheduler.schedulers.background import BackgroundScheduler
 
-from app import config, models, auth, db, utils
+from app import auth, db, utils, crud
+from app.config import settings
+from app.db import db_session, init_db
 
+
+# Flask config
 app = Flask(__name__)
-app.secret_key = config.FLASK_APP_SECRET_KEY  # Replace this with your own secret!
+app.secret_key = settings.FLASK_APP_SECRET_KEY  # Replace this with your own secret!
 app.register_blueprint(auth.oauth.github_blueprint, url_prefix="/login")
 app.config["SQLALCHEMY_DATABASE_URI"] = db.SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-models.db.init_app(app)
-models.login_manager.init_app(app)
 
+# Set up db
 with app.app_context():
-    models.db.create_all()
+    init_db()
+    auth.login_manager.init_app(app)
     # Fill assessments table from local csv file
     db.fill_db.create_database(
-        models.db.session,
+        db_session,
     )
+
+
+# On server end, remove the db session
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
+
+
+# Get countries for dropdown
+with open(u'data/countries.txt', 'r', encoding="ISO-8859-1") as f:
+    countries = [line.strip() for line in f]
+
+## If statement prevents the scheduler from running twice when running in debug mode
+if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=utils.print_date_time, trigger="interval", seconds=60)
+    scheduler.start()
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
 
 
 @app.route("/")
@@ -47,7 +72,7 @@ def onboarding():
     if current_user.onboarded:
         return redirect(url_for("profile"))
     else:
-        return render_template("onboarding.html", privacy_url=config.PRIVACY_POLICY_URL)
+        return render_template("onboarding.html", privacy_url=settings.PRIVACY_POLICY_URL)
 
 
 @app.route("/onboarding", methods=["POST"])
@@ -55,12 +80,12 @@ def onboarding():
 def onboarding_submit():
     request_data = request.form
     user = crud.update_user_info(
-        models.db.session,
+        db_session,
         update_data=request_data,
         user=current_user,
     )
     user.onboarded = True
-    models.db.session.commit()
+    db_session.commit()
     return redirect(url_for("email_verification"))
 
 
@@ -78,7 +103,7 @@ def email_verification():
                 return render_template(
                     "verify_code_from_email.html", email=current_user.email
                 )
-        utils.send_verification_email(db=models.db.session, user=current_user)
+        utils.send_verification_email(db=db_session, user=current_user)
         return render_template("verify_code_from_email.html", email=current_user.email)
 
 
@@ -86,7 +111,7 @@ def email_verification():
 @login_required
 @auth.onboarding_required
 def resend_email_verification():
-    utils.send_verification_email(db=models.db.session, user=current_user)
+    utils.send_verification_email(db=db_session, user=current_user)
     flash("A new verification code has been sent to " + current_user.email, "info")
     return redirect(url_for("email_verification"))
 
@@ -98,7 +123,7 @@ def email_verification_submit():
     code = request.form["verification_code"]
     if code == current_user.email_verification_code:
         current_user.email_verified = True
-        models.db.session.commit()
+        db_session.commit()
         utils.send_welcome_email(user=current_user)
         flash("Email verified!", "success")
         return redirect(url_for("profile"))
@@ -120,7 +145,7 @@ def logout():
 @auth.onboarding_required
 @auth.email_verification_required
 def profile():
-    return render_template("profile.html")
+    return render_template("profile.html", countries=countries)
 
 
 @app.route("/profile/edit", methods=["POST"])
@@ -128,14 +153,36 @@ def profile():
 @auth.onboarding_required
 @auth.email_verification_required
 def edit_profile():
-    request_data = request.form
-    print(request_data)
+    request_data = request.form.to_dict()
+    ####################
+    # These lines remove email and username from request data
+    # so they cannot be used by crud.update_user_info.
+    if "email" in request_data:
+        del request_data["email"]
+    if "username" in request_data:
+        del request_data["username"]
+    # While, yes, we are using 'readonly' and 'disabled' in the HTML for these entries,
+    # this does not actually prevent the user from changing the HTML
+    # and sending a request with new values. So...
+    # DO NOT REMOVE THESE LINES!
+
+    # TODO: Make a schema for the request data instead.
+    # https://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema
+    ####################
+    
+    # Substitute checkbox values with boolean values
+    if "share_with_recruiters" in request_data:
+        request_data["share_with_recruiters"] = True
+    else:
+        request_data["share_with_recruiters"] = False
+
+    # Update user info
     user = crud.update_user_info(
-        models.db.session,
+        db_session,
         update_data=request_data,
         user=current_user,
     )
-    models.db.session.commit()
+    db_session.commit()
     flash("Profile updated!", "success")
     return redirect(url_for("profile"))
 
@@ -146,12 +193,12 @@ def edit_profile():
 @auth.email_verification_required
 def delete_profile():
     user = crud.get_user_by_gh_username(
-        models.db.session,
+        db_session,
         username=current_user.username,
     )
     uname = user.username
     logout_user()
-    crud.delete_user(models.db.session, user)
+    crud.delete_user(db_session, user)
     flash("Your account has been deleted.", "success")
     return redirect(url_for("homepage"))
 
@@ -167,7 +214,7 @@ def assessments():
         "languages": request.args.get("languages"),
     }
     assessments = crud.get_assessments(
-        db=models.db.session,
+        db=db_session,
         language=query_params["languages"],
         types=query_params["types"],
     )
@@ -196,5 +243,5 @@ def documentation():
 @login_required
 @auth.onboarding_required
 @auth.email_verification_required
-def settings():
+def user_settings():
     return render_template("settings.html")

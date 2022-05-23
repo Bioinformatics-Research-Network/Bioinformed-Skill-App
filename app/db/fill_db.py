@@ -4,7 +4,7 @@ import csv
 
 
 # Read from assessments.csv and get the data as a list of dictionaries
-with open("app/db/assessments.csv", "r") as f:
+with open("data/assessments.csv", "r") as f:
     readr = csv.reader(f)
     next(readr)
     assessments = [

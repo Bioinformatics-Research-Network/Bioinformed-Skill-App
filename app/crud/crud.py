@@ -65,7 +65,8 @@ def delete_user(db: Session, user: models.Users) -> None:
     """
     ## Check for foreign key constraints
     # Reviewer
-    if user.reviewer:
+    reviewer = db.query(models.Reviewers).filter_by(user_id=user.id).first()
+    if reviewer:
         # Get the reviewer and delete it
         reviewer = get_reviewer_by_user_id(db, user.id)
         db.delete(reviewer)
@@ -80,19 +81,23 @@ def delete_user(db: Session, user: models.Users) -> None:
         db.query(models.AssessmentTracker).filter_by(user_id=user.id).all()
     )
     if assessment_tracker:
+        # Delete all the assessment tracker entries connected to the user
         for at in assessment_tracker:
             # Get connected assertions
             assertions = (
                 db.query(models.Assertions)
-                .filter_by(assessment_id=at.assessment_id)
+                .filter_by(assessment_tracker_id=at.id)
                 .first()
             )
-            # Delete assertions
-            db.delete(assertions)
-            db.commit()
+            # If there are assertions, delete them
+            if assertions:
+                # Delete assertions
+                print(assertions)
+                db.delete(assertions)
+                db.commit()
             # Delete assessment tracker entry
             db.delete(at)
-        db.commit()
+            db.commit()
 
     ## Delete user
     db.delete(user)

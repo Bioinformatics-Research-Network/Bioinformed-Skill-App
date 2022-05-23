@@ -1,12 +1,13 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy_utils import database_exists, create_database
-from app.config import RDS_DB_NAME, RDS_ENDPOINT, RDS_PASSWORD, RDS_PORT, RDS_USERNAME
+from app.config import settings
+from app.models import *
 
 # URL for database, can be changed as per requirements
 SQLALCHEMY_DATABASE_URI = (
-    "mysql+pymysql://" + RDS_USERNAME + ":" + RDS_PASSWORD + 
-    "@" + RDS_ENDPOINT +  ":" + RDS_PORT + "/" + RDS_DB_NAME
+    "mysql+pymysql://" + settings.RDS_USERNAME + ":" + settings.RDS_PASSWORD + 
+    "@" + settings.RDS_ENDPOINT +  ":" + settings.RDS_PORT + "/" + settings.RDS_DB_NAME
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
@@ -16,4 +17,14 @@ if not database_exists(engine.url): # Checks for the first time
 else:
     print("Database Already Exists")
 
+
+# Create the database tables
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db_session = scoped_session(SessionLocal)
+
+
+def init_db():
+    # import all modules here that might define models so that
+    # they will be registered properly on the metadata.  Otherwise
+    # you will have to import them first before calling init_db()
+    Base.metadata.create_all(bind=engine)

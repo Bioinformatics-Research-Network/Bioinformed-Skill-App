@@ -1,8 +1,8 @@
 ## Notifies the user via email
 ## Uses the Mail Chimp (mandrill) API
-from app.config import MANDRILL_API_KEY, SITE_URL
+from app.config import settings
 from datetime import datetime, timedelta
-from app import models, crud
+from app import models, crud, db
 import secrets
 from flask import render_template
 import mailchimp_transactional as MailchimpTransactional
@@ -14,7 +14,7 @@ def send_email(email_address: str, recipient_name: str, subject: str, message: s
     Sends an email via Mandrill
     """
     try:
-        mailchimp = MailchimpTransactional.Client(MANDRILL_API_KEY)
+        mailchimp = MailchimpTransactional.Client(settings.MANDRILL_API_KEY)
         response = mailchimp.messages.send(
             body={
                 "message": {
@@ -32,7 +32,7 @@ def send_email(email_address: str, recipient_name: str, subject: str, message: s
         print("An exception occurred: {}".format(error.text))
 
 
-def send_verification_email(db: models.db.session, user: models.Users):
+def send_verification_email(db: db.db_session, user: models.Users):
     verification_code = secrets.token_urlsafe(8)
     # Add to the database
     crud.add_email_verification_code(
@@ -54,5 +54,5 @@ def send_welcome_email(user: models.Users):
         email_address=user.email,
         recipient_name=user.first_name + " " + user.last_name,
         subject="Welcome to BRN Skill Assessments 🏆",
-        message=render_template("welcome_email.html", user=user, site_url=SITE_URL),
+        message=render_template("welcome_email.html", user=user, site_url=settings.SITE_URL),
     )

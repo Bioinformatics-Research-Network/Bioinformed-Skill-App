@@ -31,8 +31,7 @@ jobs:
           source .venv/bin/activate
       - name: create .dev.env file
         run: |
-          touch .dev.env
-          echo $DEV_DOTENV >> .dev.env
+          echo "$DEV_DOTENV" > .dev.env
           cat .dev.env 
       - name: Lint with flake8
         run: |

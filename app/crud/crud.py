@@ -2,6 +2,7 @@ from app import models
 from datetime import datetime
 from sqlalchemy.orm import Session
 
+
 # Create a function that retrieves all the assessments and their info
 # from the database and returns them as a list of dictionaries.
 def get_assessments(
@@ -63,7 +64,7 @@ def delete_user(db: Session, user: models.Users) -> None:
     """
     To delete user.
     """
-    ## Check for foreign key constraints
+    # Check for foreign key constraints
     # Reviewer
     reviewer = db.query(models.Reviewers).filter_by(user_id=user.id).first()
     if reviewer:
@@ -99,7 +100,7 @@ def delete_user(db: Session, user: models.Users) -> None:
             db.delete(at)
             db.commit()
 
-    ## Delete user
+    # Delete user
     db.delete(user)
     db.commit()
 

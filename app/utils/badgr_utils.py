@@ -135,4 +135,3 @@ def get_all_badges(bearer_token: str, config: Settings):
     }
     response = requests.request("GET", url, headers=headers)
     return response
-

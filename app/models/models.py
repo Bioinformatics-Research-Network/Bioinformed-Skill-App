@@ -7,9 +7,8 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
-    MetaData,
     Table,
-    Text
+    Text,
 )
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin
@@ -31,7 +30,6 @@ class Base:
         Generates the name for the tables
         """
         return cls.__name__.lower()
-
 
 
 class Users(UserMixin, Base):
@@ -76,7 +74,7 @@ class Users(UserMixin, Base):
     email_verification_code_expiry = Column(DateTime)
     onboarded = Column(Boolean)
     reviewer = Column(Boolean)
-    
+
     def __repr__(self):  # pragma: no cover
         return f"<Users: {self.username}>"
 
@@ -97,9 +95,9 @@ class Reviewers(Base):
     id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", name="fk_reviewers_users"))
     assessment_reviewing_id = Column(
-        Integer, ForeignKey("assessments.id", use_alter=True, name="fk_reviewers_assessments")
+        Integer,
+        ForeignKey("assessments.id", use_alter=True, name="fk_reviewers_assessments"),
     )
-
 
 
 # Create a mapping between the Assessment and Reviewer tables
@@ -110,7 +108,6 @@ assessments_to_reviewers = Table(
     Column("assessment_id", Integer, ForeignKey("assessments.id")),
     Column("reviewer_id", Integer, ForeignKey("reviewers.id")),
 )
-
 
 
 class Assessments(Base):
@@ -140,14 +137,25 @@ class AssessmentTracker(Base):
     __tablename__ = "assessment_tracker"
 
     id = Column(Integer, primary_key=True, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", use_alter=True, name="fk_assessment_tracker_users"))
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", use_alter=True, name="fk_assessment_tracker_users"),
+    )
     assessment_id = Column(
-        Integer, ForeignKey("assessments.id", use_alter=True, name="fk_assessment_tracker_assessments")
+        Integer,
+        ForeignKey(
+            "assessments.id", use_alter=True, name="fk_assessment_tracker_assessments"
+        ),
     )
     status = Column(String(250))
     last_updated = Column(DateTime)
     latest_commit = Column(String(250), nullable=False, unique=True)
-    reviewer_id = Column(Integer, ForeignKey("reviewers.id", use_alter=True, name="fk_assessment_tracker_reviewers"))
+    reviewer_id = Column(
+        Integer,
+        ForeignKey(
+            "reviewers.id", use_alter=True, name="fk_assessment_tracker_reviewers"
+        ),
+    )
     log = Column(JSON, nullable=False)
 
 
@@ -173,13 +181,21 @@ class Assertions(Base):
     """
     SQLAlchemy model for the "assertions" table
     """
+
     __tablename__ = "assertions"
 
     id = Column(Integer, primary_key=True, unique=True, index=True)
     assessment_tracker_id = Column(
-        Integer, ForeignKey("assessment_tracker.id", use_alter=True, name="fk_assertions_assessment_tracker")
+        Integer,
+        ForeignKey(
+            "assessment_tracker.id",
+            use_alter=True,
+            name="fk_assertions_assessment_tracker",
+        ),
     )
-    badge_id = Column(Integer, ForeignKey("badges.id", use_alter=True, name="fk_assertions_badges"))
+    badge_id = Column(
+        Integer, ForeignKey("badges.id", use_alter=True, name="fk_assertions_badges")
+    )
     type = Column(String(250))
     credential_id = Column(String(1000), nullable=False, unique=True)
     credential_url = Column(String(1000), nullable=False, unique=True)
@@ -209,4 +225,3 @@ class BadgrAuth(Base):
     id = Column(Integer, primary_key=True, unique=True, index=True)
     bearer_token = Column(String(250))
     expires_at = Column(DateTime)
-

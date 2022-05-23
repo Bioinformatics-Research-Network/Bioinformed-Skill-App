@@ -2,18 +2,26 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy_utils import database_exists, create_database
 from app.config import settings
-from app.models import *
+from app.models import Base
 
 # URL for database, can be changed as per requirements
 SQLALCHEMY_DATABASE_URI = (
-    "mysql+pymysql://" + settings.RDS_USERNAME + ":" + settings.RDS_PASSWORD + 
-    "@" + settings.RDS_ENDPOINT +  ":" + settings.RDS_PORT + "/" + settings.RDS_DB_NAME
+    "mysql+pymysql://"
+    + settings.RDS_USERNAME
+    + ":"
+    + settings.RDS_PASSWORD
+    + "@"
+    + settings.RDS_ENDPOINT
+    + ":"
+    + settings.RDS_PORT
+    + "/"
+    + settings.RDS_DB_NAME
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
-if not database_exists(engine.url): # Checks for the first time  
-    create_database(engine.url)     # Create new DB    
-    print("New Database Created") # Verifies if database is there or not.
+if not database_exists(engine.url):  # Checks for the first time
+    create_database(engine.url)  # Create new DB
+    print("New Database Created")  # Verifies if database is there or not.
 else:
     print("Database Already Exists")
 

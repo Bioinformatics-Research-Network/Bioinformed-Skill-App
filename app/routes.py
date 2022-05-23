@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask import redirect, render_template, url_for, request, flash
 from flask_dance.contrib.github import github
 from flask_login import logout_user, login_required, current_user
 
@@ -9,10 +8,11 @@ from app import auth, utils, crud
 from app.config import settings
 from app.db import db_session
 
-routes = Blueprint('routes', __name__, url_prefix='')
+routes = Blueprint("routes", __name__, url_prefix="")
 
-with open(u'data/countries.txt', 'r', encoding="ISO-8859-1") as f:
+with open("data/countries.txt", "r", encoding="ISO-8859-1") as f:
     countries = [line.strip() for line in f]
+
 
 @routes.route("/")
 def homepage():
@@ -36,7 +36,9 @@ def onboarding():
     if current_user.onboarded:
         return redirect(url_for("routes.profile"))
     else:
-        return render_template("onboarding.html", privacy_url=settings.PRIVACY_POLICY_URL)
+        return render_template(
+            "onboarding.html", privacy_url=settings.PRIVACY_POLICY_URL
+        )
 
 
 @routes.route("/onboarding", methods=["POST"])
@@ -133,7 +135,7 @@ def edit_profile():
     # TODO: Make a schema for the request data instead.
     # https://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema
     ####################
-    
+
     # Substitute checkbox values with boolean values
     if "share_with_recruiters" in request_data:
         request_data["share_with_recruiters"] = True
@@ -141,7 +143,7 @@ def edit_profile():
         request_data["share_with_recruiters"] = False
 
     # Update user info
-    user = crud.update_user_info(
+    crud.update_user_info(
         db_session,
         update_data=request_data,
         user=current_user,
@@ -160,7 +162,6 @@ def delete_profile():
         db_session,
         username=current_user.username,
     )
-    uname = user.username
     logout_user()
     crud.delete_user(db_session, user)
     flash("Your account has been deleted.", "success")
@@ -199,7 +200,8 @@ def assessments():
 @auth.email_verification_required
 def documentation():
     return redirect(
-        "https://brnteam.notion.site/BRN-Skill-Assessments-09882a8300e64d33925593584afb0fab"
+        "https://brnteam.notion.site/BRN-Skill",
+        "-Assessments-09882a8300e64d33925593584afb0fab",
     )
 
 

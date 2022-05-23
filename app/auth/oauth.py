@@ -11,7 +11,7 @@ from app.db import db_session
 from app.config import settings
 
 # Set the oauth insecure=True to allow for local testing
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 # Create the github blueprint and register it
 github_blueprint = make_github_blueprint(
@@ -25,6 +25,7 @@ github_blueprint = make_github_blueprint(
     ),
 )
 
+
 # Add the github blueprint to the app
 @oauth_authorized.connect_via(github_blueprint)
 def github_logged_in(blueprint, token):
@@ -36,7 +37,7 @@ def github_logged_in(blueprint, token):
         # Query Users table to see if user exists
         query = db_session.query(Users).filter_by(username=username)
 
-        try:   
+        try:
             user = query.one()
         except NoResultFound:
             user = Users(
@@ -49,8 +50,7 @@ def github_logged_in(blueprint, token):
                 email_verified=False,
                 onboarded=False,
             )
-            
+
             db_session.add(user)
             db_session.commit()
         login_user(user)
-

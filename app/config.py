@@ -11,6 +11,7 @@ BADGE_IDs = {
     "Test": "OcVxPZEORASs4dBL0h5mOw",
 }
 
+
 class Settings(BaseSettings):
     RDS_ENDPOINT: str
     RDS_PORT: str
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
     MANDRILL_API_KEY: str
     EMAIL_VERIFICATION_EXPIRATION: int
     SITE_URL: str
+
 
 if os.environ.get("FLASK_ENV") == "development":
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")

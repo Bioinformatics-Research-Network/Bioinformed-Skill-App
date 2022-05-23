@@ -51,7 +51,6 @@ def add_assessment(assessment_entry: dict, db: Session):
     db.commit()
 
 
-
 def create_database(db: Session):
     """
     To create the database.
@@ -59,4 +58,3 @@ def create_database(db: Session):
     [add_assessment(assessment, db) for assessment in assessments]
     db.commit()
     db.close()
-

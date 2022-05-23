@@ -12,9 +12,7 @@ jobs:
     name: tests
     runs-on: "ubuntu-latest"
     env:
-      BOT_KEY: ${{ secrets.BOT_KEY }}
-      APP_ID: ${{ secrets.APP_ID }}
-      BOT_KEY_PATH: "bot_key.pem"
+      DEV_DOTENV: ${{ secrets.DEV_DOTENV }}
     defaults:
       run:
         shell: bash -l {0}
@@ -31,6 +29,11 @@ jobs:
           poetry env use python
           poetry install
           source .venv/bin/activate
+      - name: create .dev.env file
+        run: |
+          touch .dev.env
+          echo $DEV_DOTENV >> .dev.env
+          cat .dev.env 
       - name: Lint with flake8
         run: |
           source .venv/bin/activate

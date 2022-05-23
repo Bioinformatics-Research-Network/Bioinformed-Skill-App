@@ -2,8 +2,23 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
 from app.config import Settings
+import os
 
-settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
+
+# Set the config based on the environment
+if os.environ.get("APP_ENV") == "development": # pragma: no cover
+    print("Loading development settings")
+    settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
+elif os.environ.get("APP_ENV") == "production": # pragma: no cover
+    print("Loading production settings")
+    settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
+elif os.environ.get("APP_ENV") == "testing": # pragma: no cover
+    print("Loading testing settings")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
+else: # pragma: no cover
+    print("Loading default settings (testing)")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
+
 
 # URL for database, can be changed as per requirements
 SQLALCHEMY_DATABASE_URI = (
@@ -35,6 +50,8 @@ db.Base.metadata.create_all(bind=engine)
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
 
 ## This will delete all the data in the database
 # SessionLocal().execute("DROP DATABASE IF EXISTS `skill-db`")

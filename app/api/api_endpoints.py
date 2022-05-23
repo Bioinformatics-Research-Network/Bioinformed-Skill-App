@@ -57,6 +57,7 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
         - Assessment does not exist
         - Assessment tracker entry does not exist
     """
+    print(view_request)
     try:
         user = crud.get_user_by_username(db=db, username=view_request.username)
         assessment = crud.get_assessment_by_name(
@@ -68,8 +69,10 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
             assessment_id=assessment.id,
         )
     except ValueError as e:
+        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return assessment_tracker_entry.__dict__
@@ -271,7 +274,6 @@ def approve(
         - The reviewer is the same as the user
         - The reviewer is not listed as a reviewer for this assessment
     """
-    print("A")
     try:
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=approve_request.latest_commit
@@ -283,19 +285,14 @@ def approve(
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-    print("B")
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
-    print("C")
     try:
         # Get the trainee info
-        print("D")
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         # Get the reviewer info; error if not exists
-        print("E")
         reviewer = crud.get_reviewer_by_username(
             db=db, username=approve_request.reviewer_username
         )
-        print("F")
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=assessment_tracker_entry.assessment_id
@@ -305,7 +302,6 @@ def approve(
         # Error if checks are not passed
         # Error if assessment is already approved;
         # Error if reviewer is same as trainee
-        print("G")
         crud.approve_assessment(
             db=db,
             trainee=user,
@@ -313,11 +309,8 @@ def approve(
             reviewer_username=approve_request.reviewer_username,
             assessment=assessment,
         )
-        print("H")
         # Issue badge
         bt = utils.get_bearer_token(settings)
-        print("I")
-        print(bt)
         resp = utils.issue_badge(
             user_email=user.email,
             user_first=user.first_name,
@@ -326,8 +319,6 @@ def approve(
             bearer_token=bt,
             config=settings,
         )
-        print("J")
-        print(resp)
     except KeyError as e:  # pragma: no cover
         print(str(e))
         msg = "Badgr: Unable to locate assessment: " + str(e)

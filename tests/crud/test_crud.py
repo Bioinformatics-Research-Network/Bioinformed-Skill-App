@@ -199,13 +199,7 @@ def test_approve_assessment(
     assessment_tracker_entry.status = "Under review"
     assessment_tracker_entry.reviewer_id = reviewer.id
     db.commit()
-    print(assessment_tracker_entry.status)
     # Approve assessment
-    print(reviewer.id)
-    print(reviewer.user_id)
-    print(reviewer_username)
-    print(trainee.id)
-    print(trainee.username)
     approve_assess = crud.approve_assessment(
         db=db,
         trainee=trainee,

@@ -1,8 +1,9 @@
-import os
 from pydantic import BaseSettings
 
 
 BADGE_IDs = {
+    "Skill Assessment Tutorial (R)": "zS91nadxSQCchE_ahLFgvw",
+    "Skill Assessment Tutorial (Python)": "MMuVRwluTd6cI33-0ILs3w",
     "Python Programming I": "rfT_GJApRoavmHi_TemqqQ",
     "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
     "R Programming I": "v0CU877hR5qI8OtDN7EYTg",

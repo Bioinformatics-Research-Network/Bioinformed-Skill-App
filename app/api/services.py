@@ -9,7 +9,7 @@ def get_db():
 
     :yields: Generator object for the local session. finally closes the session.
     """
-    try:
+    try: # pragma: no cover
         db = SessionLocal()
         yield db
     finally:
@@ -18,6 +18,8 @@ def get_db():
 
 @lru_cache()
 def get_settings():
-    return Settings(
-        _env_file=".prod.env", _env_file_encoding="utf-8"
-    )  # pragma: no cover
+    settings = Settings(
+        _env_file=".prod.env", 
+        _env_file_encoding="utf-8"
+    ) # pragma: no cover
+    return settings  # pragma: no cover

@@ -22,6 +22,7 @@ def get_bearer_token(config: Settings):
         "grant_type": config.BADGR_GRANT_TYPE,
         "client_id": config.BADGR_CLIENT_ID,
     }
+    print(url)
     print(payload)
     response = requests.request("POST", url, data=payload)
     print(response)

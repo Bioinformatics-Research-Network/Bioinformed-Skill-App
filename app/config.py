@@ -37,3 +37,5 @@ if os.environ.get("FLASK_ENV") == "development":
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
 elif os.environ.get("FLASK_ENV") == "production":
     settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
+else:
+    settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")

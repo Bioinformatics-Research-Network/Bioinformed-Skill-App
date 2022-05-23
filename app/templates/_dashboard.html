@@ -14,7 +14,7 @@
       <a
         class="navbar-brand w-100 order-1 order-md-0 dual-collapse2"
         style="font-size: 1.6rem"
-        href="{{url_for('homepage')}}"
+        href="{{url_for('routes.homepage')}}"
       >
         <img
           src="{{url_for('static', filename='img/logo.png')}}"
@@ -28,14 +28,14 @@
           <li class="nav-item">
             <a
               class="nav-link {% if request.endpoint=='profile' %}active{%endif %}"
-              href="{{url_for('profile')}}"
+              href="{{url_for('routes.profile')}}"
               >Profile</a
             >
           </li>
           <li class="nav-item">
             <a
               class="nav-link {% if request.endpoint=='assessments' %}active{%endif %}"
-              href="{{url_for('assessments')}}"
+              href="{{url_for('routes.assessments')}}"
               >Assessments</a
             >
           </li>
@@ -43,19 +43,19 @@
             <a
               target="_blank"
               class="nav-link {% if request.endpoint=='documentation' %}active{%endif %}"
-              href="{{url_for('documentation')}}"
+              href="{{url_for('routes.documentation')}}"
               >Documentation</a
             >
           </li>
           <li class="nav-item">
             <a
               class="nav-link {% if request.endpoint=='settings' %}active{%endif %}"
-              href="{{url_for('user_settings')}}"
+              href="{{url_for('routes.user_settings')}}"
               >Settings</a
             >
           </li>
           <li class=".btn-nav nav-item" style="margin-left: 30px;">
-            <a href="{{url_for('logout')}}" class="btn btl-lg btn-outline-secondary">
+            <a href="{{url_for('routes.logout')}}" class="btn btl-lg btn-outline-secondary">
               Logout
             </a>
           </li>

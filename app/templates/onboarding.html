@@ -13,12 +13,12 @@
                 <br><br>
                 <h1>Welcome to BRN Skill Assessments!</h1>
                 <br><br><br>
-                <p>You are currently authenticated via GitHub as <strong>{{current_user.username}}</strong>.<br>If this is incorrect, please <a href="{{url_for('logout')}}">logout</a> and try again.</p>
+                <p>You are currently authenticated via GitHub as <strong>{{current_user.username}}</strong>.<br>If this is incorrect, please <a href="{{url_for('routes.logout')}}">logout</a> and try again.</p>
                 <p>Before we start, we need to set up your account. <br>Please enter the following information:</p>
             </div>
             <br>
             <div class="row justify-content-center">
-                <form action="{{url_for('onboarding')}}" method="POST" class="col-lg-8 col-md-10 col-sm-10 col-xs-11">
+                <form action="{{url_for('routes.onboarding')}}" method="POST" class="col-lg-8 col-md-10 col-sm-10 col-xs-11">
                     <div class="row justify-content-center">
                         <div class="form-group col-lg-6 col-md-6 col-sm-12 col-xs-12">
                             <label for="firstname">First name</label>

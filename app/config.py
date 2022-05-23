@@ -34,10 +34,18 @@ class Settings(BaseSettings):
     EMAIL_VERIFICATION_EXPIRATION: int
     SITE_URL: str
 
-
+print(os.environ.get("FLASK_ENV") )
 if os.environ.get("FLASK_ENV") == "development":
+    print("Loading development settings")
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
 elif os.environ.get("FLASK_ENV") == "production":
+    print("Loading production settings")
     settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
-else:
-    settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
+elif os.environ.get("FLASK_ENV") == "testing":
+    print("Loading testing settings")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
+else: # pragma: no cover
+    print("Loading default settings (testing)")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
+
+

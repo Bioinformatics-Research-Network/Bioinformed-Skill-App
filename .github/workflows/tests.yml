@@ -12,7 +12,7 @@ jobs:
     name: tests
     runs-on: "ubuntu-latest"
     env:
-      DEV_DOTENV: ${{ secrets.DEV_DOTENV }}
+      TEST_DOTENV: ${{ secrets.TEST_DOTENV }}
     defaults:
       run:
         shell: bash -l {0}
@@ -31,8 +31,7 @@ jobs:
           source .venv/bin/activate
       - name: create .dev.env file
         run: |
-          echo "$DEV_DOTENV" > .dev.env
-          cat .dev.env 
+          echo "$TEST_DOTENV" > .test.env
       - name: Lint with flake8
         run: |
           source .venv/bin/activate

@@ -57,7 +57,6 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
         - Assessment does not exist
         - Assessment tracker entry does not exist
     """
-    print(view_request)
     try:
         user = crud.get_user_by_username(db=db, username=view_request.username)
         assessment = crud.get_assessment_by_name(
@@ -318,6 +317,14 @@ def approve(
             assessment_name=assessment.name,
             bearer_token=bt,
             config=settings,
+        )
+        resp.raise_for_status()
+        # Add assertion to database
+        crud.add_assertion(
+            db=db,
+            settings=settings,
+            entry_id=assessment_tracker_entry.id,
+            assertion=resp.json()["result"][0],
         )
     except KeyError as e:  # pragma: no cover
         print(str(e))

@@ -228,14 +228,11 @@ def test_review(client: TestClient, db: Session):
 
     ## Success: The repo is passing checks
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-    print(assessment_tracker_entry.user_id)
-    print(assessment_tracker_entry.reviewer_id)
     # Therefore, successful query
     request_json = {
         "latest_commit": assessment_tracker_entry.latest_commit,
     }
     response = client.post("/api/review", json=request_json)
-    print(response.json())
     assert response.status_code == 200
     assert response.json() == {
         "reviewer_id": 5,
@@ -297,13 +294,10 @@ def test_approve(client: TestClient, db: Session):
     assessment_tracker_entry.assessment_id = 6
     db.commit()
     reviewer_id = assessment_tracker_entry.reviewer_id
-    print(reviewer_id)
     reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id=reviewer_id)
-    print(reviewer_userid)
     reviewer_username = crud.get_user_by_id(
         db, user_id=reviewer_userid.user_id
     ).username
-    print(reviewer_username)
 
     # Successful query
     request_json = {

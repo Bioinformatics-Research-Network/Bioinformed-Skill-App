@@ -138,19 +138,31 @@ class AssessmentTracker(db.Base):
 class Badges(db.Base):
     """
     SQLAlchemy model for the "badges" table
+
+    This comes directly from an API call to badgr.io
+    Using config.BADGR_BASE_URL + "/v2/issuers/" + config.BADGR_ISSUER_ID + "/badgeclasses"
     """
 
     __tablename__ = "badges"
 
     id = Column(Integer, primary_key=True, unique=True, index=True)
-    name = Column(String(250), unique=True, nullable=False)
-    display_on_public = Column(Boolean, nullable=False)
-    description = Column(String(250), nullable=False)
-    image_url = Column(String(250), unique=True, nullable=False)
-    criteria = Column(String(250), nullable=False)
-    expiration_date = Column(DateTime)
+    entityId = Column(String(250), unique=True)
+    entityType = Column(String(250))
+    openBadgeId = Column(String(250))
+    createdAt = Column(DateTime)
+    createdBy = Column(String(250))
+    issuer = Column(String(250))
+    issuerOpenBadgeId = Column(String(250))
+    name = Column(String(250), unique=True)
+    image = Column(String(250))
+    description = Column(Text)
+    achievementType = Column(String(250))
+    criteriaUrl = Column(String(250))
+    criteriaNarrative = Column(Text)
+    alignments = Column(String(250))
     tags = Column(String(250))
-    standards_alignments = Column(String(250))
+    expires = Column(Text)
+    extensions = Column(Text)
 
 
 class Assertions(db.Base):
@@ -160,27 +172,27 @@ class Assertions(db.Base):
 
     __tablename__ = "assertions"
 
-    id = Column(Integer, primary_key=True, unique=True, index=True)
-    assessment_tracker_id = Column(
-        Integer,
-        ForeignKey(
-            "assessment_tracker.id",
-            use_alter=True,
-            name="fk_assertions_assessment_tracker",
-        ),
+    entityId = Column(String(250), unique=True, primary_key=True, index=True)
+    entityType = Column(String(250))
+    openBadgeId = Column(String(250))
+    createdAt = Column(DateTime)
+    createdBy = Column(String(250))
+    badgeClass = Column(
+        String(250), ForeignKey("badges.entityId", use_alter=True, name="fk_assertions_badges")
     )
-    badge_id = Column(
-        Integer, ForeignKey("badges.id", use_alter=True, name="fk_assertions_badges")
-    )
-    type = Column(String(250))
-    credential_id = Column(String(1000), nullable=False, unique=True)
-    credential_url = Column(String(1000), nullable=False, unique=True)
-    expiration_date = Column(DateTime)
-    issue_date = Column(DateTime)
-    evidence = Column(Text(10000))
-    narrative = Column(Text(10000))
-    embed = Column(String(1000))
-    created = Column(DateTime)
+    recipient_identity = Column(String(500))
+    recipient_hashed = Column(Boolean)
+    recipient_type = Column(String(250))
+    recipient_plaintextIdentity = Column(String(250))
+    recipient_salt = Column(String(250))
+    issuedOn = Column(DateTime)
+    narrative = Column(Text)
+    evidence_url = Column(String(250))
+    evidence_narrative = Column(Text)
+    revoked = Column(Boolean)
+    revocationReason = Column(String(250))
+    acceptance = Column(String(250))
+    expires = Column(DateTime)
 
     # Share info
     share_url = Column(Text(1000))
@@ -190,6 +202,16 @@ class Assertions(db.Base):
     linkedin_share_url = Column(Text(2000))
     embed_card_html = Column(Text(10000))
     embed_badge_html = Column(Text(10000))
+
+    # Assessment tracker info
+    assessment_tracker_id = Column(
+        Integer,
+        ForeignKey(
+            "assessment_tracker.id",
+            use_alter=True,
+            name="fk_assertions_assessment_tracker",
+        ),
+    )
 
 
 class BadgrAuth(db.Base):

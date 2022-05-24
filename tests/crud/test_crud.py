@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 import pytest
 import copy
 from app import crud, schemas, models, utils
-
+from app.db import settings
+from sqlalchemy.exc import IntegrityError
 
 def test_get_user_by_username(db: Session):
 
@@ -347,6 +348,83 @@ def test_approve_assessment(
         "Reviewer is not the same as the reviewer assigned to the assessment."
         in str(exc.value)
     )
+
+
+def test_sync_badges(db: Session):
+    """Test sync badges."""
+    # Sync badges
+    crud.sync_badges(db=db, settings=settings)
+
+
+def test_add_assertion(db: Session):
+    """Test add assertion."""
+
+    # Get assertion from badgr
+    bt = utils.get_bearer_token(config=settings)
+    resp = utils.get_assertion(
+        assessment_name="Test", user_email="nicole_cayer3@gmail.com", bearer_token=bt, config=settings
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == {'description': 'ok', 'success': True}
+
+    assertion = resp.json()["result"][0]
+
+    # Change entity ID
+    assertion["entityId"] = "ABC"
+    
+    # Add assertion
+    res = crud.add_assertion(
+        db=db, settings=settings, assertion=assertion, entry_id=6
+    )
+    assert res
+
+
+    # Fail on second add
+    with pytest.raises(IntegrityError) as exc:
+        crud.add_assertion(
+            db=db, settings=settings, assertion=assertion, entry_id=6
+        )
+
+
+    # Fail on invalid assertion
+    assertion2 = copy.deepcopy(assertion)
+    # Drop the entity ID
+    assertion2.pop("entityId")
+    with pytest.raises(KeyError) as exc:
+        crud.add_assertion(
+            db=db, settings=settings, assertion=assertion2, entry_id=6
+        )
+
+    # Fail on invalid assertion due to missing badgeclass
+    assertion2 = copy.deepcopy(assertion)
+    # Drop the badgeclass
+    assertion2.pop("badgeclass")
+    with pytest.raises(KeyError) as exc:
+        crud.add_assertion(
+            db=db, settings=settings, assertion=assertion2, entry_id=6
+        )
+
+    # Add a second assertion where the expires field is set in %Y-%m-%dT%H:%M:%SZ format
+    assertion2 = copy.deepcopy(assertion)
+    assertion2["expires"] = "2020-01-01T00:00:00Z"
+    assertion2["entityId"] = "ABCDEF"
+    res = crud.add_assertion(
+        db=db, settings=settings, assertion=assertion2, entry_id=1
+    )
+    assert res
+
+    # Add a second assertion where the recipient identity is set to 'url' instead of email
+    assertion2 = copy.deepcopy(assertion)
+    assertion2["recipient"]["type"] = "url"
+    # Drop recipient salt
+    assertion2["recipient"].pop("salt")
+    # Drop evidence
+    assertion2['evidence'] = []
+    assertion2["entityId"] = "ABCDEFGHI"
+    res = crud.add_assertion(
+        db=db, settings=settings, assertion=assertion2, entry_id=2
+    )
+    assert res
 
 
 def test_update_assessment_log(db: Session):

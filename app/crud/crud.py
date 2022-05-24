@@ -1,8 +1,10 @@
 from datetime import datetime
+from os import sync
 from sqlalchemy.orm import Session
 import random
 import copy
 from app import models, schemas, utils
+from app.config import Settings
 
 
 # Reproducibility for randomly selecting reviewers
@@ -285,7 +287,6 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
         random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
-        print(random_id)
 
         # Return the reviewer's db entry
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
@@ -372,7 +373,6 @@ def approve_assessment(
         raise ValueError("Last commit checks failed.")
 
     # Get the reviewer, based on the assessment_tracker entry
-    print(assessment_tracker_entry.reviewer_id)
     reviewer_real = get_reviewer_by_id(
         db=db, reviewer_id=assessment_tracker_entry.reviewer_id
     )
@@ -402,6 +402,109 @@ def approve_assessment(
     db.commit()
 
     return True
+
+
+# Write a function that syncs the badges table with the badgr API
+def sync_badges(
+    settings: Settings, db: Session
+):
+    # Get all badges from the badgr API
+    bt = utils.get_bearer_token(settings)
+    try:
+        badges = utils.get_all_badges(bt, settings)
+        badgelst = badges.json()['result']
+    except Exception as e: # pragma: no cover
+        print(str(e))
+        raise e
+
+    # Loop through all badges and add them to the badges table
+    try:
+        for badge in badgelst:
+            print(badge['name'])
+
+            # Check if the badge already exists in the database
+            current_badge = db.query(models.Badges).filter_by(name=badge['name'])
+
+            # Convert all the fields to strings using dict comprehension
+            fields = {k: str(v) for k, v in badge.items()}
+
+            # If field is date, convert to datetime
+            # fields = {k: datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ") if k == 'createdAt' else v for k, v in fields.items()}
+
+            # Loop through all the fields and attempt to convert to datetime
+            for k, v in fields.items():
+                try: # pragma: no cover
+                    if type(v) == str:
+                        fields[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError: 
+                    # Try different format
+                    try:
+                        fields[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
+                    except ValueError:
+                        pass
+
+            if current_badge.first() is None:
+                print("Badge does not exist in database")
+                badge = models.Badges(**fields)
+                db.add(badge)
+                db.commit()
+            else:
+                print('Badge already exists -- updating')
+                # Update the badge in the database
+                current_badge.update(values=fields)
+                db.commit()
+    except Exception as e: # pragma: no cover
+        print(str(e))
+        # Rollback the changes to the database
+        db.rollback()
+        raise e
+
+
+def add_assertion(
+    db: Session,
+    settings: Settings,
+    entry_id: int,
+    assertion: str,
+):
+    """
+    Add an assertion to the Assertions table.
+
+    :param db: Generator
+    :param entry_id: Assessment tracker entry id
+    :param assertion: Assertion to add
+    """
+
+    badge = db.query(models.Badges).filter_by(entityId=assertion['badgeclass']).first()
+    # Get the badge name for the assertion
+    if badge is None:
+        sync_badges(settings=settings, db=db)
+        badge = db.query(models.Badges).filter_by(entityId=assertion['badgeclass']).first()
+    try:
+        badge_name = badge.name
+    except Exception as e: # pragma: no cover
+        print(str(e))
+        raise e
+    
+    # Wrangle the assertion
+    fields = utils.wrangle_assertion(
+        assertion=assertion,
+        badge_name=badge_name,
+    )
+
+    # Add in the assessment_tracker ID
+    fields["assessment_tracker_id"] = entry_id
+
+    # Add the assertion to the Assertions table if it doesn't exist, else update it
+    try:
+        print("Assertion does not exist. Adding...")
+        assertobj = models.Assertions(**fields)
+        db.add(assertobj)
+        db.commit()
+        return True
+    except Exception as e:
+        print(str(e))
+        db.rollback()
+        raise e
 
 
 def update_assessment_log(

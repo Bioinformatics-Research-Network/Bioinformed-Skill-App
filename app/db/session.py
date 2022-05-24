@@ -50,8 +50,3 @@ db.Base.metadata.create_all(bind=engine)
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-
-## This will delete all the data in the database
-# SessionLocal().execute("DROP DATABASE IF EXISTS `skill-db`")

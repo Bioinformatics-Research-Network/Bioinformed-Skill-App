@@ -284,17 +284,17 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
     )
 
     try:
+        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
+    except Exception as e: # pragma: no cover
+        raise ValueError("No reviewer available. Please contact the administrator.")
+
+    try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
-
-        # Return the reviewer's db entry
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
         return random_reviewer
-    except IndexError as e:  # pragma: no cover
-        raise ValueError("No reviewer available. Contact the administrator.")
     except Exception as e:  # pragma: no cover
-        raise e
+        raise Exception("Error selecting reviewer. Contact the administrators. Error string: " + str(e))
 
 
 def assign_reviewer(

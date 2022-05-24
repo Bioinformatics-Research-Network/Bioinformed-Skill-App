@@ -38,11 +38,26 @@ class Bot:
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
             return current_tokens
+    
+
+    def check_tokens(self):
+        """
+        Check whether the tokens are up to date or not
+        """
+        if not os.path.exists(self.token_fp):
+            utils.retrieve_access_tokens(self.installation_ids, jwt=self.jwt)
+        with open(self.token_fp, "r") as f:
+            current_tokens = json.load(f)
+        exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
+        if exp_time < datetime.now():
+            self.retrieve_access_tokens()
+
 
     def parse_comment_payload(self, payload: dict):
         """
         Parse the payload for comment on PR
         """
+        self.check_tokens()
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         return {
@@ -58,6 +73,7 @@ class Bot:
         """
         Parse the payload for commit on PR
         """
+        self.check_tokens()
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         return {
@@ -74,6 +90,7 @@ class Bot:
         """
         Parse the payload for workflow run
         """
+        self.check_tokens()
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         return {
@@ -144,6 +161,7 @@ class Bot:
         """
         Parse the payload for new repo
         """
+        self.check_tokens()
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         ghbot_message = payload["pull_request"]["body"]

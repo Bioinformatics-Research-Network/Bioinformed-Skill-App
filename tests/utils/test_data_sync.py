@@ -1,6 +1,7 @@
 from app.db import db_session
 from app.models import Users
-
+from app import utils, crud
+from app.config import settings
 
 def test_index(client):
     """
@@ -35,4 +36,28 @@ def test_crud_user(client):
     assert user is None
 
 
+def test_sync_badges(client):
+    """
+    Test that badges can be synced
+    """
+    utils.sync_badges(settings)
+
+
+def test_sync_assertions(client):
+    """
+    Test that assertions can be synced
+    """
+    utils.sync_assertions(settings)
+
+
+def test_get_assertions_by_user():
+    """
+    Test that assertions can be retrieved by user
+    """
+    # Create a user
+    user = db_session.query(Users).filter_by(username="test_user").first()
+    assertions = crud.get_assertions_by_user(
+        db=db_session, user=user
+    )
+    assert assertions is not None
 

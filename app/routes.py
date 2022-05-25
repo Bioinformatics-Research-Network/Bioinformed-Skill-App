@@ -111,7 +111,20 @@ def logout():
 @auth.onboarding_required
 @auth.email_verification_required
 def profile():
-    return render_template("profile.html", countries=countries)
+    assertions = crud.get_assertions_by_user(db_session, user=current_user)
+    r_tutorial = crud.get_assessment_by_name(
+        db_session, "Skill Assessment Tutorial (R)"
+    )
+    python_tutorial = crud.get_assessment_by_name(
+        db_session, "Skill Assessment Tutorial (Python)"
+    )
+    return render_template(
+        "profile.html",
+        countries=countries,
+        assertions=assertions,
+        r_tutorial=r_tutorial,
+        python_tutorial=python_tutorial,
+    )
 
 
 @routes.route("/profile/edit", methods=["POST"])
@@ -200,8 +213,8 @@ def assessments():
 @auth.email_verification_required
 def documentation():
     return redirect(
-        "https://brnteam.notion.site/BRN-Skill",
-        "-Assessments-09882a8300e64d33925593584afb0fab",
+        "https://brnteam.notion.site/BRN-Skill"
+        + "-Assessments-09882a8300e64d33925593584afb0fab"
     )
 
 

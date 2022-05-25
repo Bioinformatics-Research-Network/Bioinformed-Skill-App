@@ -17,54 +17,60 @@
 
 {% endblock head %} {% block content_body %}
 <div class="row">
-  <div class="col-8">
+  <div class="col-12">
+    <hr style="width: 100%" />
+    <br>
     <div class="row">
-      {% for assessment in assessments %}
-      <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title">{{assessment.name}}</h5>
+      <div class="col-10">
+        <div class="row">
+          {% for assessment in assessments %}
+          <div class="col-lg-3 col-md-6 col-sm-9 col-xs-9">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">{{assessment.name}}</h5>
+              </div>
+              <div class="card-body">
+                <p class="card-text">{{assessment.description}}</p>
+                {% if assessment.classroom_url == '' %}
+                <a
+                  target="_blank"
+                  href="{{assessment.classroom_url}}"
+                  class="btn btn-primary disabled"
+                  aria-disabled="true"
+                  >In development</a
+                >
+                {% else %}
+                <a
+                  target="_blank"
+                  href="{{assessment.classroom_url}}"
+                  class="btn btn-primary"
+                  >Start Assessment</a
+                >
+                {% endif %}
+              </div>
+            </div>
+            <br />
           </div>
-          <div class="card-body">
-            <p class="card-text">{{assessment.description}}</p>
-            {% if assessment.classroom_url == '' %}
-            <a
-              target="_blank"
-              href="{{assessment.classroom_url}}"
-              class="btn btn-primary disabled"
-              aria-disabled="true"
-              >In development</a
-            >
-            {% else %}
-            <a
-              target="_blank"
-              href="{{assessment.classroom_url}}"
-              class="btn btn-primary"
-              >Start Assessment</a
-            >
-            {% endif %}
-          </div>
+          {% endfor %}
         </div>
-        <br />
       </div>
-      {% endfor %}
-    </div>
-  </div>
-  <div class="col-2">
-    <!--select programming language-->
-    <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <label class="input-group-text" for="inputGroupSelect01"
-          >Language</label
-        >
+      <div class="col-2">
+        <!--select programming language-->
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01"
+              >Language</label
+            >
+          </div>
+          <select class="form-control" id="programming_language">
+            {% for language in languages %} {% if language == "All" %}
+            <option value="">{{language}}</option>
+            {% else %}
+            <option value="{{language}}">{{language}}</option>
+            {% endif %} {% endfor %}
+          </select>
+        </div>
       </div>
-      <select class="form-control" id="programming_language">
-        {% for language in languages %} {% if language == "All" %}
-        <option value="">{{language}}</option>
-        {% else %}
-        <option value="{{language}}">{{language}}</option>
-        {% endif %} {% endfor %}
-      </select>
     </div>
   </div>
 </div>

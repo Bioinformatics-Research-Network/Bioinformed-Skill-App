@@ -160,12 +160,12 @@
           {% if current_user.share_with_recruiters %}
           <span class="col-12 mt-4">
             <i class="fa fa-eye text-center" style="width: 16px"></i>
-            <em class="ps-2"> Profile is visible to recruiters </em>
+            <em class="ps-2"> Profile is public </em>
           </span>
           {% else %}
           <span class="col-12 mt-4">
             <i class="fa fa-eye-slash text-center" style="width: 16px"></i>
-            <em class="ps-2"> Profile is not visible to recruiters </em>
+            <em class="ps-2"> Profile is not public </em>
           </span>
           {% endif %}
         </div>
@@ -238,7 +238,9 @@
                         <label for="email"
                           >Email &nbsp;<i class="fa fa-at"></i> &nbsp;(must be
                           modified in
-                          <a href="{{url_for('routes.user_settings')}}">settings</a>)</label
+                          <a href="{{url_for('routes.user_settings')}}"
+                            >settings</a
+                          >)</label
                         >
                         <input
                           type="email"
@@ -468,7 +470,7 @@
                           class="form-check-label"
                           for="share_with_recruiters"
                         >
-                          Share my profile with recruiters &nbsp;<i
+                          Share my profile publicly &nbsp;<i
                             class="fa fa-star"
                           ></i>
                         </label>
@@ -498,85 +500,115 @@
           <div class="col-md-auto">
             <h3>Badges earned</h3>
           </div>
-          <br /><br />
-          <hr />
-          <br />
+          <div class="col-12">
+            <hr style="width: 100%" />
+          </div>
         </div>
-        <div class="row">
-          <div>
-            <blockquote
-              class="badgr-badge"
-              style="
-                font-family: Helvetica, Roboto, 'Segoe UI', Calibri, sans-serif;
-              "
-            >
-              <a
-                href="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew?identity__email=henry%40bioresnet.org"
-              >
-                <img
-                  width="120px"
-                  height="120px"
-                  src="https://api.badgr.io/public/assertions/JT2wCBlPTVO4D_rOUOQIew/image"
-                />
-              </a>
-              <p
-                class="badgr-badge-name"
-                style="
-                  hyphens: auto;
-                  overflow-wrap: break-word;
-                  word-wrap: break-word;
-                  margin: 0;
-                  font-size: 16px;
-                  font-weight: 600;
-                  font-style: normal;
-                  font-stretch: normal;
-                  line-height: 1.25;
-                  letter-spacing: normal;
-                  text-align: left;
-                  color: #05012c;
-                "
-              >
-                R Programming I
-              </p>
-              <p
-                class="badgr-badge-date"
-                style="
-                  margin: 0;
-                  font-size: 12px;
-                  font-style: normal;
-                  font-stretch: normal;
-                  line-height: 1.67;
-                  letter-spacing: normal;
-                  text-align: left;
-                  color: #555555;
-                "
-              >
-                <strong
+        <div
+          class="row justify-content-md-start justify-content-sm-center justify-content-xs-start"
+        >
+          {% if assertions != [] %} {% for assertion in assertions %}
+          <div class="col-md-6 col-lg-4">
+            <div class="row justify-content-center">
+              {{assertion.embed_badge_html|safe}}
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="col-12">
+            <div class="row justify-content-center">
+              <div class="col-md-6 pt-3">
+                <div
                   style="
-                    font-size: 12px;
-                    font-weight: bold;
-                    font-style: normal;
-                    font-stretch: normal;
-                    line-height: 1.67;
-                    letter-spacing: normal;
-                    text-align: left;
-                    color: #000;
+                    text-align: center;
+                    border-style: solid;
+                    border-radius: 7%;
+                    border-width: 1px;
+                    border-color: #000;
                   "
                 >
-                  Awarded:
-                </strong>
-                May 4, 2022
-              </p>
-              <script
-                async="async"
-                src="https://badgr.com/assets/widgets.bundle.js"
-              ></script>
-            </blockquote>
+                  <p class="mt-5 px-5">
+                    Earn badges by
+                    completing skill assessments 🎯
+                  </p>
+                  <p>Click the link below to get started 🚀</p>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-lg px-5 mt-4 mb-5"
+                    data-bs-toggle="modal"
+                    data-bs-target="#letsGoModal"
+                  >
+                    Let's go!
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="letsGoModal"
+  tabindex="-1"
+  aria-labelledby="letsGoModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Choose your weapon ⚔️
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="row d-md-flex d-sm-none d-none justify-content-md-center">
+          <div
+            class="col-md-6 d-flex align-items-center justify-content-md-center"
+          >
+            <img
+              src="{{url_for('static', filename='img/R_logo.svg.png')}}"
+              style="max-width: 50%; max-height: 50%"
+            />
+          </div>
+          <div class="col-md-6 d-flex align-items-center justify-content-md-center">
+            <img
+              src="{{url_for('static', filename='img/python-logo.png')}}"
+              style="max-width: 50%; max-height: 50%"
+            />
+          </div>
+        </div>
+        <div class="row justify-content-md-center mb-2">
+          <div class="col-md-6 d-flex pt-1 justify-content-md-center">
+            <a
+              target="_blank"
+              href="{{r_tutorial.classroom_url}}"
+              class="btn btn-primary"
+              >Start with R</a
+            >
+          </div>
+          <div class="col-md-6 d-flex pt-1 justify-content-md-center">
+            <a
+              target="_blank"
+              href="{{python_tutorial.classroom_url}}"
+              class="btn btn-primary"
+              >Start with Python</a
+            >
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+<!-- End edit profile modal -->
 
 {% endblock content_body %}

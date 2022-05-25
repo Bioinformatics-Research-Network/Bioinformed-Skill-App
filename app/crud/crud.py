@@ -26,6 +26,15 @@ def get_assessments(
     return assessments
 
 
+
+def get_assessment_by_name(db: Session, name: str) -> models.Assessments:
+    """
+    To get assessment by name.
+    """
+    assessment = db.query(models.Assessments).filter_by(name=name).first()
+    return assessment
+
+
 # Get user by github username
 def get_user_by_gh_username(db: Session, username: str) -> models.Users:
     """
@@ -93,7 +102,6 @@ def delete_user(db: Session, user: models.Users) -> None:
             # If there are assertions, delete them
             if assertions:
                 # Delete assertions
-                print(assertions)
                 db.delete(assertions)
                 db.commit()
             # Delete assessment tracker entry
@@ -116,3 +124,29 @@ def add_email_verification_code(
     user.email_verification_code_expiry = expires_at
     db.commit()
     return user
+
+
+# Get assertions
+def get_assertions_by_user(db: Session, user: models.Users) -> list:
+    """
+    To get assertions.
+    """
+    # First get the assessment tracker entries for the user
+    assessment_tracker = (
+        db.query(models.AssessmentTracker)
+        .filter_by(user_id=user.id)
+        .all()
+    )
+    # Then get the assertions for each assessment tracker entry
+    assertions = []
+    for at in assessment_tracker:
+        # Get the assertions for the assessment tracker entry
+        at_assertions = (
+            db.query(models.Assertions)
+            .filter_by(assessment_tracker_id=at.id)
+            .all()
+        )
+        # Add the assertions to the list
+        assertions.extend(at_assertions)
+    return assertions
+

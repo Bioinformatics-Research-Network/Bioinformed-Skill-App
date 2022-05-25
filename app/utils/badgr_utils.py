@@ -1,7 +1,10 @@
 # Script for issue badge to a user
 import requests
 import json
+from datetime import datetime
 from app.config import Settings
+from app.models import Assertions, Badges
+from app.db import db_session
 
 
 def get_bearer_token(config: Settings):
@@ -22,12 +25,8 @@ def get_bearer_token(config: Settings):
         "grant_type": config.BADGR_GRANT_TYPE,
         "client_id": config.BADGR_CLIENT_ID,
     }
-    print(url)
-    print(payload)
     response = requests.request("POST", url, data=payload)
-    print(response)
     try:
-        print(response.json())
         token = response.json()["access_token"]
         return token
     except KeyError:  # pragma: no cover
@@ -128,10 +127,146 @@ def get_all_badges(bearer_token: str, config: Settings):
 
     :return: The response object
     """
-    url = config.BADGR_BASE_URL + "/v2/badgeclasses/"
+    url = config.BADGR_BASE_URL + "/v2/issuers/" + config.BADGR_ISSUER_ID + "/badgeclasses"
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + bearer_token,
     }
     response = requests.request("GET", url, headers=headers)
+    response.raise_for_status()
     return response
+
+
+def get_all_assertions(
+    bearer_token: str, config: Settings
+):
+    """
+    Get the badge assertion from the Badgr API
+
+    :param assessment_name: The assessment name
+    :param user_email: The user's email
+    :param bearer_token: The bearer token (from the Badgr API)
+    :param config: The configuration dictionary for the Badgr API
+
+    :return: The assertion as a response object
+    """
+    url = config.BADGR_BASE_URL + "/v2/issuers/" + config.BADGR_ISSUER_ID + "/assertions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + bearer_token,
+    }
+
+    response = requests.request("GET", url, headers=headers)
+    response.raise_for_status()
+    return response
+
+
+def wrangle_assertion(
+    assertion: dict
+):
+    # Convert all the fields to strings using dict comprehension -- skipping the boolean fields
+    fields = {k: str(v) for k, v in assertion.items() if not k in ['recipient_hashed', 'revoked']}
+
+    # Wrangle the recipient field
+    fields['recipient_identity'] = assertion['recipient']['identity']
+    fields['recipient_hashed'] = assertion['recipient']['hashed']
+    fields['recipient_type'] = assertion['recipient']['type']
+    fields['recipient_plaintextIdentity'] = assertion['recipient']['plaintextIdentity']
+    if 'salt' in assertion['recipient'].keys():
+        fields['recipient_salt'] = assertion['recipient']['salt']
+
+    # Wrangle the evidence field
+    if len(assertion['evidence']) > 0:
+        fields['evidence_url'] = assertion['evidence'][0]['url']
+        fields['evidence_narrative'] = assertion['evidence'][0]['narrative']
+
+    # Convert createdAt to a datetime object from ISO8601
+    ca = datetime.strptime(assertion['createdAt'], '%Y-%m-%dT%H:%M:%SZ')
+
+    # Get the badge name that the assertion is for by querying the badges table
+    badge_name = db_session.query(Badges).filter_by(entityId=assertion['badgeclass']).first().name
+    orgname = "Bioinformatics Research Network"
+
+    # Build linkedin url
+    linkedin_share_url = (
+        f'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME' + \
+        f'&name={badge_name}&organizationName={orgname}&issueYear={ca.year}' + \
+        f'&issueMonth={ca.month}' + \
+        f'&certUrl={fields["openBadgeId"]}' + \
+        f'&certId={fields["entityId"]}'
+    )
+    # If credential expires, add the expiration date to the share URL
+    if fields['expires'] != 'None':
+        exp = datetime.strptime(fields['expires'], '%Y-%m-%dT%H:%M:%SZ')
+        linkedin_share_url += f"&expirationYear={exp.year}" + \
+                                f"&expirationMonth={exp.month}"
+    fields['linkedin_add_profile_url'] = linkedin_share_url
+
+    # Add twitter share URL
+    tweet_text = (
+        f'I earned the "{badge_name}" badge from @BRN_science!' + \
+        f'%0A%0A{fields["openBadgeId"]}'
+    )
+    twitter_share_url = (
+        f'https://twitter.com/intent/tweet?text={tweet_text}'.replace(' ', '%20').replace('#', '%23').replace('"', '%22')
+    )
+    fields['twitter_share_url'] = twitter_share_url
+
+    # Add facebook share URL
+    facebook_share_url = (
+        f'https://www.facebook.com/sharer/sharer.php?u={fields["openBadgeId"]}'
+    )
+    fields['facebook_share_url'] = facebook_share_url
+
+    # Share to linkedin feed
+    linkedin_share_url = (
+        f'https://www.linkedin.com/sharing/share-offsite/?url={fields["openBadgeId"]}'
+    )
+    fields['linkedin_share_url'] = linkedin_share_url
+
+    # Check for identity email
+    ident=""
+    if fields['recipient_type'] == 'email':
+        ident = fields['recipient_plaintextIdentity']
+        ident_card = "&amp;identity__email=" + ident
+        share_url = fields['openBadgeId'] + "?identity__email=" + ident
+    else:
+        share_url = fields['openBadgeId']
+        ident_card = ""
+    
+    # Add share URL
+    fields['share_url'] = share_url
+
+    # Add embeded card HTML
+    embed_card_html = (
+        f'<iframe src="{fields["openBadgeId"]}?embedVersion=1&amp;embedWidth=330&amp;embedHeight=191{ident_card}" ' +
+        f'title="Badge: {badge_name}" style="width: 330px; height: 191px; border: 0px;"></iframe>'
+    )
+    fields['embed_card_html'] = embed_card_html
+
+    # Create embed badge html
+    award_date = ca.strftime('%B %d, %Y')
+    embed_badge_html = (
+        f'<blockquote class="badgr-badge" style="font-family: Helvetica, Roboto, &quot;Segoe UI&quot;, Calibri, sans-serif;">' +
+        f'<a href="{fields["openBadgeId"]}"><img width="120px" height="120px" src="{fields["image"]}"></a>' +
+        f'<p class="badgr-badge-name" style="hyphens: auto; overflow-wrap: break-word; word-wrap: break-word;' +
+        f' margin: 0; font-size: 16px; font-weight: 600; font-style: normal; font-stretch: normal; line-height: 1.25;' +
+        f' letter-spacing: normal; text-align: left; color: #05012c;">{badge_name}</p><p class="badgr-badge-date" ' +
+        f'style="margin: 0; font-size: 12px; font-style: normal; font-stretch: normal; line-height: 1.67; letter-spacing: ' +
+        f'normal; text-align: left; color: #555555;"><strong style="font-size: 12px; font-weight: bold; font-style: ' +
+        f'normal; font-stretch: normal; line-height: 1.67; letter-spacing: normal; text-align: left; color: #000;">' +
+        f'Awarded: </strong>{award_date}</p><p style="margin: 16px 0; padding: 0;"><a class="badgr-badge-verify" target="_blank"' +
+        f' href="https://badgecheck.io?url={fields["openBadgeId"]}" style="box-sizing: content-box; display: flex; align-items: ' +
+        f'center; justify-content: center; margin: 0; font-size:14px; font-weight: bold; width: 48px; height: 16px; border-radius:' +
+        f' 4px; border: solid 1px black; text-decoration: none; padding: 6px 16px; margin: 16px 0; color: black;">VERIFY</a></p>' +
+        f'<script async="async" src="https://badgr.com/assets/widgets.bundle.js"></script></blockquote>'
+    )
+    fields['embed_badge_html'] = embed_badge_html
+
+
+    # Filter to only include the fields that are in the Assertions model
+    fields = {k: v for k, v in fields.items() if k in Assertions.__table__.columns.keys()}
+
+    return fields
+
+

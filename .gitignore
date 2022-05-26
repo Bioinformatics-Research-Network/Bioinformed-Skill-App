@@ -11,3 +11,6 @@ __pycache__
 *nodesource*
 .coverage
 
+*.env*
+botdata
+botdata/*

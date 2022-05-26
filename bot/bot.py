@@ -1,9 +1,12 @@
 import os
 import json
 import re
+from time import sleep
 import requests
+import boto3
 from datetime import datetime
-from bot import utils, const
+from bot import utils, const, schemas
+import base64
 
 
 class Bot:
@@ -29,29 +32,39 @@ class Bot:
         """
         # Create tokens if file doesn't exist
         if not os.path.exists(self.token_fp):
+            print("Getting jwt")
+            self.jwt = const.git_integration.create_jwt()
+            print("Getting tokens")
             utils.get_all_access_tokens(self.installation_ids, jwt=self.jwt)
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
         exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
         if exp_time < datetime.now():
+            print("Getting jwt")
+            self.jwt = const.git_integration.create_jwt()
+            print("Getting tokens")
             utils.get_all_access_tokens(self.installation_ids, jwt=self.jwt)
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
             return current_tokens
-    
 
     def check_tokens(self):
         """
         Check whether the tokens are up to date or not
         """
         if not os.path.exists(self.token_fp):
-            utils.retrieve_access_tokens(self.installation_ids, jwt=self.jwt)
+            print("Getting jwt")
+            self.jwt = const.git_integration.create_jwt()
+            print("Getting tokens")
+            self.retrieve_access_tokens(self.installation_ids, jwt=self.jwt)
         with open(self.token_fp, "r") as f:
             current_tokens = json.load(f)
         exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
         if exp_time < datetime.now():
+            print("Getting jwt")
+            self.jwt = const.git_integration.create_jwt()
+            print("Getting tokens")
             self.retrieve_access_tokens()
-
 
     def parse_comment_payload(self, payload: dict):
         """
@@ -162,6 +175,7 @@ class Bot:
         Parse the payload for new repo
         """
         self.check_tokens()
+        print("Parsing new repo payload")
         install_id = payload["installation"]["id"]
         access_token = self.current_tokens["tokens"][str(install_id)]
         ghbot_message = payload["pull_request"]["body"]
@@ -186,14 +200,16 @@ class Bot:
         # Initialize the skill assessment in the database using API
         request_url = f"{self.brn_url}/api/init"
         body = {
-            "github_username": kwarg_dict["trainee"],
+            "username": kwarg_dict["trainee"],
             "assessment_name": utils.get_assessment_name(payload),
             "latest_commit": utils.get_last_commit(
                 owner=kwarg_dict["owner"],
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
             )["sha"],
-            # "repo_url": kwarg_dict["repo_url"],
+            "repo_owner": kwarg_dict["owner"],
+            "repo_name": kwarg_dict["repo_name"],
+            "pr_number": kwarg_dict["issue_number"],
         }
         response = requests.post(
             request_url,
@@ -215,6 +231,228 @@ class Bot:
             )
             utils.post_comment(err, **kwarg_dict)
             raise e
+
+    def process_init_payload(self, init_request: schemas.InitBotRequest):
+        """
+        Process the init payload
+        """
+        self.check_tokens()
+        access_token = self.current_tokens["tokens"][str(init_request.install_id)]
+
+        # Create a repo name
+        repo_name = init_request.repo_prefix + init_request.username
+
+        # Create the repo in the database using GitHub API
+        request_url = f"{const.gh_url}/orgs/{init_request.github_org}/repos"
+        body = {
+            "name": repo_name,
+            "description": init_request.name
+            + " Skill Assessment. Trainee: "
+            + init_request.username,
+            "private": True,
+            "visibility": "private",
+            "has_issues": False,
+            "has_projects": False,
+            "has_wiki": False,
+            "is_template": False,
+        }
+        try:
+            sleep(1)
+            response = requests.post(
+                request_url,
+                json=body,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response.raise_for_status()
+            print("Repo created")
+        except requests.exceptions.HTTPError as e:
+            print(e)
+            raise e
+
+        try:
+            # Put an empty README in the repo
+            request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
+            base64content = base64.b64encode(b".")
+            body = {
+                "message": "Initial commit",
+                "content": base64content.decode("utf-8"),
+                "branch": "main",
+            }
+            sleep(1)
+            response = requests.put(
+                request_url,
+                json=body,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            sha = response.json()["content"]["sha"]
+            response.raise_for_status()
+            print(".tmp created")
+        except Exception as e:
+            print(e)
+            raise e
+
+        # Download the code from aws s3 and upload to github
+        try:
+            # Configure s3 client
+            s3 = boto3.resource(
+                "s3",
+                aws_access_key_id=const.settings.AWS_ACCESS_KEY,
+                aws_secret_access_key=const.settings.AWS_SECRET_KEY,
+                region_name=const.settings.AWS_REGION,
+            )
+            bucket = s3.Bucket(const.settings.AWS_BUCKET)
+            # Object directory on s3
+            object_dir = (
+                "templates/"
+                + init_request.template_repo
+                + "/"
+                + init_request.latest_release
+            )
+            local_dir = (
+                "botdata/"
+                + init_request.template_repo
+                + "/"
+                + init_request.latest_release
+            )
+            for obj in bucket.objects.filter(Prefix=object_dir):
+                target = (
+                    obj.key
+                    if local_dir is None
+                    else os.path.join(local_dir, os.path.relpath(obj.key, object_dir))
+                )
+                if not os.path.exists(os.path.dirname(target)):
+                    os.makedirs(os.path.dirname(target))
+                if obj.key[-1] == "/":
+                    continue
+                bucket.download_file(obj.key, target)
+
+                # Upload the code to github
+                # Get the base64 content of the file
+                with open(target, "rb") as f:
+                    base64content = base64.b64encode(f.read())
+                # Create the file in the repo
+                request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
+                body = {
+                    "message": "Adding assessment files...",
+                    "content": base64content.decode("utf-8"),
+                    "branch": "main",
+                }
+                sleep(1)
+                response_files = requests.put(
+                    request_url,
+                    json=body,
+                    headers={"Authorization": f"token {access_token}"},
+                )
+                response_files.raise_for_status()
+                print(f"{target} uploaded")
+            print("Code downloaded and uploaded to github")
+        except Exception as e:
+            print(e)
+            raise e
+
+        # Create a branch in the repo
+        try:
+
+            # Get the SHA of the last commit on the main branch
+            request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs/heads/main"
+            response = requests.get(
+                request_url,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response.raise_for_status()
+            print("Got ref")
+            sha2 = response.json()["object"]["sha"]
+
+            # Create the ref
+            request_url = (
+                f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs"
+            )
+            body = {
+                "ref": "refs/heads/feedback",
+                "sha": sha2,
+            }
+            sleep(1)
+            response = requests.post(
+                request_url,
+                json=body,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response.raise_for_status()
+            print("Branch created")
+        except Exception as e:
+            print(e)
+            raise e
+
+        # Delete the .tmp file from the main branch
+        try:
+            request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
+            body = {
+                "message": "Deleted .tmp file",
+                "sha": sha,
+                "branch": "main",
+            }
+            sleep(1)
+            response = requests.delete(
+                request_url,
+                json=body,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response.raise_for_status()
+            print(".tmp deleted")
+        except Exception as e:
+            print(e)
+            raise e
+
+        # Create the pull request from the feedback branch to the main branch
+        try:
+            request_url = (
+                f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/pulls"
+            )
+            welcome_message = (
+                "Hello, @" + init_request.username + " :wave:!\n"
+                + "My name is BRN Bot :robot: and I'm here to help you with your "
+                + "skill assessment today!\n"
+                + "Here are the commands you can use:\n\n"
+                + "@brnbot help - Get a list of commands\n"
+                + "@brnbot check - Check your skill assessment using automated tests\n"
+                + "@brnbot review - Request a review of your skill assessment (only works if you have already passed the automated tests)\n"
+                + "@brnbot view - Get our data on your skill assessment\n\n"
+                + "Good luck! And have fun! :smile:"
+            )
+            body = {
+                "title": "Feedback",
+                "base": "feedback",
+                "head": "main",
+                "body": welcome_message,
+            }
+            sleep(1)
+            response_pr = requests.post(
+                request_url,
+                json=body,
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response_pr.raise_for_status()
+            print("PR created")
+        except Exception as e:
+            print(e)
+            raise e
+
+        # Add the collaborator to the repo
+        try:
+            request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/collaborators/{init_request.username}"
+            sleep(1)
+            response = requests.put(
+                request_url,
+                json={},
+                headers={"Authorization": f"token {access_token}"},
+            )
+            response.raise_for_status()
+            print("Collaborator added")
+        except Exception as e:
+            print(e)
+            raise e
+
+        return True
 
     ## Bot commands ##
 
@@ -251,6 +489,7 @@ class Bot:
         Initialize the skill assessment
         """
         kwarg_dict = self.parse_comment_payload(payload)
+        print(kwarg_dict)
         text = "Initialized assessment. 🚀"
 
         # Initialize the skill assessment in the database using API
@@ -263,7 +502,11 @@ class Bot:
                 repo_name=kwarg_dict["repo_name"],
                 access_token=kwarg_dict["access_token"],
             )["sha"],
+            "repo_owner": kwarg_dict["owner"],
+            "repo_name": kwarg_dict["repo_name"],
+            "pr_number": kwarg_dict["issue_number"],
         }
+        print(body)
         response = requests.post(
             request_url,
             json=body,

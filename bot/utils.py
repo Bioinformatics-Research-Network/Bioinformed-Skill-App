@@ -23,6 +23,9 @@ def post_comment(text: str, **kwargs) -> requests.Response:
 
     request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     time.sleep(1)  # Sleep for 1 second to avoid rate limiting
+    print(f"Posting comment: {text}")
+    print(kwargs['access_token'])
+    print(request_url)
     response = requests.post(
         request_url,
         headers=headers,
@@ -274,6 +277,9 @@ def get_access_token(installation_id, jwt) -> dict:
     response = requests.post(request_url, headers=headers)
 
     response_dict = response.json()
+    print(response_dict)
+    response.raise_for_status()
+    print(response_dict)
     return response_dict
 
 
@@ -284,10 +290,14 @@ def get_all_access_tokens(installation_ids, jwt) -> dict:
 
     print("Getting access tokens")
     # Get the access tokens for the installations
-    token_dict = {
-        installation_id: get_access_token(installation_id, jwt)["token"]
-        for training, installation_id in installation_ids.items()
-    }
+    print(installation_ids.items())
+    try:
+        token_dict = {
+            installation_id: get_access_token(installation_id, jwt)["token"]
+            for training, installation_id in installation_ids.items()
+        }
+    except KeyError:
+        token_dict = {}
 
     # Save the access tokens along with the expiration time
     current_tokens = {

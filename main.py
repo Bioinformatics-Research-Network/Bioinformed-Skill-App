@@ -1,5 +1,5 @@
 import json
-from bot import bot, utils
+from bot import bot, utils, schemas
 from fastapi import FastAPI, Body, Header
 
 app = FastAPI()
@@ -37,3 +37,17 @@ def bot(
         # brnbot.process_delete_repo(payload)
 
     return "ok"
+
+
+
+
+@app.post("/init")
+def init(
+    init_request: schemas.InitBotRequest,
+):
+    print("init")
+    brnbot.process_init(init_request)
+    return "ok"
+
+
+

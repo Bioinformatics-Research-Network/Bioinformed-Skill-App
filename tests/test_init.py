@@ -16,6 +16,7 @@ init_request = schemas.InitBotRequest(
     latest_release="v0.0.1a",
     template_repo="Skill-Assessment-Tutorial-R",
     username="bioresnet",
+    review_required=True,
 )
 
 

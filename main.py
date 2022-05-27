@@ -1,6 +1,6 @@
 import json
-from bot import bot, utils, schemas
-from fastapi import FastAPI, Body, Header
+from bot import bot, utils, schemas, auth, const
+from fastapi import FastAPI, Body, Header, Depends
 
 app = FastAPI()
 brnbot = bot.Bot()
@@ -10,6 +10,7 @@ brnbot = bot.Bot()
 def bot(
     payload: dict = Body(...),
     x_github_event: str = Header(...),
+    access_tokens: dict=Depends(auth.retrieve_access_tokens),
 ):
 
     action = payload["action"]
@@ -22,20 +23,25 @@ def bot(
             sender = payload["sender"]["login"]
             message = payload["comment"]["body"]
             print(sender + ": " + message)
-            brnbot.process_cmd(payload)
+            brnbot.process_cmd(
+                payload,
+                access_tokens=access_tokens
+            )
     elif utils.is_pr_commit(payload=payload, event=event):
         print("is PR commit")
-        brnbot.process_commit(payload)
+        brnbot.process_commit(
+            payload,
+            access_tokens=access_tokens
+        )
     elif utils.is_workflow_run(payload=payload):
         print("is workflow run")
-        brnbot.process_done_check(payload)
-    elif utils.is_assessment_init(payload=payload, event=event):
-        print("is new repo")
-        brnbot.process_new_repo(payload)
+        brnbot.process_done_check(
+            payload,
+            access_tokens=access_tokens
+        )
     elif utils.is_delete_repo(payload=payload, event=event):
         print("is delete repo")
         # brnbot.process_delete_repo(payload)
-
     return "ok"
 
 
@@ -44,10 +50,17 @@ def bot(
 @app.post("/init")
 def init(
     init_request: schemas.InitBotRequest,
+    access_tokens: dict=Depends(auth.retrieve_access_tokens),
 ):
     print("init")
-    brnbot.process_init(init_request)
-    return "ok"
+    gh_url, latest_commit=brnbot.process_init_payload(
+        init_request,
+        access_tokens=access_tokens
+    )
+    return {
+        "github_url": gh_url,
+        "latest_commit": latest_commit,
+    }
 
 
 

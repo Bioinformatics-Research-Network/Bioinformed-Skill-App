@@ -14,3 +14,4 @@ class InitBotRequest(BaseModel):
     username: str
     template_repo: str
     latest_release: str
+    review_required: bool

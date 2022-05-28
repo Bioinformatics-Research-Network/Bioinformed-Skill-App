@@ -214,7 +214,7 @@ def upload_releases_to_aws(settings: Settings):
                 s3.put_object(Key=key, Body=data, ContentType=file_mime, Bucket=settings.AWS_BUCKET)
             # Make sure the file is publically accessible
 
-    s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_BUCKET, Key=key)
+    # s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_BUCKET, Key=key)
 
 
 

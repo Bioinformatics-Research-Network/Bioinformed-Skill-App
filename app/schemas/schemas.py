@@ -1,4 +1,3 @@
-import email
 from pydantic import BaseModel
 
 
@@ -10,9 +9,8 @@ class InitRequest(BaseModel):
     Pydantic request model schema used by `/api/init` endpoint
     """
 
-    username: str
-    assessment_name: str
-    latest_commit: str
+    user_id: int
+    assessment_id: int
 
 
 class CheckRequest(BaseModel):
@@ -47,8 +45,8 @@ class DeleteRequest(BaseModel):
     Pydantic request model schema used by `/api/delete` endpoint
     """
 
-    username: str
-    assessment_name: str
+    user_id: str
+    assessment_id: str
 
 
 class UpdateRequest(BaseModel):

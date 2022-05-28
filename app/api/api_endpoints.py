@@ -1,5 +1,7 @@
 import copy
 from datetime import datetime
+import hashlib
+from requests import request
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.services import get_db, get_settings
@@ -10,8 +12,11 @@ from app import schemas, crud, utils
 router = APIRouter(prefix="/api", tags=["api"])
 
 
-@router.post("/init", response_model=schemas.InitResponse)
-def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
+@router.post("/init")
+def init(
+    *, db: Session = Depends(get_db), init_request: schemas.InitRequest,
+    settings: Settings = Depends(get_settings)
+):
     """
     Initiates new assessment instances for assessment_tracker table.
 
@@ -28,9 +33,22 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
     # Try to init assessment tracker
     # If member is not valid, raise 422 error
     # If other error occurs, raise 500 error
+    print(init_request)
     try:
-        user = crud.get_user_by_username(db=db, username=init_request.username)
-        crud.init_assessment_tracker(db=db, init_request=init_request, user_id=user.id)
+        print("creating assessment tracker")
+        crud.create_assessment_tracker_entry(
+            db=db,
+            user_id=init_request.user_id,
+            assessment_id=init_request.assessment_id,
+            commit=hashlib.sha1(
+                (
+                    str(datetime.now()).encode("utf-8")
+                    + str(init_request.user_id).encode("utf-8")
+                    + str(init_request.assessment_id).encode("utf-8")
+                )
+            ).hexdigest(),
+        )
+        print("assessment tracker created")
     except ValueError as e:
         print(e)
         raise HTTPException(status_code=422, detail=str(e))
@@ -38,8 +56,54 @@ def init(*, db: Session = Depends(get_db), init_request: schemas.InitRequest):
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+    # Use the bot to set up the assessment on GitHub
+    try:
+        print("setting up assessment")
+        assessment = crud.get_assessment_by_id(
+            db=db, assessment_id=init_request.assessment_id
+        )
+        user = crud.get_user_by_id(db=db, user_id=init_request.user_id)
+        payload = {
+            "name": assessment.name,
+            "install_id": int(assessment.install_id),
+            "repo_prefix": assessment.repo_prefix,
+            "github_org": assessment.github_org,
+            "username": user.username,
+            "template_repo": assessment.template_repo,
+            "latest_release": assessment.latest_release,
+            "review_required": assessment.review_required == 1,
+        }
+        print(payload)
+        print("Sending request to bot init")
+        response = request(
+            "POST",
+            f"{settings.GITHUB_BOT_URL}/init",
+            json=payload,
+        )
+        print("Bot responded")
+        response.raise_for_status()
+    except Exception as e:  # pragma: no cover
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # Update the assessment tracker with the GitHub URL
+    try:
+        print("Updating assessment tracker")
+        crud.update_assessment_tracker_entry(
+            db=db,
+            user_id=init_request.user_id,
+            assessment_id=init_request.assessment_id,
+            github_url=response.json()["github_url"],
+            status="Initiated",
+            commit=response.json()["latest_commit"],
+        )
+        print("Assessment tracker updated")
+    except Exception as e:  # pragma: no cover
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
     # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
-    return {"Initiated": True, "username": user.username}
+    return True
 
 
 @router.get("/view")
@@ -118,7 +182,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
 
 
 @router.post("/delete")
-def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest):
+def delete(*, db: Session = Depends(get_db), delete_request: schemas.DeleteRequest):
     """
     Deletes the assessment tracker entry for the given user and assessment.
 
@@ -133,17 +197,14 @@ def delete(*, db: Session = Depends(get_db), view_request: schemas.DeleteRequest
         - Assessment tracker entry does not exist
     """
     try:
-        user = crud.get_user_by_username(db=db, username=view_request.username)
-        assessment = crud.get_assessment_by_name(
-            db=db, assessment_name=view_request.assessment_name
-        )
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
-            user_id=user.id,
-            assessment_id=assessment.id,
+            user_id=delete_request.user_id,
+            assessment_id=delete_request.assessment_id,
         )
         db.delete(assessment_tracker_entry)
         db.commit()
+        # TODO: Call bot to delete the assessment repo
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover

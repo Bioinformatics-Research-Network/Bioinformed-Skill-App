@@ -34,7 +34,7 @@ SQLALCHEMY_DATABASE_URI = (
     + settings.RDS_DB_NAME
 )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
+engine = create_engine(SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 if not database_exists(engine.url):  # pragma: no cover
     create_database(engine.url)  # Create new DB
     print("New Database Created")  # Verifies if database is there or not.

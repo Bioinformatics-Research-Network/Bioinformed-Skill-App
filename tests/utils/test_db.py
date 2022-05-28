@@ -10,7 +10,7 @@ random.seed(42)
 
 TEST_URL = "sqlite:///./test.db"
 
-engine = create_engine(TEST_URL, connect_args={"check_same_thread": False})
+engine = create_engine(TEST_URL, connect_args={"check_same_thread": False}, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.drop_all(bind=engine)

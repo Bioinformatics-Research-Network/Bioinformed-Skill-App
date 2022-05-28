@@ -5,6 +5,7 @@ import random
 import copy
 from app import models, schemas, utils
 from app.config import Settings
+from app.models.models import Badges
 
 
 # Reproducibility for randomly selecting reviewers
@@ -197,10 +198,11 @@ def get_assessment_tracker_entry_by_commit(db: Session, commit: str):
     return assessment_tracker
 
 
-def init_assessment_tracker(
+def create_assessment_tracker_entry(
     db: Session,
-    init_request: schemas.InitRequest,
     user_id: int,
+    assessment_id: int,
+    commit: str,
 ):
     """
     Initialize the assessment tracker entry
@@ -215,11 +217,6 @@ def init_assessment_tracker(
         - Assessment tracker entry already exists
         - User does not exist
     """
-    # Get assessment id
-    assessment_id = get_assessment_by_name(
-        db=db, assessment_name=init_request.assessment_name
-    ).id
-
     # Check if assessment tracker entry exists and if not, create one
     try:
         get_assessment_tracker_entry(
@@ -231,18 +228,18 @@ def init_assessment_tracker(
         if str(e) != "Assessment tracker entry unavailable.":
             raise e
 
-        # Create a new entry if it doesn't exist
+        # Create a new entry if it doesn't exist yet
         db_obj = models.AssessmentTracker(
             user_id=user_id,
             assessment_id=assessment_id,
-            latest_commit=init_request.latest_commit,
             last_updated=datetime.utcnow(),
-            status="Initiated",
+            status="Pre-assessment",
+            latest_commit=commit,
             log=[
                 {
-                    "status": "Initiated",
+                    "status": "Pre-assessment",
                     "timestamp": str(datetime.utcnow()),
-                    "commit": init_request.latest_commit,
+                    "commit": None
                 }
             ],
         )
@@ -250,6 +247,56 @@ def init_assessment_tracker(
         db.commit()
 
         return True
+
+
+def update_assessment_tracker_entry(
+    db: Session,
+    user_id: int,
+    assessment_id: int,
+    status: str,
+    commit: str,
+    github_url: str,
+):
+    """
+    Update the assessment tracker entry
+
+    :param db: Generator for Session of database
+    :param user_id: user id
+    :param assessment_id: assessment id
+    :param status: status
+    :param commit: commit
+    :param repo_url: repo url
+    :param repo_branch: repo branch
+
+    :returns: True
+    """
+    # Get the assessment tracker entry
+    assessment_tracker = get_assessment_tracker_entry(
+        db=db, assessment_id=assessment_id, user_id=user_id
+    )
+    
+    try:
+        # Update the entry
+        assessment_tracker.status = status
+        assessment_tracker.latest_commit = commit
+        assessment_tracker.repo_owner = github_url.split("/")[3]
+        assessment_tracker.repo_name = github_url.split("/")[4]
+        assessment_tracker.pr_number = 1
+        assessment_tracker.last_updated = datetime.utcnow()
+        # Add the new log entry
+        assessment_tracker.log.append(
+            {
+                "status": status,
+                "timestamp": str(datetime.utcnow()),
+                "commit": commit
+            }
+        )
+        db.commit()
+        return True
+    except Exception as e:
+        print(e)
+        db.rollback()
+        raise e
 
 
 def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTracker):
@@ -284,13 +331,13 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
     )
 
     try:
+        # Get a random reviewer from the list of valid reviewers
+        # Will be replaced with Slack integration
         random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
     except Exception as e: # pragma: no cover
         raise ValueError("No reviewer available. Please contact the administrator.")
 
     try:
-        # Get a random reviewer from the list of valid reviewers
-        # Will be replaced with Slack integration
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
         return random_reviewer
     except Exception as e:  # pragma: no cover
@@ -473,10 +520,10 @@ def add_assertion(
     :param entry_id: Assessment tracker entry id
     :param assertion: Assertion to add
     """
-
-    badge = db.query(models.Badges).filter_by(entityId=assertion['badgeclass']).first()
+    badge = db.query(models.Badges).filter(models.Badges.entityId == assertion['badgeclass']).first()
     # Get the badge name for the assertion
     if badge is None:
+        print("Syncing badges")
         sync_badges(settings=settings, db=db)
         badge = db.query(models.Badges).filter_by(entityId=assertion['badgeclass']).first()
     try:
@@ -502,6 +549,7 @@ def add_assertion(
         db.commit()
         return True
     except Exception as e:
+        print(fields)
         print(str(e))
         db.rollback()
         raise e

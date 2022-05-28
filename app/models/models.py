@@ -94,15 +94,19 @@ class Assessments(db.Base):
     __tablename__ = "assessments"
 
     id = Column(Integer, primary_key=True, unique=True, index=True)
-    orig_id = Column(Integer)
-    name = Column(String(250))
+    name = Column(String(250), unique=True)
     description = Column(String(250))
     core_skill_areas = Column(String(250))
     languages = Column(String(250))
     types = Column(String(250))
-    release_url = Column(String(250))
+    template_repo = Column(String(250))
+    latest_release = Column(String(250))
     prerequisites = Column(String(250))
-    classroom_url = Column(String(250))
+    long_description = Column(Text)
+    review_required = Column(Boolean)
+    github_org = Column(String(250))
+    repo_prefix = Column(String(250))
+    install_id = Column(String(250))
 
 
 class AssessmentTracker(db.Base):
@@ -132,6 +136,9 @@ class AssessmentTracker(db.Base):
             "reviewers.id", use_alter=True, name="fk_assessment_tracker_reviewers"
         ),
     )
+    repo_owner = Column(String(250))
+    repo_name = Column(String(250))
+    pr_number = Column(Integer)
     log = Column(JSON, nullable=False)
 
 
@@ -145,8 +152,7 @@ class Badges(db.Base):
 
     __tablename__ = "badges"
 
-    id = Column(Integer, primary_key=True, unique=True, index=True)
-    entityId = Column(String(250), unique=True)
+    entityId = Column(String(250), primary_key=True, unique=True, index=True)
     entityType = Column(String(250))
     openBadgeId = Column(String(250))
     createdAt = Column(DateTime)
@@ -163,6 +169,7 @@ class Badges(db.Base):
     tags = Column(String(250))
     expires = Column(Text)
     extensions = Column(Text)
+
 
 
 class Assertions(db.Base):

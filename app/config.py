@@ -26,3 +26,4 @@ class Settings(BaseSettings):
     BADGR_GRANT_TYPE: str
     BADGR_CLIENT_ID: str
     BADGE_IDs: dict = BADGE_IDs
+    GITHUB_BOT_URL: str

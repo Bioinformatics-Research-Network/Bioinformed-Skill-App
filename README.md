@@ -122,16 +122,10 @@ sudo apt install nodejs
 sudo npm install -g smee-client
 ```
 
-3. Start the local smee.io channel (must be running whenever the API is running)
-
-```shell
-smee -u http://smee.io/iOvYAmrkN5sMkT0h --port 8000 --path /api/register
-```
-
 4. In a separate terminal, start the app using `uvicorn`:
 
 ```shell
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 2000
 ```
 
 To test out the API locally use the Swagger UI docs:

@@ -31,20 +31,20 @@
               </div>
               <div class="card-body">
                 <p class="card-text">{{assessment.description}}</p>
-                {% if assessment.classroom_url == '' %}
+                {% if assessment.release_url == '' %}
                 <a
                   target="_blank"
-                  href="{{assessment.classroom_url}}"
+                  href=""
                   class="btn btn-primary disabled"
                   aria-disabled="true"
-                  >In development</a
+                  >Unavailable</a
                 >
                 {% else %}
                 <a
                   target="_blank"
-                  href="{{assessment.classroom_url}}"
+                  href="{{url_for('routes.assessment', id=assessment.id)}}"
                   class="btn btn-primary"
-                  >Start Assessment</a
+                  >View</a
                 >
                 {% endif %}
               </div>

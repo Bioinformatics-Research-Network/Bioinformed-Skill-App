@@ -35,6 +35,25 @@ def get_assessment_by_name(db: Session, name: str) -> models.Assessments:
     return assessment
 
 
+def get_assessment_by_id(db: Session, id: int) -> models.Assessments:
+    """
+    To get assessment by id.
+    """
+    assessment = db.query(models.Assessments).filter_by(id=id).first()
+    return assessment
+
+
+def get_badge_by_assessment_id(db: Session, assessment_id: int) -> models.Badges:
+    """
+    To get badge by assessment id.
+    """
+    # Get the assessment name
+    assessment = get_assessment_by_id(db, id=assessment_id)
+    # Get the badge for the assessment based on the name
+    badge = db.query(models.Badges).filter_by(name=assessment.name).first()
+    return badge
+
+
 # Get user by github username
 def get_user_by_gh_username(db: Session, username: str) -> models.Users:
     """
@@ -150,3 +169,15 @@ def get_assertions_by_user(db: Session, user: models.Users) -> list:
         assertions.extend(at_assertions)
     return assertions
 
+
+def get_assessment_tracker_entry(
+    db: Session, user_id: int, assessment_id: int
+) -> models.AssessmentTracker:
+    """
+    To get assessment tracker entry.
+    """
+    # Get the assessment tracker entry
+    at = db.query(models.AssessmentTracker).filter_by(
+        user_id=user_id, assessment_id=assessment_id
+    ).first()
+    return at

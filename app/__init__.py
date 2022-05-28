@@ -43,10 +43,6 @@ def create_app(test_config=None):
 
     init_db()
     auth.login_manager.init_app(app)
-    # Fill assessments table from local csv file
-    db.fill_db.create_database(
-        db_session,
-    )
 
     # On server end, remove the db session
     @app.teardown_appcontext

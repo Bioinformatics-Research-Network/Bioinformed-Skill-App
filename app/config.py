@@ -30,9 +30,18 @@ class Settings(BaseSettings):
     GH_OAUTH_CLIENT_ID: str
     GH_OAUTH_CLIENT_SECRET: str
     PRIVACY_POLICY_URL: str
+    ACADEMIC_HONESTY_POLICY_URL: str
+    CODE_OF_CONDUCT_URL: str
     MANDRILL_API_KEY: str
     EMAIL_VERIFICATION_EXPIRATION: int
     SITE_URL: str
+    AIRTABLE_API_KEY: str
+    AIRTABLE_BASE_ID: str
+    BRN_API_URL: str
+    AWS_ACCESS_KEY: str
+    AWS_SECRET_KEY: str
+    AWS_BUCKET: str
+    AWS_REGION: str
 
 print(os.environ.get("FLASK_ENV") )
 if os.environ.get("FLASK_ENV") == "development":

@@ -1,6 +1,8 @@
 from datetime import datetime
+import markdown
+import requests
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
 from flask_dance.contrib.github import github
 from flask_login import logout_user, login_required, current_user
 
@@ -10,7 +12,7 @@ from app.db import db_session
 
 routes = Blueprint("routes", __name__, url_prefix="")
 
-with open("data/countries.txt", "r", encoding="ISO-8859-1") as f:
+with open("app/static/countries.txt", "r", encoding="ISO-8859-1") as f:
     countries = [line.strip() for line in f]
 
 
@@ -37,7 +39,10 @@ def onboarding():
         return redirect(url_for("routes.profile"))
     else:
         return render_template(
-            "onboarding.html", privacy_url=settings.PRIVACY_POLICY_URL
+            "onboarding.html",
+            privacy_url=settings.PRIVACY_POLICY_URL,
+            coc_url=settings.CODE_OF_CONDUCT_URL,
+            aap_url=settings.ACADEMIC_HONESTY_POLICY_URL,
         )
 
 
@@ -205,6 +210,84 @@ def assessments():
     return render_template(
         "assessments.html", assessments=assessments, languages=languages, types=types
     )
+
+
+@routes.route("/assessments/<int:id>", methods=["GET"])
+@login_required
+@auth.onboarding_required
+@auth.email_verification_required
+def assessment(id, status=None):
+    assessment = crud.get_assessment_by_id(db_session, id=id)
+    print("ASDKJUANSD")
+    print(status)
+    # If long_description is not empty, render the markdown to HTML
+    if assessment.long_description:
+        assessment.long_description = markdown.markdown(assessment.long_description)
+    # Get the badge for the assessment
+    badge = crud.get_badge_by_assessment_id(db_session, assessment_id=id)
+    # Get the assessment tracker entry
+    tracker = crud.get_assessment_tracker_entry(
+        db_session, user_id=current_user.id, assessment_id=id
+    )
+    # Get all from the assessment tracker entry
+    if tracker:
+        gh_repo = f"https://www.github.com/{tracker.repo_owner}/{tracker.repo_name}"
+        status = tracker.status
+    else:
+        gh_repo = None
+        status = None
+
+    return render_template(
+        "assessment.html",
+        assessment=assessment,
+        badge=badge,
+        status=status,
+        github_repo=gh_repo,
+    )
+
+
+@routes.route("/assessments/<int:id>", methods=["POST"])
+@login_required
+@auth.onboarding_required
+@auth.email_verification_required
+def assessment_start(id):
+    payload = {
+        "user_id": current_user.id,
+        "assessment_id": id,
+    }
+
+    # Initialize the repo
+    response = requests.post(f"{settings.BRN_API_URL}/init", json=payload)
+    print(response.json())
+    if response.status_code == 200:
+        flash("Assessment initiated.", "success")
+        return redirect(url_for("routes.assessment", id=id))
+    else:
+        flash("Something went wrong. Please contact the administrator.", "danger")
+        # Return 500 error
+        abort(500)
+        return redirect(url_for("routes.assessment", id=id))
+
+
+@routes.route("/assessments/<int:id>/delete", methods=["POST"])
+@login_required
+@auth.onboarding_required
+@auth.email_verification_required
+def assessment_delete(id):
+    payload = {
+        "user_id": current_user.id,
+        "assessment_id": id,
+    }
+    print("DELETE")
+    # Initialize the repo
+    response = requests.post(f"{settings.BRN_API_URL}/delete", json=payload)
+    print(response.json())
+    if response.status_code == 200:
+        flash("Assessment deleted.", "success")
+        return redirect(url_for("routes.assessment", id=id))
+    else:
+        flash("Something went wrong. Please contact the administrator.", "danger")
+        return redirect(url_for("routes.assessment", id=id))
 
 
 @routes.route("/documentation")

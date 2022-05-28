@@ -125,7 +125,6 @@ class Bot:
         """
         Process the init payload
         """
-        self.check_tokens()
         access_token = access_tokens["tokens"][str(init_request.install_id)]
 
         # Create a repo name
@@ -146,6 +145,16 @@ class Bot:
         utils.init_add_collaborator(init_request, repo_name=repo_name, access_token=access_token)
 
         return http_repo, latest_commit
+
+    
+    def process_delete_repo(self, delete_request: schemas.DeleteBotRequest, access_tokens: dict):
+        """
+        Process the delete repo payload
+        """
+        access_token = access_tokens["tokens"][str(delete_request.install_id)]
+        repo_name = delete_request.repo_prefix + delete_request.username
+        utils.delete_repo(delete_request=delete_request, repo_name=repo_name, access_token=access_token)
+        return True
 
     ## Bot commands ##
 
@@ -311,7 +320,7 @@ class Bot:
         try:
             response = utils.dispatch_workflow(**kwarg_dict)
             response.raise_for_status()
-            text = "Automated checks ✅ in progress ⏳. View them here: " + actions_url
+            text = "Automated checks ✅ in progress ⏳. View them here: [`link`](" + actions_url + ")"
             utils.post_comment(text, **kwarg_dict)
             return True
         except requests.exceptions.HTTPError as e:
@@ -362,8 +371,8 @@ class Bot:
                 text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
             else:
                 text = (
-                    "Checks have **failed** 💥. Please check the logs for more information: "
-                    + actions_url
+                    "Checks have **failed** 💥. Please check the logs for more information: [`link`]("
+                    + actions_url + ")"
                 )
             utils.post_comment(text, **kwarg_dict)
             return response

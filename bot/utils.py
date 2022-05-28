@@ -288,6 +288,30 @@ def dispatch_workflow(**kwarg_dict) -> requests.Response:
     return response
 
 
+def delete_repo(
+    delete_request: schemas.DeleteBotRequest,
+    access_token: str, repo_name: str
+):
+    """
+    Process a delete repo request
+    """
+    request_url = f"{const.gh_url}/repos/{delete_request.github_org}/{repo_name}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": const.accept_header,
+    }
+    print("delete repo")
+    print(request_url)
+    print(headers)
+    try:
+        response = requests.delete(request_url, headers=headers)
+        response.raise_for_status()
+        print("Deleted repo")
+    except requests.exceptions.HTTPError:
+        print("Repo didn't exist yet")
+        pass
+
+
 def init_create_repo(
     init_request: schemas.InitBotRequest, repo_name: str, access_token: str
 ):

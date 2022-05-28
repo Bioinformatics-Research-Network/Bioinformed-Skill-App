@@ -15,3 +15,14 @@ class InitBotRequest(BaseModel):
     template_repo: str
     latest_release: str
     review_required: bool
+
+
+class DeleteBotRequest(BaseModel):
+    """
+    Schema for the delete command
+    """
+    name: str
+    install_id: int
+    repo_prefix: str
+    github_org: str
+    username: str

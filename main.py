@@ -39,9 +39,6 @@ def bot(
             payload,
             access_tokens=access_tokens
         )
-    elif utils.is_delete_repo(payload=payload, event=event):
-        print("is delete repo")
-        # brnbot.process_delete_repo(payload)
     return "ok"
 
 
@@ -63,4 +60,14 @@ def init(
     }
 
 
-
+@app.post("/delete")
+def delete(
+    delete_request: schemas.DeleteBotRequest,
+    access_tokens: dict=Depends(auth.retrieve_access_tokens),
+):
+    print("delete")
+    brnbot.process_delete_repo(
+        delete_request,
+        access_tokens=access_tokens
+    )
+    return "ok"

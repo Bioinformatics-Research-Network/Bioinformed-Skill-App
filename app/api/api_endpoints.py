@@ -14,8 +14,10 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 @router.post("/init")
 def init(
-    *, db: Session = Depends(get_db), init_request: schemas.InitRequest,
-    settings: Settings = Depends(get_settings)
+    *,
+    db: Session = Depends(get_db),
+    init_request: schemas.InitRequest,
+    settings: Settings = Depends(get_settings),
 ):
     """
     Initiates new assessment instances for assessment_tracker table.
@@ -182,7 +184,12 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
 
 
 @router.post("/delete")
-def delete(*, db: Session = Depends(get_db), delete_request: schemas.DeleteRequest):
+def delete(
+    *,
+    db: Session = Depends(get_db),
+    delete_request: schemas.DeleteRequest,
+    settings: Settings = Depends(get_settings),
+):
     """
     Deletes the assessment tracker entry for the given user and assessment.
 
@@ -202,12 +209,39 @@ def delete(*, db: Session = Depends(get_db), delete_request: schemas.DeleteReque
             user_id=delete_request.user_id,
             assessment_id=delete_request.assessment_id,
         )
+        assessment = crud.get_assessment_by_id(
+            db=db, assessment_id=delete_request.assessment_id
+        )
+        user = crud.get_user_by_id(db=db, user_id=delete_request.user_id)
         db.delete(assessment_tracker_entry)
         db.commit()
         # TODO: Call bot to delete the assessment repo
+        payload = {
+            "name": assessment.name,
+            "install_id": int(assessment.install_id),
+            "repo_prefix": assessment.repo_prefix,
+            "github_org": assessment.github_org,
+            "username": user.username,
+        }
+        print(payload)
+        print("Sending request to bot init")
+        response = request(
+            "POST",
+            f"{settings.GITHUB_BOT_URL}/delete",
+            json=payload,
+        )
+        print("Bot responded")
+        response.raise_for_status()
+
     except ValueError as e:
+        print(str(e))
+        db.rollback()
+        print("rollback")
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
+        db.rollback()
+        print("rollback")
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Entry deleted": True}

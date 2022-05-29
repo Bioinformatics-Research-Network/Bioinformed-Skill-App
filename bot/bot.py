@@ -1,7 +1,6 @@
-import os
 import json
 import requests
-from datetime import datetime
+import copy
 from bot import utils, const, schemas
 
 
@@ -286,14 +285,24 @@ class Bot:
         try:
             response.raise_for_status()
             if passed:
-                text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
+                # Check if review is required
+                if response.json()["review_required"]:
+                    text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
+                else:
+                    text = "Checks have **passed** 😎. I will issue your badge now 🎉.\n"
             else:
                 text = (
                     "Checks have **failed** 💥. Please check the logs for more information: [`link`]("
                     + actions_url + ")"
                 )
             utils.post_comment(text, **kwarg_dict)
-            return response
+            if not response.json()["review_required"] and passed:
+                # Approve the assessment and issue badge
+                kwarg_dict2 = copy.deepcopy(kwarg_dict)
+                kwarg_dict2["sender"] = "brnbot"  # Set the sender as brnbot to avoid error
+                utils.approve_assessment(**kwarg_dict2)
+            else:
+                return response
         except requests.exceptions.HTTPError as e:
             err = f"**Error**: {response.json()['detail']}" + "\n"
             utils.post_comment(err, **kwarg_dict)
@@ -380,40 +389,5 @@ class Bot:
         Approve the assessment via API
         """
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        # Approve the assessment in the database using API
-        request_url = f"{self.brn_url}/api/approve"
-        body = {
-            "reviewer_username": kwarg_dict["sender"],
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-        }
-        response = requests.patch(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            text = (
-                "Skill assessment approved 🎉. Please check your email for your badge 😎."
-            )
-            utils.post_comment(text, **kwarg_dict)
-            utils.archive_repo(**kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            msg = response.json()["detail"]
-            if msg == "Reviewer cannot be the same as the trainee.":
-                msg = "Trainee cannot approve their own skill assessment."
-            err = f"**Error**: {msg}" + "\n"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
+        utils.approve_assessment(**kwarg_dict)
+

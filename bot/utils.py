@@ -652,3 +652,43 @@ def init_add_collaborator(
     except Exception as e:
         print(e)
         raise e
+
+
+def approve_assessment(**kwarg_dict):
+    # Approve the assessment in the database using API
+    request_url = f"{const.brn_url}/api/approve"
+    body = {
+        "reviewer_username": kwarg_dict["sender"],
+        "latest_commit": get_last_commit(
+            owner=kwarg_dict["owner"],
+            repo_name=kwarg_dict["repo_name"],
+            access_token=kwarg_dict["access_token"],
+        )["sha"],
+    }
+    response = requests.patch(
+        request_url,
+        json=body,
+    )
+    try:
+        response.raise_for_status()
+        text = (
+            "Skill assessment approved 🎉. Please check your email for your badge 😎."
+        )
+        post_comment(text, **kwarg_dict)
+        archive_repo(**kwarg_dict)
+        return response
+    except requests.exceptions.HTTPError as e:
+        msg = response.json()["detail"]
+        if msg == "Reviewer cannot be the same as the trainee.":
+            msg = "Trainee cannot approve their own skill assessment."
+        err = f"**Error**: {msg}" + "\n"
+        post_comment(err, **kwarg_dict)
+        raise e
+    except Exception as e:  # pragma: no cover
+        err = (
+            f"**Error**: {e}"
+            + "\n\n"
+            + "**Please contact the maintainer for this bot.**"
+        )
+        post_comment(err, **kwarg_dict)
+        raise e

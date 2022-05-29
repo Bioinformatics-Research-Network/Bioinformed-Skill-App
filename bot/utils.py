@@ -222,20 +222,6 @@ def is_pr_commit(payload: dict, event: str) -> bool:
         return False
 
 
-def is_delete_repo(payload: dict, event: str) -> bool:
-    """
-    Check if the payload is a delete repo event
-    """
-    if event == "repository" and payload["action"] == "deleted":
-        try:
-            valid_ids = const.installation_ids.values()
-            return payload["installation"]["id"] in valid_ids
-        except KeyError:
-            return False
-    else:
-        return False
-
-
 def is_assessment_init(payload: dict, event: str) -> bool:
     """
     Check if the payload is a new repo event
@@ -308,7 +294,7 @@ def delete_repo(
         response.raise_for_status()
         print("Deleted repo")
     except requests.exceptions.HTTPError:
-        print("Repo didn't exist yet")
+        print("Repo doesn't exist")
         pass
 
 
@@ -602,13 +588,14 @@ def init_create_pr(
             + "then the badge for this assessment will be awarded to you :trophy:. \n\n"
             + "Once completed, the assessment repo will be archived to prevent changes :lock:.\n\n<hr>\n\n</details>\n\n"
             + "Here are the **bot commands** you can issue as part of this assessment:\n\n"
+            + "**@brnbot hello** - Say hello to brnbot :wave:.\n"
             + "**@brnbot check** - Check your code using automated tests\n"
             + opt_statement2
             + "**@brnbot help** - Get a list of commands and information about them\n\n"
-            + "Good luck! And have fun! :smile:\n\n<hr>\n"
+            + "Good luck! And have fun! :smile:\n\n<hr>\n\n"
             + "**Note**: If you have any questions or if something isn't working right,"
             + " please send a message to the '#skill-assessment-wg channel' in the BRN Slack (however,"
-            + " don't share any repo code or answers there).\n\n\n\n"
+            + " don't share any repo code or answers there).\n\n"
             + "Finally, if you observe any violations of our "
             + "[code of conduct](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit?usp=sharing) "
             + "or [academic honesty policy](https://docs.google.com/document/d/1-Xoko7VDr0lK7olboGQ2CPmEnUTV3WmiDxwQQuGBgiQ/edit),"

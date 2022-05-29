@@ -1,5 +1,4 @@
-import json
-from bot import bot, utils, schemas, auth, const
+from bot import bot, utils, schemas, auth
 from fastapi import FastAPI, Body, Header, Depends
 
 app = FastAPI()

@@ -217,9 +217,3 @@ def upload_releases_to_aws(settings: Settings):
     # s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_BUCKET, Key=key)
 
 
-
-
-    
-
-
-

@@ -98,6 +98,10 @@
               Start Assessment
             </button>
             <div id="assessment-message" class="text-center"></div>
+            {% elif status == "Loading" %}
+            <div class="text-center">
+              <p>Please wait while we are loading your assessment (takes ~ one minute). Refresh this page to assessment information.</p>
+            </div>
             {% elif status != "Approved" %}
             <div class="row">
               <div class="col-auto align-self-center">
@@ -114,7 +118,7 @@
               <div class="col-auto">
                 <button
                   type="button"
-                  class="btn btn-outline-danger btn-lg"
+                  class="btn btn-outline-danger"
                   data-bs-toggle="modal"
                   data-bs-target="#quitAssessmentModal"
                 >
@@ -144,8 +148,8 @@
                     </div>
                     <div class="modal-body">
                       <p>
-                        Are you sure you want to quit this assessment
-                        ("{{assessment.name}}")?<br />You will lose
+                        Are you sure you want to quit 
+                        "{{assessment.name}}"?<br />You will lose
                         <strong>all data</strong> associated with this
                         assessment. This includes:
                       </p>
@@ -190,10 +194,16 @@
               </div>
               {% else %}
               <div class="row">
-                <button class="btn btn-primary" disabled>Completed</button>
-                <div class="col-auto">
-                  <h4>Repo URL:</h4>
-                  <p>{{github_repo}}</p>
+                <div class="col-auto align-self-center">
+                  <button class="btn btn-success" disabled>Completed</button>
+                </div>
+                <div class="col-auto align-self-center">
+                  <span
+                    >Repo URL:
+                    <a target="_blank" href="{{github_repo}}"
+                      >{{github_repo.replace("https://www.github.com/", "") }}</a
+                    ></span
+                  >
                 </div>
               </div>
               {% endif %}

@@ -230,9 +230,12 @@ def assessment(id, status=None):
         db_session, user_id=current_user.id, assessment_id=id
     )
     # Get all from the assessment tracker entry
-    if tracker:
+    if tracker and tracker.repo_owner:
         gh_repo = f"https://www.github.com/{tracker.repo_owner}/{tracker.repo_name}"
         status = tracker.status
+    elif tracker:
+        gh_repo = None
+        status = "Loading"
     else:
         gh_repo = None
         status = None

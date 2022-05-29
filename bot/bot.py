@@ -226,88 +226,6 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def delete(self, payload: dict, access_tokens: dict):
-        """
-        Delete the assessment
-        """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        try:
-            # Remove the reviewer if there is one
-            reviewer_response = utils.get_reviewer(**kwarg_dict)
-            reviewer_response.raise_for_status()
-            if reviewer_response.json()["users"] != []:
-                reviewer = reviewer_response.json()["users"][0]["login"]
-                remove_response = utils.remove_reviewer(reviewer, **kwarg_dict)
-                remove_response.raise_for_status()
-            # Delete the assessment from the database using API
-            request_url = f"{self.brn_url}/api/delete"
-            body = {
-                "username": kwarg_dict["sender"],
-                "assessment_name": utils.get_assessment_name(payload),
-            }
-            response = requests.post(
-                request_url,
-                json=body,
-            )
-            response.raise_for_status()
-            # Notify on successful deletion
-            text = "Assessment entry deleted 🗑."
-            utils.post_comment(text, **kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {str(e)}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-
-    # TODO: Remove public access to this function
-    def update(self, payload: dict, access_tokens: dict):
-        """
-        Update the skill assessment using automated tests via API
-
-        Internal use only
-        """
-        log = " ".join(payload["comment"]["body"].split(" ")[2:])
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        request_url = f"{self.brn_url}/api/update"
-        body = {
-            "username": kwarg_dict["sender"],
-            "assessment_name": utils.get_assessment_name(payload),
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-            "log": {"message": log},
-        }
-        response = requests.patch(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            text = "Assessment entry updated with message: \n" + log
-            utils.post_comment(text, **kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
 
     def check(self, payload: dict, access_tokens: dict):
         """
@@ -482,6 +400,7 @@ class Bot:
                 "Skill assessment approved 🎉. Please check your email for your badge 😎."
             )
             utils.post_comment(text, **kwarg_dict)
+            utils.archive_repo(**kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:
             msg = response.json()["detail"]
@@ -498,6 +417,3 @@ class Bot:
             )
             utils.post_comment(err, **kwarg_dict)
             raise e
-
-    ## Additional commands go here ##
-    # Unapprove

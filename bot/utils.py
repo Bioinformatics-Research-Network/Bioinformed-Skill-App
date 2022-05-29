@@ -312,6 +312,45 @@ def delete_repo(
         pass
 
 
+def archive_repo(
+    **kwargs: dict
+):
+    """
+    Process an archive repo request
+    """
+    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
+    body = {
+        # "name": repo_name,
+        # "description": init_request.name
+        # + " Skill Assessment. Trainee: "
+        # + init_request.username,
+        # "private": True,
+        # "visibility": "private",
+        # "has_issues": False,
+        # "has_projects": False,
+        # "has_wiki": False,
+        # "is_template": False,
+        "archived": True,
+    }
+    print("Archive repo")
+    print(request_url)
+    try:
+        sleep(1)
+        response = requests.patch(
+            request_url,
+            json=body,
+            headers={
+                "Authorization": f"token {kwargs['access_token']}",
+                "Accept": const.accept_header,
+            },
+        )
+        response.raise_for_status()
+        print("Repo archived")
+    except requests.exceptions.HTTPError as e:
+        print(e)
+        raise e
+
+
 def init_create_repo(
     init_request: schemas.InitBotRequest, repo_name: str, access_token: str
 ):
@@ -563,11 +602,9 @@ def init_create_pr(
             + "then the badge for this assessment will be awarded to you :trophy:. \n\n"
             + "Once completed, the assessment repo will be archived to prevent changes :lock:.\n\n<hr>\n\n</details>\n\n"
             + "Here are the **bot commands** you can issue as part of this assessment:\n\n"
-            + "**@brnbot help** - Get a list of commands and information about them\n"
             + "**@brnbot check** - Check your code using automated tests\n"
             + opt_statement2
-            + "**@brnbot view** - Get the data from our database on your skill assessment session\n"
-            + "**@brnbot delete** - Delete your skill assessment session (all progress and code will be lost).\n\n"
+            + "**@brnbot help** - Get a list of commands and information about them\n\n"
             + "Good luck! And have fun! :smile:\n\n<hr>\n"
             + "**Note**: If you have any questions or if something isn't working right,"
             + " please send a message to the '#skill-assessment-wg channel' in the BRN Slack (however,"

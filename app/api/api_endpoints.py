@@ -187,7 +187,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
 def delete(
     *,
     db: Session = Depends(get_db),
-    delete_request: schemas.DeleteRequest,
+    delete_request: schemas.DeleteAssessmentTrackerRequest,
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -204,6 +204,7 @@ def delete(
         - Assessment tracker entry does not exist
     """
     try:
+        # Delete the AT entry
         assessment_tracker_entry = crud.get_assessment_tracker_entry(
             db=db,
             user_id=delete_request.user_id,
@@ -215,7 +216,8 @@ def delete(
         user = crud.get_user_by_id(db=db, user_id=delete_request.user_id)
         db.delete(assessment_tracker_entry)
         db.commit()
-        # TODO: Call bot to delete the assessment repo
+        
+        # Call bot to delete the assessment repo
         payload = {
             "name": assessment.name,
             "install_id": int(assessment.install_id),
@@ -455,6 +457,34 @@ def approve(
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment Approved": True}
+
+
+
+@router.post("/user/delete")
+def delete_user(
+    *,
+    db: Session = Depends(get_db),
+    delete_request: schemas.DeleteUserRequest,
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Deletes all info for a user.
+
+    :param db: Generator for Session of database
+    :param view_request: Pydantic request model schema used by `/api/delete` endpoint
+
+    :returns: Json object indicating if the assessment tracker entry was deleted
+
+    :raises: HTTPException 422 if:
+        - User does not exist
+    """
+    try:
+        crud.delete_user(db=db, user_id=delete_request.user_id, settings=settings)
+    except Exception as e:  # pragma: no cover
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"User deleted": True}
 
 
 # to be done

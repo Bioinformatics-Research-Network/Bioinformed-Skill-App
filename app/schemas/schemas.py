@@ -40,13 +40,21 @@ class ViewRequest(BaseModel):
     assessment_name: str
 
 
-class DeleteRequest(BaseModel):
+class DeleteAssessmentTrackerRequest(BaseModel):
     """
     Pydantic request model schema used by `/api/delete` endpoint
     """
 
     user_id: str
     assessment_id: str
+
+
+class DeleteUserRequest(BaseModel):
+    """
+    Pydantic request model schema used by `/api/delete` endpoint
+    """
+
+    user_id: str
 
 
 class UpdateRequest(BaseModel):

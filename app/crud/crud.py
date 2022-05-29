@@ -1,7 +1,7 @@
 from datetime import datetime
-from os import sync
 from sqlalchemy.orm import Session
 import random
+import requests
 import copy
 from app import models, schemas, utils
 from app.config import Settings
@@ -84,6 +84,15 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
 
+    return reviewer
+
+
+# Get reviewer by user id
+def get_reviewer_by_user_id(db: Session, user_id: int) -> models.Reviewers:
+    """
+    To get reviewer by user id.
+    """
+    reviewer = db.query(models.Reviewers).filter_by(user_id=user_id).first()
     return reviewer
 
 
@@ -597,3 +606,90 @@ def update_assessment_log(
     db.commit()
 
     return True
+
+
+# Function to delete user
+def delete_user(db: Session, user_id: int, settings: dict) -> None:
+    """
+    To delete user.
+    """
+    # Get the user
+    user = db.query(models.Users).filter_by(id=user_id).first()
+
+    # Uncover all repositories for the user by querying the assessment tracker
+    assessment_tracker = (
+        db.query(models.AssessmentTracker)
+        .filter_by(user_id=user.id)
+        .all()
+    )
+
+    # For each assessment tracker entry send a delete request to the bot
+    if assessment_tracker:
+        for at in assessment_tracker:
+            assessment = db.query(models.Assessments).filter_by(id=at.assessment_id).first()
+            payload = {
+                "name": assessment.name,
+                "install_id": int(assessment.install_id),
+                "repo_prefix": assessment.repo_prefix,
+                "github_org": assessment.github_org,
+                "username": user.username,
+            }
+            print(payload)
+            print("Sending request to bot init")
+            response = requests.post(
+                url=f"{settings.GITHUB_BOT_URL}/delete", 
+                json=payload
+            )
+            print("Bot responded")
+            response.raise_for_status()
+
+    try:
+        # Check for foreign key constraints
+        # Reviewer
+        reviewer = db.query(models.Reviewers).filter_by(user_id=user.id).first()
+        if reviewer:
+            # Get the reviewer and delete it
+            reviewer = get_reviewer_by_user_id(db, user.id)
+            db.delete(reviewer)
+            db.commit()
+        # OAuth
+        print(user.id)
+        oauth = db.query(models.OAuth).filter_by(user_id=user.id).first()
+        print("OAUTH")
+        print(oauth.__dict__)
+        if oauth:
+            db.delete(oauth)
+            db.commit()
+        # AssessmentTracker
+        if assessment_tracker:
+            # Delete all the assessment tracker entries connected to the user
+            for at in assessment_tracker:
+                # Get connected assertions
+                assertions = (
+                    db.query(models.Assertions)
+                    .filter_by(assessment_tracker_id=at.id)
+                    .first()
+                )
+                # If there are assertions, delete them
+                if assertions:
+                    # Delete assertions
+                    db.delete(assertions)
+                    db.commit()
+                # Delete assessment tracker entry
+                db.delete(at)
+                db.commit()
+
+        # Delete user
+        db.delete(user)
+        db.commit()
+    except ValueError as e:
+        print(str(e))
+        db.rollback()
+        print("rollback")
+        raise e
+    except Exception as e:  # pragma: no cover
+        print(str(e))
+        db.rollback()
+        print("rollback")
+        raise e
+

@@ -10,7 +10,9 @@ from sqlalchemy import (
     Table,
     Text,
 )
+from datetime import datetime
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.mutable import MutableDict
 from app import db
 
 
@@ -59,6 +61,16 @@ class Users(db.Base):
 
     def __repr__(self):  # pragma: no cover
         return f"<Users: {self.username}>"
+
+
+class OAuth(db.Base):
+    __tablename__ = "oauth"
+    id = Column(Integer, primary_key=True)
+    provider = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    token = Column(MutableDict.as_mutable(JSON), nullable=False)
+    user_id = Column(Integer, ForeignKey(Users.id))
+    user = relationship(Users)
 
 
 class Reviewers(db.Base):

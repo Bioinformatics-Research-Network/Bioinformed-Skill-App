@@ -284,7 +284,11 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
     except Exception as e:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Check": True}
+    # Get the assessment table entry
+    assessment = crud.get_assessment_by_id(
+        db=db, assessment_id=assessment_tracker_entry.assessment_id
+    )
+    return {"Check": True, "review_required": assessment.review_required == 1}
 
 
 @router.post("/review", response_model=schemas.ReviewResponse)
@@ -383,14 +387,17 @@ def approve(
     try:
         # Get the trainee info
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
-        # Get the reviewer info; error if not exists
-        reviewer = crud.get_reviewer_by_username(
-            db=db, username=approve_request.reviewer_username
-        )
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=assessment_tracker_entry.assessment_id
         )
+        if assessment.review_required == 1:
+            # Get the reviewer info; error if not exists
+            reviewer = crud.get_reviewer_by_username(
+                db=db, username=approve_request.reviewer_username
+            )
+        else:
+            reviewer = None
         # Approve assessment, update logs, issue badge
         # Error if reviewer is not the one assigned;
         # Error if checks are not passed

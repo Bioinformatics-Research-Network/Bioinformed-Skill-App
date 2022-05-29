@@ -404,31 +404,39 @@ def approve_assessment(
         - Assessment tracker entry does not exist
         - Reviewer is not the same as the reviewer assigned in the assessment tracker entry
     """
-    # Get user ids and confirm they are different
-    if reviewer.user_id == trainee.id:
-        raise ValueError("Reviewer cannot be the same as the trainee.")
+
 
     # Verify checks passing on latest commit
     assessment_tracker_entry = get_assessment_tracker_entry(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
-    if assessment_tracker_entry.reviewer_id is None:
-        raise ValueError("No reviewer is assigned to the assessment.")
-    if assessment_tracker_entry.status != "Under review":
-        raise ValueError("Assessment is not under review.")
+    
     if not utils.verify_check(assessment_tracker_entry=assessment_tracker_entry):
         raise ValueError("Last commit checks failed.")
 
-    # Get the reviewer, based on the assessment_tracker entry
-    reviewer_real = get_reviewer_by_id(
-        db=db, reviewer_id=assessment_tracker_entry.reviewer_id
-    )
-    reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
-    # Verify the approval request is from the reviewer
-    if reviewer_real_user.username != reviewer_username:
-        raise ValueError(
-            "Reviewer is not the same as the reviewer assigned to the assessment."
+    # Verify that the reviewer is the same as the reviewer assigned in the assessment tracker entry
+    if assessment.review_required == 1:
+        # Get user ids and confirm they are different
+        if reviewer.user_id == trainee.id:
+            raise ValueError("Reviewer cannot be the same as the trainee.")
+        if assessment_tracker_entry.reviewer_id is None:
+            raise ValueError("No reviewer is assigned to the assessment.")
+        if assessment_tracker_entry.status != "Under review":
+            raise ValueError("Assessment is not under review.")
+
+        # Get the reviewer, based on the assessment_tracker entry
+        reviewer_real = get_reviewer_by_id(
+            db=db, reviewer_id=assessment_tracker_entry.reviewer_id
         )
+        reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
+        # Verify the approval request is from the reviewer
+        if reviewer_real_user.username != reviewer_username:
+            raise ValueError(
+                "Reviewer is not the same as the reviewer assigned to the assessment."
+            )
+        reviewer = reviewer.id
+    else:
+        reviewer = 'brnbot'
 
     # Get assessment id and latest commit
     latest_commit = assessment_tracker_entry.latest_commit
@@ -440,7 +448,7 @@ def approve_assessment(
         "timestamp": str(datetime.utcnow()),
         "status": "Approved",
         "commit": latest_commit,
-        "Reviewer": reviewer.id,
+        "Reviewer": reviewer,
     }
     logs = list(assessment_tracker_entry.log)
     logs.append(log)

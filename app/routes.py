@@ -176,14 +176,20 @@ def edit_profile():
 @auth.onboarding_required
 @auth.email_verification_required
 def delete_profile():
-    user = crud.get_user_by_gh_username(
-        db_session,
-        username=current_user.username,
-    )
-    logout_user()
-    crud.delete_user(db_session, user)
-    flash("Your account has been deleted.", "success")
-    return redirect(url_for("routes.homepage"))
+    payload = {
+        "user_id": current_user.id,
+    }
+    print("DELETE USER")
+    # Initialize the repo
+    response = requests.post(f"{settings.BRN_API_URL}/user/delete", json=payload)
+    print(response.json())
+    if response.status_code == 200:
+        logout_user()
+        flash("Your account has been deleted.", "success")
+        return redirect(url_for("routes.homepage"))
+    else:
+        flash("Something went wrong. Please contact the administrator.", "danger")
+        return redirect(url_for("routes.profile"))
 
 
 @routes.route("/assessments")

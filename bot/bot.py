@@ -181,7 +181,14 @@ class Bot:
         Return a list of commands
         """
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        text = "Available commands: \n" + "\n".join(self.cmds)
+
+        # Get formatted list of commands
+        text = "**Available commands:**\n"
+        for cmd in const.cmds:
+            text += f"* `@brnbot {cmd}`\n"
+            desc = const.cmds_descriptions[cmd]
+            text += f"\t* {desc}\n"
+
         utils.post_comment(text, **kwarg_dict)
         return True
 

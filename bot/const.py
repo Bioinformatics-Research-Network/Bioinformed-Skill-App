@@ -48,7 +48,20 @@ installation_ids = {
 }
 
 # Dict of valid commands
-cmds = ["hello", "help", "init", "view", "delete", "review", "approve"]
+cmds = ["hello", "help", "review", "approve"]
+cmds_descriptions = {
+    "hello": "Say hello",
+    "help": "Show this help message",
+    "review": (
+        "For skill assessments which require manual review, this"
+        + " command will trigger the review process."
+    ),
+    "approve": (
+        "For skill assessments which require manual review, this"
+        + " command is available to reviewers to approve the"
+        + " assessment and issue a badge."
+    ),
+}
 
 # Read the bot certificate
 try:

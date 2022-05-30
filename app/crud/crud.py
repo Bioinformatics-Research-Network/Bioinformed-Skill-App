@@ -7,22 +7,38 @@ from sqlalchemy.orm import Session
 # from the database and returns them as a list of dictionaries.
 def get_assessments(
     db: Session,
+    user: models.Users,
     language: list = None,
     types: list = None,
+    completed: bool = None,
 ) -> list:
     """
     To get all assessments from the database.
     """
-    assessments = db.query(models.Assessments).all()
+    # Get the assessments where the languages and types are not None
+    assessments = (
+        db.query(models.Assessments)
+        .filter(
+            models.Assessments.languages.isnot(None),
+            models.Assessments.types.isnot(None),
+            models.Assessments.latest_release.isnot(None)
+        )
+        .all()
+    )
     if language:
-        assessments = [
-            assessment for assessment in assessments if language in assessment.languages
-        ]
-
+        assessments = [ assessment for assessment in assessments if assessment.languages in language ]
     if types:
-        assessments = [
-            assessment for assessment in assessments if types in assessment.types
+        assessments = [ assessment for assessment in assessments if assessment.types in types ]
+    if not completed == "true":
+        # Get the user's assessments from the assertions
+        ats = get_assessment_tracker_entries_by_user(db, user)
+        # Get the assessment tracker ids from the user's assessments
+        user_assessment_ids = [
+            at.assessment_id for at in ats if at.status == "Approved"
         ]
+        # Get the assessments that the user has completed
+        assessments = [ assessment for assessment in assessments if assessment.id not in user_assessment_ids ]
+
     return assessments
 
 
@@ -127,3 +143,19 @@ def get_assessment_tracker_entry(
         user_id=user_id, assessment_id=assessment_id
     ).first()
     return at
+
+
+def get_assessment_tracker_entries_by_user(
+    db: Session, user: models.Users
+) -> list:
+    """
+    To get assessment tracker entries by user.
+    """
+    # Get the assessment tracker entries for the user
+    assessment_tracker = (
+        db.query(models.AssessmentTracker)
+        .filter_by(user_id=user.id)
+        .all()
+    )
+    return assessment_tracker
+

@@ -199,22 +199,46 @@ def delete_profile():
 def assessments():
     # Get query parameters
     query_params = {
-        "types": request.args.get("types"),
-        "languages": request.args.get("languages"),
+        "types": request.args.get("assessment_type"),
+        "languages": request.args.get("programming_language"),
+        "completed": request.args.get("show_completed"),
     }
+    print(query_params)
     assessments = crud.get_assessments(
         db=db_session,
         language=query_params["languages"],
         types=query_params["types"],
+        completed=query_params["completed"],
+        user=current_user,
     )
+    # Filter assessments to include those which have a release
     languages = ["All", "R", "Python", "Bash", "Nextflow", "Snakemake"]
-    types = ["All", "software", "analysis"]
+    types = ["All", "software", "analysis", "tutorial"]
+    show_completed = False
     # Put language first if it is in the query parameters
     if query_params["languages"] in languages:
         languages.remove(query_params["languages"])
         languages.insert(0, query_params["languages"])
+    # Put type first if it is in the query parameters
+    if query_params["types"] in types:
+        types.remove(query_params["types"])
+        types.insert(0, query_params["types"])
+    if query_params["completed"] == "true":
+        show_completed = True
+
+    # For each assessment, get the badge
+    badge_imgs = []
+    for assessment in assessments:
+        badge = crud.get_badge_by_assessment_id(db_session, assessment.id)
+        if badge:
+            badge_imgs.append(badge.image)
     return render_template(
-        "assessments.html", assessments=assessments, languages=languages, types=types
+        "assessments.html",
+        assessments=assessments,
+        badge_imgs=badge_imgs,
+        languages=languages,
+        types=types,
+        show_completed=show_completed,
     )
 
 

@@ -45,7 +45,7 @@ def send_verification_email(db: db.db_session, user: models.Users):
         email_address=user.email,
         recipient_name=user.first_name + " " + user.last_name,
         subject="Your verification code",
-        message=render_template("verification_email.html", code=verification_code),
+        message=render_template("verification_email.html", code=verification_code, aws_url=settings.AWS_PUBLIC_S3_URL),
     )
 
 

@@ -108,6 +108,18 @@
             <div class="text-center">
               <p>Please wait while we are loading your assessment (takes ~ one minute). Refresh this page to assessment information.</p>
             </div>
+            <form
+              class="row justify-content-between"
+              action="{{url_for('routes.assessment_delete', id=assessment.id)}}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="btn btn-warning"
+              >
+                Cancel Assessment
+              </button>
+            </form>
             {% elif status != "Approved" %}
             <div class="row">
               <div class="col-auto align-self-center">

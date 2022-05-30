@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     AWS_SECRET_KEY: str
     AWS_BUCKET: str
     AWS_REGION: str
+    AWS_PUBLIC_S3_URL: str
 
 print(os.environ.get("FLASK_ENV") )
 if os.environ.get("FLASK_ENV") == "development":
@@ -56,5 +57,3 @@ elif os.environ.get("FLASK_ENV") == "testing":
 else: # pragma: no cover
     print("Loading default settings (testing)")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
-
-

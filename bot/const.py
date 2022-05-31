@@ -20,7 +20,7 @@ brn_url = "http://localhost:2000"
 accept_header = "application/vnd.github.v3+json"
 
 # Filename for all actions workflows
-workflow_filename = "tests.yml"
+workflow_filename = "checks.yml"
 # workflow_filename = 1
 
 # ref for all trainee git

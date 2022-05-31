@@ -1,9 +1,7 @@
-import os
 import json
-import re
 import requests
-from datetime import datetime
-from bot import utils, const
+import copy
+from bot import utils, const, schemas
 
 
 class Bot:
@@ -19,32 +17,13 @@ class Bot:
         self.worlflow_filename = const.workflow_filename
         self.installation_ids = const.installation_ids
         self.cmds = const.cmds
-        self.token_fp = const.token_fp
-        self.jwt = const.git_integration.create_jwt()
-        self.current_tokens = self.retrieve_access_tokens()
 
-    def retrieve_access_tokens(self):
-        """
-        Load the access tokens from the file and regenerate if expired
-        """
-        # Create tokens if file doesn't exist
-        if not os.path.exists(self.token_fp):
-            utils.get_all_access_tokens(self.installation_ids, jwt=self.jwt)
-        with open(self.token_fp, "r") as f:
-            current_tokens = json.load(f)
-        exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
-        if exp_time < datetime.now():
-            utils.get_all_access_tokens(self.installation_ids, jwt=self.jwt)
-        with open(self.token_fp, "r") as f:
-            current_tokens = json.load(f)
-            return current_tokens
-
-    def parse_comment_payload(self, payload: dict):
+    def parse_comment_payload(self, payload: dict, access_tokens: dict):
         """
         Parse the payload for comment on PR
         """
         install_id = payload["installation"]["id"]
-        access_token = self.current_tokens["tokens"][str(install_id)]
+        access_token = access_tokens["tokens"][str(install_id)]
         return {
             "sender": payload["sender"]["login"],
             "issue_number": payload["issue"]["number"],
@@ -54,12 +33,12 @@ class Bot:
             "pr_url": payload["issue"]["pull_request"]["url"],
         }
 
-    def parse_commit_payload(self, payload: dict):
+    def parse_commit_payload(self, payload: dict, access_tokens: dict):
         """
         Parse the payload for commit on PR
         """
         install_id = payload["installation"]["id"]
-        access_token = self.current_tokens["tokens"][str(install_id)]
+        access_token = access_tokens["tokens"][str(install_id)]
         return {
             "sender": payload["sender"]["login"],
             "issue_number": payload["number"],
@@ -70,12 +49,12 @@ class Bot:
             "last_commit": payload["pull_request"]["head"]["sha"],
         }
 
-    def parse_workflow_run_payload(self, payload: dict):
+    def parse_workflow_run_payload(self, payload: dict, access_tokens: dict):
         """
         Parse the payload for workflow run
         """
         install_id = payload["installation"]["id"]
-        access_token = self.current_tokens["tokens"][str(install_id)]
+        access_token = access_tokens["tokens"][str(install_id)]
         return {
             "issue_number": payload["workflow_run"]["pull_requests"][0]["number"],
             "owner": payload["repository"]["owner"]["login"],
@@ -85,7 +64,7 @@ class Bot:
             "conclusion": payload["workflow_run"]["conclusion"],
         }
 
-    def process_cmd(self, payload):
+    def process_cmd(self, payload: dict, access_tokens: dict):
         """
         Process the command and run the appropriate bot function
 
@@ -94,16 +73,16 @@ class Bot:
         """
         if utils.is_for_bot(payload):
             cmd = payload["comment"]["body"].split(" ")[1]
-            return getattr(self, str(cmd), self.invalid)(payload)
+            return getattr(self, str(cmd), self.invalid)(payload, access_tokens=access_tokens)
         else:
             return None
 
-    def process_commit(self, payload: dict):
+    def process_commit(self, payload: dict, access_tokens: dict):
         """
         Process the commit and run the update function
         """
         # TODO: This will only capture the HEAD on pushes, not all commits
-        kwarg_dict = self.parse_commit_payload(payload)
+        kwarg_dict = self.parse_commit_payload(payload, access_tokens=access_tokens)
         log = {"type": "commit"}
         print(kwarg_dict["sender"])
         # Update the assessment in the database using API
@@ -140,138 +119,85 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def parse_new_repo_payload(self, payload: dict):
-        """
-        Parse the payload for new repo
-        """
-        install_id = payload["installation"]["id"]
-        access_token = self.current_tokens["tokens"][str(install_id)]
-        ghbot_message = payload["pull_request"]["body"]
-        trainee = re.search(r"@(.*?)$", ghbot_message).group(1)
-        return {
-            "owner": payload["repository"]["owner"]["login"],
-            "repo_name": payload["repository"]["name"],
-            "issue_number": payload["pull_request"]["number"],
-            "trainee": trainee,
-            "repo_url": payload["repository"]["html_url"],
-            "access_token": access_token,
-        }
 
-    def process_new_repo(self, payload):
+    def process_init_payload(self, init_request: schemas.InitBotRequest, access_tokens: dict):
         """
-        Process a new skill assessment repo
+        Process the init payload
         """
-        kwarg_dict = self.parse_new_repo_payload(payload)
-        print(kwarg_dict)
-        text = "Initialized assessment. 🚀"
+        access_token = access_tokens["tokens"][str(init_request.install_id)]
 
-        # Initialize the skill assessment in the database using API
-        request_url = f"{self.brn_url}/api/init"
-        body = {
-            "github_username": kwarg_dict["trainee"],
-            "assessment_name": utils.get_assessment_name(payload),
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-            # "repo_url": kwarg_dict["repo_url"],
-        }
-        response = requests.post(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            utils.post_comment(text, **kwarg_dict)
-            return True
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
+        # Create a repo name
+        repo_name = init_request.repo_prefix + init_request.username
+
+        # Create a repo, and upload the code, and create a branch
+        print(f"Creating repo: {repo_name}")
+        tmp_sha = utils.init_create_repo(init_request=init_request, repo_name=repo_name, access_token=access_token)
+        print(f"Filling repo: {repo_name}")
+        utils.init_fill_repo(init_request, repo_name=repo_name, access_token=access_token)
+        print(f"Creating feedback branch: {repo_name}")
+        utils.init_create_feedback_branch(init_request, repo_name=repo_name, access_token=access_token)
+        print(f"Deleting .tmp file: {repo_name}")
+        latest_commit=utils.init_delete_tmp(init_request, repo_name=repo_name, access_token=access_token, tmp_sha=tmp_sha)
+        print(f"Creating PR: {repo_name}")
+        http_repo=utils.init_create_pr(init_request, repo_name=repo_name, access_token=access_token)
+        print(f"Adding collaborator: {repo_name}")
+        utils.init_add_collaborator(init_request, repo_name=repo_name, access_token=access_token)
+
+        return http_repo, latest_commit
+
+    
+    def process_delete_repo(self, delete_request: schemas.DeleteBotRequest, access_tokens: dict):
+        """
+        Process the delete repo payload
+        """
+        access_token = access_tokens["tokens"][str(delete_request.install_id)]
+        repo_name = delete_request.repo_prefix + delete_request.username
+        utils.delete_repo(delete_request=delete_request, repo_name=repo_name, access_token=access_token)
+        return True
 
     ## Bot commands ##
 
-    def invalid(self, payload):
+    def invalid(self, payload: dict, access_tokens: dict):
         """
         Return an error message
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         text = "Invalid command. Try @brnbot help"
         utils.post_comment(text, **kwarg_dict)
         return True
 
-    def hello(self, payload: dict):
+    def hello(self, payload: dict, access_tokens: dict):
         """
         Say hello to the user
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         text = f"Hello, @{kwarg_dict['sender']}! 😊"
         print("Hello")
         utils.post_comment(text, **kwarg_dict)
         return True
 
-    def help(self, payload: dict):
+    def help(self, payload: dict, access_tokens: dict):
         """
         Return a list of commands
         """
-        kwarg_dict = self.parse_comment_payload(payload)
-        text = "Available commands: \n" + "\n".join(self.cmds)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+
+        # Get formatted list of commands
+        text = "**Available commands:**\n"
+        for cmd in const.cmds:
+            text += f"* `@brnbot {cmd}`\n"
+            desc = const.cmds_descriptions[cmd]
+            text += f"\t* {desc}\n"
+
         utils.post_comment(text, **kwarg_dict)
         return True
 
-    def init(self, payload: dict):
-        """
-        Initialize the skill assessment
-        """
-        kwarg_dict = self.parse_comment_payload(payload)
-        text = "Initialized assessment. 🚀"
 
-        # Initialize the skill assessment in the database using API
-        request_url = f"{self.brn_url}/api/init"
-        body = {
-            "username": kwarg_dict["sender"],
-            "assessment_name": utils.get_assessment_name(payload),
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-        }
-        response = requests.post(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            utils.post_comment(text, **kwarg_dict)
-            return True
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-
-    def view(self, payload: dict):
+    def view(self, payload: dict, access_tokens: dict):
         """
         View the data for this assessment
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         # Get the assessment data from the database using API
         request_url = f"{self.brn_url}/api/view"
         body = {
@@ -306,101 +232,19 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def delete(self, payload: dict):
-        """
-        Delete the assessment
-        """
-        kwarg_dict = self.parse_comment_payload(payload)
-        try:
-            # Remove the reviewer if there is one
-            reviewer_response = utils.get_reviewer(**kwarg_dict)
-            reviewer_response.raise_for_status()
-            if reviewer_response.json()["users"] != []:
-                reviewer = reviewer_response.json()["users"][0]["login"]
-                remove_response = utils.remove_reviewer(reviewer, **kwarg_dict)
-                remove_response.raise_for_status()
-            # Delete the assessment from the database using API
-            request_url = f"{self.brn_url}/api/delete"
-            body = {
-                "username": kwarg_dict["sender"],
-                "assessment_name": utils.get_assessment_name(payload),
-            }
-            response = requests.post(
-                request_url,
-                json=body,
-            )
-            response.raise_for_status()
-            # Notify on successful deletion
-            text = "Assessment entry deleted 🗑."
-            utils.post_comment(text, **kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {str(e)}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
 
-    # TODO: Remove public access to this function
-    def update(self, payload: dict):
-        """
-        Update the skill assessment using automated tests via API
-
-        Internal use only
-        """
-        log = " ".join(payload["comment"]["body"].split(" ")[2:])
-        kwarg_dict = self.parse_comment_payload(payload)
-        request_url = f"{self.brn_url}/api/update"
-        body = {
-            "username": kwarg_dict["sender"],
-            "assessment_name": utils.get_assessment_name(payload),
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-            "log": {"message": log},
-        }
-        response = requests.patch(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            text = "Assessment entry updated with message: \n" + log
-            utils.post_comment(text, **kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            err = f"**Error**: {response.json()['detail']}"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-
-    def check(self, payload: dict):
+    def check(self, payload: dict, access_tokens: dict):
         """
         Check the skill assessment using automated tests via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         actions_url = (
             f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
         )
         try:
             response = utils.dispatch_workflow(**kwarg_dict)
             response.raise_for_status()
-            text = "Automated checks ✅ in progress ⏳. View them here: " + actions_url
+            text = "Automated checks ✅ in progress ⏳. View them here: [`link`](" + actions_url + ")"
             utils.post_comment(text, **kwarg_dict)
             return True
         except requests.exceptions.HTTPError as e:
@@ -416,8 +260,8 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def process_done_check(self, payload: dict):
-        kwarg_dict = self.parse_workflow_run_payload(payload)
+    def process_done_check(self, payload: dict, access_tokens: dict):
+        kwarg_dict = self.parse_workflow_run_payload(payload, access_tokens=access_tokens)
         actions_url = (
             f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
         )
@@ -448,14 +292,24 @@ class Bot:
         try:
             response.raise_for_status()
             if passed:
-                text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
+                # Check if review is required
+                if response.json()["review_required"]:
+                    text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
+                else:
+                    text = "Checks have **passed** 😎. I will issue your badge now 🎉.\n"
             else:
                 text = (
-                    "Checks have **failed** 💥. Please check the logs for more information: "
-                    + actions_url
+                    "Checks have **failed** 💥. Please check the logs for more information: [`link`]("
+                    + actions_url + ")"
                 )
             utils.post_comment(text, **kwarg_dict)
-            return response
+            if not response.json()["review_required"] and passed:
+                # Approve the assessment and issue badge
+                kwarg_dict2 = copy.deepcopy(kwarg_dict)
+                kwarg_dict2["sender"] = "brnbot"  # Set the sender as brnbot to avoid error
+                utils.approve_assessment(**kwarg_dict2)
+            else:
+                return response
         except requests.exceptions.HTTPError as e:
             err = f"**Error**: {response.json()['detail']}" + "\n"
             utils.post_comment(err, **kwarg_dict)
@@ -469,11 +323,11 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def review(self, payload: dict):
+    def review(self, payload: dict, access_tokens: dict):
         """
         Find a reviewer for the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         # Find a reviewer for the assessment in the database using API
         request_url = f"{self.brn_url}/api/review"
         body = {
@@ -511,11 +365,11 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def unreview(self, payload: dict):
+    def unreview(self, payload: dict, access_tokens: dict):
         """
         Remove a reviewer for the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         # Remove a reviewer from the github api
         response = utils.get_reviewer(**kwarg_dict)
         try:
@@ -537,47 +391,10 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def approve(self, payload: dict):
+    def approve(self, payload: dict, access_tokens: dict):
         """
         Approve the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload)
-        # Approve the assessment in the database using API
-        request_url = f"{self.brn_url}/api/approve"
-        body = {
-            "reviewer_username": kwarg_dict["sender"],
-            "latest_commit": utils.get_last_commit(
-                owner=kwarg_dict["owner"],
-                repo_name=kwarg_dict["repo_name"],
-                access_token=kwarg_dict["access_token"],
-            )["sha"],
-        }
-        response = requests.patch(
-            request_url,
-            json=body,
-        )
-        try:
-            response.raise_for_status()
-            text = (
-                "Skill assessment approved 🎉. Please check your email for your badge 😎."
-            )
-            utils.post_comment(text, **kwarg_dict)
-            return response
-        except requests.exceptions.HTTPError as e:
-            msg = response.json()["detail"]
-            if msg == "Reviewer cannot be the same as the trainee.":
-                msg = "Trainee cannot approve their own skill assessment."
-            err = f"**Error**: {msg}" + "\n"
-            utils.post_comment(err, **kwarg_dict)
-            raise e
-        except Exception as e:  # pragma: no cover
-            err = (
-                f"**Error**: {e}"
-                + "\n\n"
-                + "**Please contact the maintainer for this bot.**"
-            )
-            utils.post_comment(err, **kwarg_dict)
-            raise e
+        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        utils.approve_assessment(**kwarg_dict)
 
-    ## Additional commands go here ##
-    # Unapprove

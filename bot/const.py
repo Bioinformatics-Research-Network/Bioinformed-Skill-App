@@ -1,4 +1,5 @@
 import os
+from pydantic import BaseSettings
 from github import GithubIntegration
 
 # ID of the GitHub integration
@@ -37,15 +38,30 @@ admins = ["millerh1", "itchytummy", "bioresnet"]
 
 # Dict of valid App install IDs
 installation_ids = {
-    "Python Programming II": 25476585,
     "Test": 25533349,
     "Skill Assessment Tutorial (Python)": 25630785,
     "Skill Assessment Tutorial (R)": 25901888,
-    "Python Programming": 25616884,
+    "Python Programming I": 25616884,
+    "R Programming I": 25958132,
+    "Python Programming II": 25476585,
+    "R Programming II": 25520792,
 }
 
 # Dict of valid commands
-cmds = ["hello", "help", "init", "view", "delete", "review", "approve"]
+cmds = ["hello", "help", "review", "approve"]
+cmds_descriptions = {
+    "hello": "Say hello",
+    "help": "Show this help message",
+    "review": (
+        "For skill assessments which require manual review, this"
+        + " command will trigger the review process."
+    ),
+    "approve": (
+        "For skill assessments which require manual review, this"
+        + " command is available to reviewers to approve the"
+        + " assessment and issue a badge."
+    ),
+}
 
 # Read the bot certificate
 try:
@@ -57,3 +73,37 @@ except KeyError:  # pragma: no cover
 
 # Create a GitHub integration instance
 git_integration = GithubIntegration(integration_id=app_id, private_key=app_key)
+
+
+BADGE_IDs = {
+    "Skill Assessment Tutorial (R)": "zS91nadxSQCchE_ahLFgvw",
+    "Skill Assessment Tutorial (Python)": "MMuVRwluTd6cI33-0ILs3w",
+    "Python Programming I": "rfT_GJApRoavmHi_TemqqQ",
+    "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
+    "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
+    "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
+    "Test": "OcVxPZEORASs4dBL0h5mOw",
+}
+
+
+## Get secrets
+
+class Settings(BaseSettings):
+    AWS_ACCESS_KEY: str
+    AWS_SECRET_KEY: str
+    AWS_BUCKET: str
+    AWS_REGION: str
+
+print(os.environ.get("APP_ENV") )
+if os.environ.get("APP_ENV") == "development":
+    print("Loading development settings")
+    settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
+elif os.environ.get("APP_ENV") == "production":
+    print("Loading production settings")
+    settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
+elif os.environ.get("APP_ENV") == "testing":
+    print("Loading testing settings")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
+else: # pragma: no cover
+    print("Loading default settings (testing)")
+    settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")

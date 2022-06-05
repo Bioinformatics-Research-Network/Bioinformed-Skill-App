@@ -4,6 +4,9 @@ on: workflow_dispatch
 
 env:
   AWS_REGION: us-east-1
+  EB_PLATFORM: Docker running on 64bit Amazon Linux 2
+  PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
+  EB_PROD_ENVNAME: ${{ secrets.EB_PROD_ENVNAME }}
 
 jobs:
   deploy:
@@ -28,6 +31,10 @@ jobs:
         with:
           python-version: "3.9"
 
+      - name: create .prod.env file
+        run: |
+          echo "$PROD_DOTENV" > .prod.env
+
       # Elastic Beanstalk CLI version
       - name: Get EB CLI version
         run: |
@@ -35,12 +42,8 @@ jobs:
           pip install awsebcli --upgrade
           eb --version
 
-      # Create the Elastic Beanstalk application
-      - name: Create EBS application
+      # Deploy to the Elastic Beanstalk environment
+      - name: Deploy to production
         run: |
-          eb init -p python-3.9 Flask_Basic --region ${{ env.AWS_REGION }}
-
-      # Deploy to (or Create) the Elastic Beanstalk environment
-      - name: Create test environment & deploy
-        run: |
-          (eb use test-environment && eb status test-environment && eb deploy) || eb create test-environment
+          eb init -p $EB_PLATFORM --region $AWS_REGION
+          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy

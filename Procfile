@@ -1,1 +1,1 @@
-web: export FLASK_ENV=production && gunicorn --bind :8000 wsgi:app
+web: export FLASK_ENV=production && echo $FLASK_ENV && gunicorn --bind :8000 wsgi:app

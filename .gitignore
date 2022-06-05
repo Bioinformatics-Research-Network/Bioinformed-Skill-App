@@ -27,3 +27,8 @@ __pycache__
 .coverage
 *.db
 *.env*
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

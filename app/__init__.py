@@ -48,6 +48,8 @@ def create_app(test_config=None):
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         db_session.remove()
+    
+    print("App initialized")
 
     ## If statement prevents the scheduler from running twice when running in debug mode
     if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":

@@ -1,0 +1,49 @@
+name: Build and Deploy
+
+on: workflow_dispatch
+
+env:
+  AWS_REGION: us-east-1
+  EB_PLATFORM: Docker running on 64bit Amazon Linux 2
+  PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
+  EB_PROD_ENVNAME: ${{ secrets.EB_PROD_ENVNAME }}
+
+jobs:
+  deploy:
+    name: Deploy WebUI
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout Repository
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+          role-session-name: GitHub-Action-Role
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Set up Python 3.9 environment
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+
+      - name: create .prod.env file
+        run: |
+          echo "$PROD_DOTENV" > .prod.env
+
+      # Elastic Beanstalk CLI version
+      - name: Get EB CLI version
+        run: |
+          python -m pip install --upgrade pip
+          pip install awsebcli --upgrade
+          eb --version
+
+      # Deploy to the Elastic Beanstalk environment
+      - name: Deploy to production
+        run: |
+          eb init -p $EB_PLATFORM --region $AWS_REGION
+          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy

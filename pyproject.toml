@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "skill-cert-api"
+name = "skill-app-crud"
 version = "0.1.0"
-description = "API for skill certification for use by BRN"
+description = "CRUD app for skill certification for use by BRN"
 authors = ["Infrastructure Working Group <infrastructure@bioresnet.org>"]
 license = "MIT"
 packages = [
@@ -9,9 +9,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 fastapi = "^0.75.0"
-uvicorn = "^0.17.5"
 requests = "^2.27.1"
 pydantic = "^1.9.0"
 gunicorn = "^20.1.0"
@@ -21,6 +20,7 @@ mailchimp-transactional = "^1.0.47"
 PyMySQL = "^1.0.2"
 SQLAlchemy-Utils = "^0.38.2"
 python-dotenv = "^0.20.0"
+uvicorn = {extras = ["standard"], version = "^0.17.6"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.1"

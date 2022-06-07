@@ -14,3 +14,9 @@ codecov
 s3_data/
 .aws
 *.env*
+*.zip
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

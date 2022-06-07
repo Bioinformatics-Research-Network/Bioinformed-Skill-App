@@ -147,6 +147,36 @@ Deployment via GitHub actions required the following steps:
 2. A copy of the production environemntal variables was added to the repo secrets
 3. The `.github/workflows/deploy.yml` script was written to enable deployment with a button press in github.
 
+To enable github actions to assume the proper AWS IAM Role for deployment, we needed to set up an OIDC connection following [this guide](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services). Here is what Henry did:
+
+4. Follow [these steps](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html) and use 
+5. Create an IAM role for deployment and then attached this trust policy (replace `<your_aws_userid>` with the correct value):
+
+```JSON
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::<your_aws_userid>:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                    "token.actions.githubusercontent.com:sub": "repo:Bioinformatics-Research-Network/Skill-App-WebUI:ref:refs/heads/main"
+                }
+            }
+        }
+    ]
+}
+```
+
+6. Add the ARN of the role you created to the secrets for the repo.
+
+
+And that should be it! After this, the github action should work. If you run into any issues trying to repeat this protocol, let Henry know and he will help.
 
 </details>
 

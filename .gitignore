@@ -13,6 +13,8 @@ dist/
 build/
 *.egg-info/
 
+.ebextensions/
+
 *access_tokens.json*
 *cache*
 __pycache__

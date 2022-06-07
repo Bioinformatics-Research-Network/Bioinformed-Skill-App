@@ -1,7 +1,5 @@
-**/__pycache__
 *cache*
-.vscode
-instance
-.coverage
-*.zip
-.git
+*venv*
+*instance*
+*vscode*
+*.git*

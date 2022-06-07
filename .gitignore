@@ -14,6 +14,8 @@ build/
 *.egg-info/
 
 .ebextensions/
+.ebignore
+.elasticbeanstalk
 
 *access_tokens.json*
 *cache*

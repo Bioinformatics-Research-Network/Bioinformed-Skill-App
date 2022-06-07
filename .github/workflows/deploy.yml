@@ -3,10 +3,9 @@ name: Build and Deploy
 on: workflow_dispatch
 
 env:
-  AWS_REGION: us-east-1
-  EB_PLATFORM: Docker running on 64bit Amazon Linux 2
+  EB_PROD_ENVNAME: production
   PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
-  EB_PROD_ENVNAME: ${{ secrets.EB_PROD_ENVNAME }}
+  EB_CONFIG: ${{ secrets.EB_CONFIG }}
 
 jobs:
   deploy:
@@ -31,9 +30,11 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: create .prod.env file
+      - name: create .prod.env file and EB config file
         run: |
           echo "$PROD_DOTENV" > .prod.env
+          mkdir .elasticbeanstalk
+          echo "$EB_CONFIG" > .elasticbeanstalk/config.yml
 
       # Elastic Beanstalk CLI version
       - name: Get EB CLI version
@@ -45,5 +46,5 @@ jobs:
       # Deploy to the Elastic Beanstalk environment
       - name: Deploy to production
         run: |
-          eb init -p $EB_PLATFORM --region $AWS_REGION
-          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy
+          zip skill-app-webui.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*"
+          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy --staged

@@ -3,7 +3,7 @@ name: Build and Deploy
 on: workflow_dispatch
 
 env:
-  EB_PROD_ENVNAME: production
+  EB_PROD_ENVNAME: skill-app-crud-prod
   PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
   EB_CONFIG: ${{ secrets.EB_CONFIG }}
   AWS_REGION: us-east-1
@@ -35,14 +35,12 @@ jobs:
           echo "$PROD_DOTENV" > .prod.env
           mkdir .elasticbeanstalk
           echo "$EB_CONFIG" > .elasticbeanstalk/config.yml
-
       # Elastic Beanstalk CLI version
       - name: Get EB CLI version
         run: |
           python -m pip install --upgrade pip
           pip install awsebcli --upgrade
           eb --version
-
       # Deploy to the Elastic Beanstalk environment
       - name: Deploy to production
         run: |

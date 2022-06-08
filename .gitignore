@@ -10,4 +10,6 @@ __pycache__
 .vscode/settings.json
 *nodesource*
 .coverage
-**.env**
+*.env*
+botdata
+botdata/*

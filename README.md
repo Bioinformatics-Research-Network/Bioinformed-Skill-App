@@ -157,7 +157,7 @@ poetry export --without-hashes -o requirements.txt
 5. Created a ZIP file of the application, ignoring unnecessary files:
 
 ```bash
-zip skill-app-webui.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*"
+zip skill-app-crud.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*"
 ```
 
 6. Installed the awsebcli package: [link](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install-advanced.html)
@@ -233,9 +233,9 @@ printf "deploy:\n  artifact: skill-app-crud.zip" >> .elasticbeanstalk/config.yml
 ```bash
 $ eb create --profile brn
 Enter Environment Name
-(default is Skill-App-WebUI-dev): production
+(default is Skill-App-WebUI-dev): skill-app-crud-prod
 Enter DNS CNAME prefix
-(default is production22): 
+(skill-app-crud-prod): 
 
 Select a load balancer type
 1) classic
@@ -245,7 +245,7 @@ Select a load balancer type
 
 
 Would you like to enable Spot Fleet requests for this environment? (y/N): N
-Uploading Skill-App-WebUI/app-7756-220607_145245692926.zip to S3. This may take a while.
+Uploading Skill-App-CRUD/app-7756-220607_145245692926.zip to S3. This may take a while.
 Upload Complete.
 Environment details for: production
 ...additional lines ommitted due to sensitive data...
@@ -289,7 +289,7 @@ To enable github actions to assume the proper AWS IAM Role for deployment, we ne
             "Condition": {
                 "StringEquals": {
                     "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-                    "token.actions.githubusercontent.com:sub": "repo:Bioinformatics-Research-Network/Skill-App-WebUI:ref:refs/heads/main"
+                    "token.actions.githubusercontent.com:sub": "repo:Bioinformatics-Research-Network/Skill-App-CRUD:ref:refs/heads/main"
                 }
             }
         }

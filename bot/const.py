@@ -76,6 +76,7 @@ class Settings(BaseSettings):
     CRUD_APP_URL: str
     BOT_KEY_PATH: str
     APP_ID: int
+    APP_ENV_NAME: str
 
 print(os.environ.get("APP_ENV") )
 if os.environ.get("APP_ENV") == "development":

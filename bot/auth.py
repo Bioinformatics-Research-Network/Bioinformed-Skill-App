@@ -64,7 +64,6 @@ def retrieve_access_tokens():
     """
     Load the access tokens from the file and regenerate if expired
     """
-    print("ABC")
     # Create tokens if file doesn't exist
     if not os.path.exists(const.token_fp):
         print("Getting jwt")

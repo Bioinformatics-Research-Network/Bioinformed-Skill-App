@@ -41,39 +41,37 @@ sudo npm install -g smee-client
 smee -u https://smee.io/rSiwWHyU4AMt1zn --port 8001
 ```
 
-5. Install python deps & launch env
+5. Use pip, venv, and the `requirements.txt` file (make sure you have python3.10 or higher installed)
 
 ```shell
-curl -sSL https://install.python-poetry.org | python3 -
-poetry install
+# Install python3.10-venv if you have not already...
+# sudo apt install python3.10-venv
+
+python3.10 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-6. Set environmental variables (ask Henry for these)
+6. Set environment (ask Henry for these)
 
 ```shell
-export APP_ID="******"
-export BOT_KEY_PATH="/path/to/bot/key.pem"
+export APP_ENV=development
+export BOT_KEY_PATH="brn_bot_dev.pem"
 ```
 
-7. Activate poetry env
-
-```shell
-poetry shell
-```
-
-8. Run unit tests
+7. Run unit tests
 
 ```shell
 pytest
 ```
 
-9. Launch the app
+8. Launch the app
 
 ```shell
 uvicorn main:app --reload --port 8001
 ```
 
-10. Try it out by navigating to the [test repo PR](https://github.com/Bioinformatics-Research-Network/test-bot/pull/1) and writing "@brnbot hello" in the PR comments. You should see a response from BRN bot which says "Hello <your_gh_username>! 😊". For a list of all available commands, type "@brnbot help".
+9. Try it out by navigating to the [test repo PR](https://github.com/Bioinformatics-Research-Network/test-bot/pull/1) and writing "@brnbot hello" in the PR comments. You should see a response from BRN bot which says "Hello <your_gh_username>! 😊". For a list of all available commands, type "@brnbot help".
 
 
 ### Other notes and considerations
@@ -117,7 +115,7 @@ poetry export --without-hashes -o requirements.txt
 5. Created a ZIP file of the application, ignoring unnecessary files:
 
 ```bash
-zip skill-app-ghbot.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*"
+zip skill-app-ghbot.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "Dockerfile.dev"
 ```
 
 6. Installed the awsebcli package: [link](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install-advanced.html)

@@ -36,7 +36,7 @@ def post_comment(text: str, **kwargs) -> requests.Response:
     response = requests.post(
         request_url,
         headers=headers,
-        json={"body": text + " (I'm a bot)."},
+        json={"body": text},
     )
     response.raise_for_status()
     return response

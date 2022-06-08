@@ -1,5 +1,5 @@
 from bot import bot, utils, schemas, auth
-from fastapi import FastAPI, Body, Header, Depends
+from fastapi import FastAPI, Body, Header, Depends, HTTPException
 
 app = FastAPI()
 brnbot = bot.Bot()
@@ -9,10 +9,18 @@ brnbot = bot.Bot()
 def bot(
     payload: dict = Body(...),
     x_github_event: str = Header(...),
-    access_tokens: dict=Depends(auth.retrieve_access_tokens),
+    access_tokens: dict = Depends(auth.retrieve_access_tokens),
 ):
 
-    action = payload["action"]
+    try:
+        action = payload["action"]
+    except KeyError:
+        # Raise HTTP 422 if the payload is missing the action
+        raise HTTPException(
+            status_code=422,
+            detail="The payload is missing the action",
+        )
+
     event = x_github_event
     print(event + ": " + action)
 
@@ -22,36 +30,24 @@ def bot(
             sender = payload["sender"]["login"]
             message = payload["comment"]["body"]
             print(sender + ": " + message)
-            brnbot.process_cmd(
-                payload,
-                access_tokens=access_tokens
-            )
+            brnbot.process_cmd(payload, access_tokens=access_tokens)
     elif utils.is_pr_commit(payload=payload, event=event):
         print("is PR commit")
-        brnbot.process_commit(
-            payload,
-            access_tokens=access_tokens
-        )
+        brnbot.process_commit(payload, access_tokens=access_tokens)
     elif utils.is_workflow_run(payload=payload):
         print("is workflow run")
-        brnbot.process_done_check(
-            payload,
-            access_tokens=access_tokens
-        )
+        brnbot.process_done_check(payload, access_tokens=access_tokens)
     return "ok"
-
-
 
 
 @app.post("/init")
 def init(
     init_request: schemas.InitBotRequest,
-    access_tokens: dict=Depends(auth.retrieve_access_tokens),
+    access_tokens: dict = Depends(auth.retrieve_access_tokens),
 ):
     print("init")
-    gh_url, latest_commit=brnbot.process_init_payload(
-        init_request,
-        access_tokens=access_tokens
+    gh_url, latest_commit = brnbot.process_init_payload(
+        init_request, access_tokens=access_tokens
     )
     return {
         "github_url": gh_url,
@@ -62,17 +58,13 @@ def init(
 @app.post("/delete")
 def delete(
     delete_request: schemas.DeleteBotRequest,
-    access_tokens: dict=Depends(auth.retrieve_access_tokens),
+    access_tokens: dict = Depends(auth.retrieve_access_tokens),
 ):
     print("delete")
-    brnbot.process_delete_repo(
-        delete_request,
-        access_tokens=access_tokens
-    )
+    brnbot.process_delete_repo(delete_request, access_tokens=access_tokens)
     return "ok"
 
 
-@app.get('/')
+@app.get("/")
 def root():
     return {"message": "Hello World"}
-

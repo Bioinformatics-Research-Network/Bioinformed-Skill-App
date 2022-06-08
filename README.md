@@ -27,6 +27,12 @@ Prior to deploying the application for the first time, Henry performed all the f
 2. Registered a domain name (bioinformed.app) using Google Domains
 3. Routed the domain to AWS Route 53 using [this guide](https://www.entechlog.com/blog/aws/connect-google-domain-to-aws-route-53/). Specifically, he created a Route 53 hosted zone for 'bioinformed.app'. This generated the `NS` records which he added as custom nameservers in the Google Domain record for bioinformed.app.
 4. Used AWS Certificate Manager to register SSL certificates for 'bioinformed.app', 'learn.bioinformed.app', 'www.bioinformed.app', and 'skill.bioinformed.app'. These certificates were then added to the hosted zone as CNAME records.
+5. Export poetry deps to requirements.txt
+
+```bash
+poetry export --without-hashes -o requirements.txt
+```
+
 5. Created a ZIP file of the application, ignoring unnecessary files:
 
 ```bash
@@ -129,7 +135,7 @@ Environment details for: production
 ```
 
 10. Created an A record (alias) in the hosted zone (Route 53) for bioinformed.app. Record is for skill.bioinformed.app and routed traffic to our elastic beanstalk environment using the "Route traffic to Alias" option. Environment was in "us-east-1" with name "production22.us-east-1.elasticbeanstalk.com".
-11. Returned to the Elastic Beanstalk environment for this app. Added a listener to the load balancer for port 443, HTTPS protocol, with the SSL certificate created earlier and the ELBSecurityPolicy-2016-08 policy. Disabled HTTP access.
+11. Returned to the Elastic Beanstalk environment for this app. Added a listener to the load balancer for port 443, HTTPS protocol, with the SSL certificate created earlier and the ELBSecurityPolicy-2016-08 policy.
 
 At this point, the app was working. If you are unable to follow these steps, ask Henry and he will help you.
 
@@ -144,7 +150,7 @@ After the app was deployed successfully for the first time, it was set up to all
 Deployment via GitHub actions required the following steps:
 
 1. An elasticbeanstalk config was added to the secrets in the github repo
-2. A copy of the production environemntal variables was added to the repo secrets
+2. A copy of the production environmental variables was added to the repo secrets
 3. The `.github/workflows/deploy.yml` script was written to enable deployment with a button press in github.
 
 To enable github actions to assume the proper AWS IAM Role for deployment, we needed to set up an OIDC connection following [this guide](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services). Here is what Henry did:
@@ -181,6 +187,7 @@ And that should be it! After this, the github action should work. If you run int
 </details>
 
 
+With the previous steps complete, one can now deploy the app by navigating to the github actions panel and triggering the **Build and Deploy** action manually. This should push the latest version into production.
 
 
 

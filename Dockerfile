@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.9-slim-buster
+FROM python:3.10-slim-buster
 
 ENV FLASK_ENV production
 
@@ -8,7 +8,7 @@ COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 COPY . /app
 

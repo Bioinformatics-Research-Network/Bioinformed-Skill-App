@@ -3,7 +3,7 @@ name: Build and Deploy
 on: workflow_dispatch
 
 env:
-  EB_PROD_ENVNAME: production
+  EB_PROD_ENVNAME: skill-app-webui-prod
   PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
   EB_CONFIG: ${{ secrets.EB_CONFIG }}
   AWS_REGION: us-east-1
@@ -24,11 +24,11 @@ jobs:
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
 
-      # Set up Python 3.9 environment
-      - name: Set up Python 3.9
+      # Set up Python 3.10 environment
+      - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       - name: create .prod.env file and EB config file
         run: |
@@ -46,5 +46,5 @@ jobs:
       # Deploy to the Elastic Beanstalk environment
       - name: Deploy to production
         run: |
-          zip skill-app-webui.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*"
+          zip skill-app-webui.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "*htmlcov*"
           eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy --staged

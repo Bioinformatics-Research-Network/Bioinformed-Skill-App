@@ -12,9 +12,9 @@ jobs:
     name: tests
     runs-on: "ubuntu-latest"
     env:
-      BOT_KEY: ${{ secrets.BOT_KEY }}
-      APP_ID: ${{ secrets.APP_ID }}
-      BOT_KEY_PATH: "bot_key.pem"
+      BOT_KEY: ${{ secrets.BOT_KEY_DEV }}
+      APP_ID: ${{ secrets.APP_ID_DEV }}
+      BOT_KEY_PATH: "bot_key_dev.pem"
     defaults:
       run:
         shell: bash -l {0}

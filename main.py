@@ -70,3 +70,9 @@ def delete(
         access_tokens=access_tokens
     )
     return "ok"
+
+
+@app.get('/')
+def root():
+    return {"message": "Hello World"}
+

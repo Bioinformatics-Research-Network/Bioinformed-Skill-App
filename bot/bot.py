@@ -12,7 +12,7 @@ class Bot:
     def __init__(self):
         self.gh_url = const.gh_url
         self.gh_http = const.gh_http
-        self.brn_url = const.brn_url
+        self.CRUD_APP_URL = const.settings.CRUD_APP_URL
         self.accept_header = const.accept_header
         self.worlflow_filename = const.workflow_filename
         self.installation_ids = const.installation_ids
@@ -86,7 +86,7 @@ class Bot:
         log = {"type": "commit"}
         print(kwarg_dict["sender"])
         # Update the assessment in the database using API
-        request_url = f"{self.brn_url}/api/update"
+        request_url = f"{self.CRUD_APP_URL}/api/update"
         body = {
             "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
@@ -199,7 +199,7 @@ class Bot:
         """
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         # Get the assessment data from the database using API
-        request_url = f"{self.brn_url}/api/view"
+        request_url = f"{self.CRUD_APP_URL}/api/view"
         body = {
             "username": kwarg_dict["sender"],
             "assessment_name": utils.get_assessment_name(payload),
@@ -283,7 +283,7 @@ class Bot:
 
         # Check the skill assessment in the database using API
         passed = kwarg_dict["conclusion"] != "failure"
-        request_url = f"{self.brn_url}/api/check"
+        request_url = f"{self.CRUD_APP_URL}/api/check"
         body = {"latest_commit": latest_commit, "passed": passed}
         response = requests.post(
             request_url,
@@ -329,7 +329,7 @@ class Bot:
         """
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         # Find a reviewer for the assessment in the database using API
-        request_url = f"{self.brn_url}/api/review"
+        request_url = f"{self.CRUD_APP_URL}/api/review"
         body = {
             "latest_commit": utils.get_last_commit(
                 owner=kwarg_dict["owner"],

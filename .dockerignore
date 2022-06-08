@@ -1,0 +1,6 @@
+**/__pycache__
+*cache*
+.vscode
+instance
+.coverage
+*.zip

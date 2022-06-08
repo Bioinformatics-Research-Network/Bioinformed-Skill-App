@@ -36,7 +36,7 @@ def post_comment(text: str, **kwargs) -> requests.Response:
     response = requests.post(
         request_url,
         headers=headers,
-        json={"body": text},
+        json={"body": text + " (I'm a bot)."},
     )
     response.raise_for_status()
     return response
@@ -643,7 +643,7 @@ def init_add_collaborator(
 
 def approve_assessment(**kwarg_dict):
     # Approve the assessment in the database using API
-    request_url = f"{const.brn_url}/api/approve"
+    request_url = f"{const.settings.CRUD_APP_URL}/api/approve"
     body = {
         "reviewer_username": kwarg_dict["sender"],
         "latest_commit": get_last_commit(

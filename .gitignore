@@ -13,3 +13,13 @@ __pycache__
 *.env*
 botdata
 botdata/*
+*.pem
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+*.zip
+
+

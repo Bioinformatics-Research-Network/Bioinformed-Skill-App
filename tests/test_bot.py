@@ -252,7 +252,7 @@ def test_review():
 
     # Set the assessment to be passing checks using the update command
     kwarg_dict = bot.parse_comment_payload(payload)
-    request_url = f"{const.brn_url}/api/check"
+    request_url = f"{const.settings.CRUD_APP_URL}/api/check"
     latest_commit = utils.get_last_commit(
         owner=kwarg_dict["owner"],
         repo_name=kwarg_dict["repo_name"],

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy_utils import database_exists, create_database
 from app.config import Settings
+from app.models import *
 import os
 
 
@@ -35,18 +35,12 @@ SQLALCHEMY_DATABASE_URI = (
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-if not database_exists(engine.url):  # pragma: no cover
-    create_database(engine.url)  # Create new DB
-    print("New Database Created")  # Verifies if database is there or not.
-else:  # pragma: no cover
-    print("Database Already Exists")
-
 
 # Create the database tables
-from app.db.base_class import Base
-from app.models import *
-
-db.Base.metadata.create_all(bind=engine)
-
+try:
+    db.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(e)
+    print("Error creating database tables")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

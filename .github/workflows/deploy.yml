@@ -46,5 +46,5 @@ jobs:
       # Deploy to the Elastic Beanstalk environment
       - name: Deploy to production
         run: |
-          zip skill-app-ghbot.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "*htmlcov*"
-          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy --staged
+          zip skill-app-ghbot.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "Dockerfile.dev"
+          eb deploy --staged

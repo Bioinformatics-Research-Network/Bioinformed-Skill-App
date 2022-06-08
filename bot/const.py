@@ -17,22 +17,38 @@ workflow_filename = "checks.yml"
 # ref for all trainee git
 git_ref = "main"
 
-# file for storing temporary access tokens
-token_fp = "access_tokens.json"
-
 # Admin usernames
 admins = ["millerh1", "itchytummy", "bioresnet"]
 
 # Dict of valid App install IDs
-installation_ids = {
-    "Test": 25533349,
-    "Skill Assessment Tutorial (Python)": 25630785,
-    "Skill Assessment Tutorial (R)": 25901888,
-    "Python Programming I": 25616884,
-    "R Programming I": 25958132,
-    "Python Programming II": 25476585,
-    "R Programming II": 25520792,
-}
+if os.environ.get("APP_ENV") == "production":
+    installation_ids = {
+        "Skill Assessment Tutorial (Python)": 25630785,
+        "Skill Assessment Tutorial (R)": 25901888,
+        "Python Programming I": 25616884,
+        "R Programming I": 25958132,
+        "Python Programming II": 25476585,
+        "R Programming II": 25520792,
+    }
+    BADGE_IDs = {
+        "Skill Assessment Tutorial (R)": "zS91nadxSQCchE_ahLFgvw",
+        "Skill Assessment Tutorial (Python)": "MMuVRwluTd6cI33-0ILs3w",
+        "Python Programming I": "rfT_GJApRoavmHi_TemqqQ",
+        "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
+        "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
+        "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
+    }
+    # file for storing temporary access tokens
+    token_fp = "access_tokens.json"
+else:
+    installation_ids = {
+        "Test": 26363998,
+    }
+    BADGE_IDs = {
+        "Test": "OcVxPZEORASs4dBL0h5mOw",
+    }
+    # file for storing temporary access tokens
+    token_fp = "access_tokens.dev.json"
 
 # Dict of valid commands
 cmds = ["hello", "help", "review", "approve"]
@@ -51,19 +67,7 @@ cmds_descriptions = {
 }
 
 
-BADGE_IDs = {
-    "Skill Assessment Tutorial (R)": "zS91nadxSQCchE_ahLFgvw",
-    "Skill Assessment Tutorial (Python)": "MMuVRwluTd6cI33-0ILs3w",
-    "Python Programming I": "rfT_GJApRoavmHi_TemqqQ",
-    "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
-    "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
-    "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
-    "Test": "OcVxPZEORASs4dBL0h5mOw",
-}
-
-
 ## Get secrets
-
 class Settings(BaseSettings):
     AWS_ACCESS_KEY: str
     AWS_SECRET_KEY: str
@@ -90,8 +94,10 @@ else: # pragma: no cover
 
 # Read the bot certificate
 try:
+    # This will work when BOT_KEY is set in the environment
     app_key = os.environ["BOT_KEY"]
 except KeyError:  # pragma: no cover
+    # This will work when the key comes from a file (not in ENV)
     with open(os.path.normpath(os.path.expanduser(settings.BOT_KEY_PATH)), "r") as cert_file:
         app_key = cert_file.read()
 

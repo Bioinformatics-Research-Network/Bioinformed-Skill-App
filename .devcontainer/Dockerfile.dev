@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+
+# Set up smee
+FROM node:lts-alpine
+RUN npm install --global smee-client
+CMD ["smee-client", "-u", "https://smee.io/rSiwWHyU4AMt1zn", "--target", "http://0.0.0.0:5678"]
+
+# Set up the app
+FROM python:3.10-slim-buster
+RUN apt-get -y install git
+ENV APP_ENV development
+COPY ./requirements.txt /app/requirements.txt
+WORKDIR /app
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+COPY . /app
+EXPOSE 5678
+CMD ["uvicorn", "main:app", "--reload", "--port", "5678", "--host", "0.0.0.0"]

@@ -44,7 +44,7 @@ smee -u https://smee.io/rSiwWHyU4AMt1zn --port 8001
 5. Install python deps & launch env
 
 ```shell
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 ```
 

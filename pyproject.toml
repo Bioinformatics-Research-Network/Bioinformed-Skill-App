@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "BRN-bot"
+version = "0.1.0"
+description = "A bot for BRN skill assessments"
+authors = ["Infrastructure WG <infrastructure@bioresnet.org>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cryptography = "^37.0.2"
+PyGithub = "^1.55"
+black = "^22.3.0"
+pytest = "^7.1.2"
+coverage = "^6.3.2"
+uvicorn = "^0.17.6"
+fastapi = "^0.76.0"
+flake8 = "^4.0.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

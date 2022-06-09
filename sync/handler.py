@@ -34,7 +34,10 @@ def lambda_handler(event, context):
         # We have added a 1 second delay so you can see the time remaining in get_remaining_time_in_millis.
         time.sleep(1) 
         print("Lambda time remaining in MS:", context.get_remaining_time_in_millis())
-    
+
+
+    print("THIS IS A TEST")
+
     # Run all sync functions
     print(flm("Starting sync"))
 

@@ -679,3 +679,16 @@ def approve_assessment(**kwarg_dict):
         )
         post_comment(err, **kwarg_dict)
         raise e
+
+
+def check_api_status():
+    # Check the API status
+    request_url = f"{const.settings.CRUD_APP_URL}/"
+    try:
+        response = requests.get(request_url)
+        response.raise_for_status()
+        return True
+    except Exception as e:  # pragma: no cover
+        err = f"**Error**: {e}"
+        print(err)
+        return False

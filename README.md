@@ -47,8 +47,8 @@ smee -u https://smee.io/rSiwWHyU4AMt1zn --port 8001
 # Install python3.10-venv if you have not already...
 # sudo apt install python3.10-venv
 
-python3.10 -m venv .venv
-source .venv/bin/activate
+python3.10 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 

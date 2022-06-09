@@ -36,8 +36,6 @@ def lambda_handler(event, context):
         print("Lambda time remaining in MS:", context.get_remaining_time_in_millis())
 
 
-    print("THIS IS A TEST")
-
     # Run all sync functions
     print(flm("Starting sync"))
 

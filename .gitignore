@@ -1,4 +1,5 @@
-.venv
+*venv*
 *.zip
 *.env*
 **cache**
+requirenments.txt

@@ -19,39 +19,15 @@ This is an AWS Lambda function which will sync the data sources for the BRN Skil
 
 This service is meant to be deployed as a function on [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python.html) using a Docker container with Python 3.9. 
 
-The layout of this repo follows the conventions used by aws lambda. The main software environment is in the `sync/` directory. Therefore, to get started, do the following:
+To get started, do the following:
 
 1. Clone this repo
 2. Request the `.env` file from @millerh1 and add it to the root of this git repo.
-3. Change to the `sync/` directory:
+3. Modify the code as desired
 
-```shell
-cd sync/
-```
+#### Running the lambda function locally
 
-4. Create a `venv` from `requirements.txt`:
-
-```shell
-python3.9 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-5. Run the sync function locally using the command line:
-
-```shell
-python3 handler.py
-```
-
-This will run the full sync function and update all databases. 
-
-This is a non-destructive action, so no databases will be harmed.
-
-#### Testing code in a production-like environment
-
-Running `python handler.py` is a convenient way to test code locally. However, running the function this way does not always show how the code will behave once deployed. 
-
-To test the code in a realistic environment, use [Docker](https://www.docker.com/).
+To run the code in a local environment, use [Docker](https://www.docker.com/).
 
 1. Download Docker and install
 2. Once you feel comfortable with using docker from the command line, build the image:
@@ -60,13 +36,13 @@ To test the code in a realistic environment, use [Docker](https://www.docker.com
 docker build -t skill-app-sync .
 ```
 
-3. Then, run the image (exposing localhost port 9000). This will expose the lambda server which will start listening for trigger events.
+3. Then, run the image as a containter. This will expose the lambda server which will start listening for trigger events.
 
 ```shell
 docker run -p 9000:8080 skill-sync
 ```
 
-4. Open a **second terminal** and send it a trigger event (POST request). *Note*: you can also just run step 3 in headless mode (`-d`) and then reuse the same terminal window.
+4. Open a **second terminal** and send it a trigger event (POST request).
 
 ```shell
 curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
@@ -80,29 +56,26 @@ This should cause the entire sync workflow to trigger successfully. Address any 
 This is the approach @millerh1 used to deploy this function to AWS Lambda for the first time (if you want to do the same, you will need aditional AWS access -- ask @millerh1). 
 
 <details>
-<summary>Initial deployment</summary>
+<summary>De-novo deployment steps</summary>
 
 
-These steps are adapted from [this article](https://medium.com/geekculture/3-ways-to-overcome-aws-lambda-deployment-size-limit-part-2-8d0e8d0264b0).
+<hr>
+
+
+These steps are adapted from [this article](https://medium.com/geekculture/3-ways-to-overcome-aws-lambda-deployment-size-limit-part-2-8d0e8d0264b0) which @millerh1 used to deploy this function for the first time. They are not necessary if you are not creating a new AWS lambda function.
 
 
 #### Pushing the build image to AWS ECR
 
 1. Download the aws cli toolkit and configure for your profile (@millerh1 uses a profile called `brn` for all steps shown here)
 
-2. Set the working dir to `sync/` if you haven't already done so.
+2. Build the latest docker image.
 
 ```shell
-cd sync/
+docker build -t skill-app-sync .
 ```
 
-3. Build the latest docker image.
-
-```shell
-docker build -t skill-sync .
-```
-
-4. Create an AWS ECR repository (step was already completed by @millerh1) so you don't need to do this again.
+3. Create an AWS ECR repository (step was already completed by @millerh1) so you don't need to do this again.
 
 ```shell
 aws ecr create-repository --profile brn --repository-name skill-app-sync --region us-east-1
@@ -110,26 +83,26 @@ aws ecr create-repository --profile brn --repository-name skill-app-sync --regio
 
 The above command returns the URI for our images: `346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync`
 
-5. Tag the local image with the URI
+4. Tag the local image with the URI
 
 ```shell
 docker tag skill-app-sync:latest 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest
 ```
 
-6. Authenticate docker to enable pushing local images to the AWS container repository (ECR)
+5. Authenticate docker so we can push the image to the AWS container repository (ECR)
 
 ```shell
 aws ecr get-login-password --region us-east-1 --profile brn | docker login --username AWS --password-stdin 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync
 ```
 
-7. Push the image to the registry
+6. Push the image to the registry
 
 ```shell
 docker push 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest
 ```
 
 
-#### Setting up AWS Lambda function and scheduled trigger
+#### Set up the AWS Lambda function and trigger
 
 
 1. Create an execution role for AWS lambda.
@@ -143,7 +116,7 @@ This creates an ARN: `arn:aws:iam::346542362226:role/lambda-ex`
 2. Attach deploy permissions to the new role:
 
 ```shell
-aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --profile brn
 ```
 
 3. Create the lambda function
@@ -152,8 +125,10 @@ aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:p
 aws lambda create-function --region us-east-1 --profile brn --function-name skill-app-sync --code ImageUri=346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest --role arn:aws:iam::346542362226:role/lambda-ex --package-type Image --timeout 600 --memory-size 512
 ```
 
-4. Follow [this guide](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-run-lambda-schedule.html) to create a rule that triggers our lambda function once every 6 hours. Rule created by @millerh1 is called `run-skill-app-sync`.
+4. Follow [this guide](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-run-lambda-schedule.html) to create a rule that triggers our lambda function once every 6 hours. Rule created by @millerh1 is called `skill-app-sync`.
 
+
+<hr>
 
 </details>
 
@@ -162,41 +137,34 @@ To update the existing lambda function, simply do the following:
 
 
 1. Download the aws cli toolkit and configure for your profile
-2. Set the working dir to `sync/` if you haven't already done so.
-
-```shell
-cd sync/
-```
-
-3. Build the latest docker image using
+2. Build the latest docker image using
 
 ```shell
 docker build -t skill-app-sync:latest .
 ```
 
-4. Authenticate docker to enable pushing local images to the AWS container repository (ECR)
+3. Authenticate docker to enable pushing local images to the AWS container repository (ECR)
 
 ```shell
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync
 ```
 
-5. Tag the local image with the URI for the AWS container repository
+4. Tag the local image with the URI for the AWS container registry
 
 ```shell
 docker tag skill-app-sync:latest 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest
 ```
 
-6. Push the image to the registry
+5. Push the image to the registry
 
 ```shell
 docker push 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest
 ```
 
-7. Now update the lambda function to trigger using the new version of the image.
+6. Now update the lambda function to trigger using the new version of the image.
 
 ```shell
 aws lambda update-function-code --region us-east-1 --function-name skill-app-sync --image-uri 346542362226.dkr.ecr.us-east-1.amazonaws.com/skill-app-sync:latest
 ```
 
 Now, your function should automatically run using the latest version of the code!
-

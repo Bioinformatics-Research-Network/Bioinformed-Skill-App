@@ -39,7 +39,7 @@ docker build -t skill-app-sync .
 3. Then, run the image as a containter. This will expose the lambda server which will start listening for trigger events.
 
 ```shell
-docker run -p 9000:8080 skill-sync
+docker run -p 9000:8080 skill-app-sync
 ```
 
 4. Open a **second terminal** and send it a trigger event (POST request).

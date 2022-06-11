@@ -307,7 +307,8 @@ class Bot:
                 # Approve the assessment and issue badge
                 kwarg_dict2 = copy.deepcopy(kwarg_dict)
                 kwarg_dict2["sender"] = "brnbot"  # Set the sender as brnbot to avoid error
-                utils.approve_assessment(**kwarg_dict2)
+                response = utils.approve_assessment(**kwarg_dict2)
+                return response
             else:
                 return response
         except requests.exceptions.HTTPError as e:
@@ -396,5 +397,5 @@ class Bot:
         Approve the assessment via API
         """
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        utils.approve_assessment(**kwarg_dict)
-
+        resonse = utils.approve_assessment(**kwarg_dict)
+        return resonse

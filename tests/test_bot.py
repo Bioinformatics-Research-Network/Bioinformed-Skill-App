@@ -66,6 +66,25 @@ def test_init_bot():
     """
     Test the bot's init command
     """
+
+    # Set the assessment tracker entry to initiated state
+    body = {
+        "username": "bioresnet",
+        "assessment_name": "Test",
+        "latest_commit": payload["pull_request"]["head"]["sha"],
+        "log": {},
+        "status": "Initiated",
+    }
+    print("Posting update")
+    print( f"{bot.CRUD_APP_URL}/api/update")
+    print(body)
+    response = requests.patch(
+        f"{bot.CRUD_APP_URL}/api/update",
+        json=body,
+    )
+    response.raise_for_status()
+    print(response.json())
+
     access_token = access_tokens["tokens"][str(init_request.install_id)]
 
     repo_name = init_request.repo_prefix + init_request.username
@@ -172,8 +191,26 @@ def test_review():
 
     # Set the assessment to be passing checks using the update command
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
+    # Get last commit 
+    latest_commit = utils.get_last_commit(
+        owner=kwarg_dict["owner"],
+        repo_name=kwarg_dict["repo_name"],
+        access_token=kwarg_dict["access_token"],
+    )["sha"]
+    # Update the assessment tracker to this commit
+    request_url = f"{bot.CRUD_APP_URL}/api/update"
+    body = {
+        "username": kwarg_dict["sender"],
+        "assessment_name": utils.get_assessment_name(payload),
+        "latest_commit": latest_commit,
+        "log": {"message": "Test message"},
+    }
+    response = requests.patch(
+        request_url,
+        json=body,
+    )
+    # Set checks as passing    
     request_url = f"{const.settings.CRUD_APP_URL}/api/check"
-    latest_commit = payload['pull_request']['head']['sha']
     body = {"latest_commit": latest_commit, "passed": True}
     print(body)
     print(request_url)
@@ -189,7 +226,7 @@ def test_review():
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
     response = bot.process_cmd(payload, access_tokens=access_tokens)
     assert response.status_code == 200
-    assert response.json()["reviewer_username"] == "bioresnet"
+    assert response.json()["reviewer_username"] != "bioresnet"
     # Confirm the reviewer is correct
     reviewer_response = utils.get_reviewer(**kwarg_dict)
     assert (
@@ -197,46 +234,15 @@ def test_review():
         == response.json()["reviewer_username"]
     )
 
-    ## Confirm that delete command removes the reviewer
-    payload["comment"]["body"] = "@brnbot delete"
-    response = bot.process_cmd(payload)
+
+def test_approve():
+    """
+    Test the bot's approve command
+    """
+    # Successful approve command
+    payload["comment"]["body"] = "@brnbot approve"
+    payload2 = copy.deepcopy(payload)
+    payload2["sender"]["login"] = "millerh1"
+    response = bot.process_cmd(payload2, access_tokens=access_tokens)
     assert response.status_code == 200
-    assert response.json() == {"Entry deleted": True}
-    # Confirm no reviewer
-    reviewer_response = utils.get_reviewer(**kwarg_dict)
-    assert reviewer_response.status_code == 200
-    assert reviewer_response.json()["users"] == []
-
-
-# def test_approve():
-#     """
-#     Test the bot's approve command
-#     """
-#     # Initialize the assessment if needed
-#     try:
-#         payload["comment"]["body"] = "@brnbot delete"
-#         bot.process_cmd(payload)
-#     except:
-#         pass
-#     try:
-#         payload["comment"]["body"] = "@brnbot init"
-#         bot.process_cmd(payload)
-#     except:
-#         pass
-
-#     # Ensure passing checks
-#     payload["comment"]["body"] = "@brnbot check"
-#     assert bot.process_cmd(payload)
-
-#     # Ensure it is under review
-#     payload["comment"]["body"] = "@brnbot review"
-#     response = bot.process_cmd(payload)
-#     assert response.status_code == 200
-
-#     # Successful approve command
-#     payload["comment"]["body"] = "@brnbot approve"
-#     payload2 = copy.deepcopy(payload)
-#     payload2["sender"]["login"] = "bioresnet"
-#     response = bot.process_cmd(payload2)
-#     assert response.status_code == 200
-#     assert response.json() == {"Assessment Approved": True}
+    assert response.json() == {"Assessment Approved": True}

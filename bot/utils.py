@@ -652,6 +652,7 @@ def approve_assessment(**kwarg_dict):
             access_token=kwarg_dict["access_token"],
         )["sha"],
     }
+    print(body)
     response = requests.patch(
         request_url,
         json=body,

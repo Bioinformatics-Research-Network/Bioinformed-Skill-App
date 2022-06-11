@@ -73,7 +73,9 @@ class Bot:
         """
         if utils.is_for_bot(payload):
             cmd = payload["comment"]["body"].split(" ")[1]
-            return getattr(self, str(cmd), self.invalid)(payload, access_tokens=access_tokens)
+            return getattr(self, str(cmd), self.invalid)(
+                payload, access_tokens=access_tokens
+            )
         else:
             return None
 
@@ -106,7 +108,7 @@ class Bot:
             )
             utils.post_comment(text, **kwarg_dict)
             return response
-        except requests.exceptions.HTTPError as e: # pragma: no cover
+        except requests.exceptions.HTTPError as e:  # pragma: no cover
             err = f"**Error**: {response.json()['detail']}"
             utils.post_comment(err, **kwarg_dict)
             raise e
@@ -119,8 +121,9 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-
-    def process_init_payload(self, init_request: schemas.InitBotRequest, access_tokens: dict):
+    def process_init_payload(
+        self, init_request: schemas.InitBotRequest, access_tokens: dict
+    ):
         """
         Process the init payload
         """
@@ -131,28 +134,48 @@ class Bot:
 
         # Create a repo, and upload the code, and create a branch
         print(f"Creating repo: {repo_name}")
-        tmp_sha = utils.init_create_repo(init_request=init_request, repo_name=repo_name, access_token=access_token)
+        tmp_sha = utils.init_create_repo(
+            init_request=init_request, repo_name=repo_name, access_token=access_token
+        )
         print(f"Filling repo: {repo_name}")
-        utils.init_fill_repo(init_request, repo_name=repo_name, access_token=access_token)
+        utils.init_fill_repo(
+            init_request, repo_name=repo_name, access_token=access_token
+        )
         print(f"Creating feedback branch: {repo_name}")
-        utils.init_create_feedback_branch(init_request, repo_name=repo_name, access_token=access_token)
+        utils.init_create_feedback_branch(
+            init_request, repo_name=repo_name, access_token=access_token
+        )
         print(f"Deleting .tmp file: {repo_name}")
-        latest_commit=utils.init_delete_tmp(init_request, repo_name=repo_name, access_token=access_token, tmp_sha=tmp_sha)
+        latest_commit = utils.init_delete_tmp(
+            init_request,
+            repo_name=repo_name,
+            access_token=access_token,
+            tmp_sha=tmp_sha,
+        )
         print(f"Creating PR: {repo_name}")
-        http_repo=utils.init_create_pr(init_request, repo_name=repo_name, access_token=access_token)
+        http_repo = utils.init_create_pr(
+            init_request, repo_name=repo_name, access_token=access_token
+        )
         print(f"Adding collaborator: {repo_name}")
-        utils.init_add_collaborator(init_request, repo_name=repo_name, access_token=access_token)
+        utils.init_add_collaborator(
+            init_request, repo_name=repo_name, access_token=access_token
+        )
 
         return http_repo, latest_commit
 
-    
-    def process_delete_repo(self, delete_request: schemas.DeleteBotRequest, access_tokens: dict):
+    def process_delete_repo(
+        self, delete_request: schemas.DeleteBotRequest, access_tokens: dict
+    ):
         """
         Process the delete repo payload
         """
         access_token = access_tokens["tokens"][str(delete_request.install_id)]
         repo_name = delete_request.repo_prefix + delete_request.username
-        utils.delete_repo(delete_request=delete_request, repo_name=repo_name, access_token=access_token)
+        utils.delete_repo(
+            delete_request=delete_request,
+            repo_name=repo_name,
+            access_token=access_token,
+        )
         return True
 
     ## Bot commands ##
@@ -192,7 +215,6 @@ class Bot:
         utils.post_comment(text, **kwarg_dict)
         return True
 
-
     def check(self, payload: dict, access_tokens: dict):
         """
         Check the skill assessment using automated tests via API
@@ -204,10 +226,14 @@ class Bot:
         try:
             response = utils.dispatch_workflow(**kwarg_dict)
             response.raise_for_status()
-            text = "Automated checks ✅ in progress ⏳. View them here: [`link`](" + actions_url + ")"
+            text = (
+                "Automated checks ✅ in progress ⏳. View them here: [`link`]("
+                + actions_url
+                + ")"
+            )
             utils.post_comment(text, **kwarg_dict)
             return True
-        except requests.exceptions.HTTPError as e: # pragma: no cover
+        except requests.exceptions.HTTPError as e:  # pragma: no cover
             err = f"**Error**: {str(e)}" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
@@ -221,7 +247,9 @@ class Bot:
             raise e
 
     def process_done_check(self, payload: dict, access_tokens: dict):
-        kwarg_dict = self.parse_workflow_run_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_workflow_run_payload(
+            payload, access_tokens=access_tokens
+        )
         actions_url = (
             f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
         )
@@ -260,18 +288,21 @@ class Bot:
             else:
                 text = (
                     "Checks have **failed** 💥. Please check the logs for more information: [`link`]("
-                    + actions_url + ")"
+                    + actions_url
+                    + ")"
                 )
             utils.post_comment(text, **kwarg_dict)
             if not response.json()["review_required"] and passed:
                 # Approve the assessment and issue badge
                 kwarg_dict2 = copy.deepcopy(kwarg_dict)
-                kwarg_dict2["sender"] = "brnbot"  # Set the sender as brnbot to avoid error
+                kwarg_dict2[
+                    "sender"
+                ] = "brnbot"  # Set the sender as brnbot to avoid error
                 response = utils.approve_assessment(**kwarg_dict2)
                 return response
             else:
                 return response
-        except requests.exceptions.HTTPError as e: # pragma: no cover
+        except requests.exceptions.HTTPError as e:  # pragma: no cover
             err = f"**Error**: {response.json()['detail']}" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
@@ -313,7 +344,7 @@ class Bot:
             )
             utils.post_comment(text, **kwarg_dict)
             return response
-        except requests.exceptions.HTTPError as e: # pragma: no cover
+        except requests.exceptions.HTTPError as e:  # pragma: no cover
             err = f"**Error**: {response.json()['detail']}" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
@@ -339,7 +370,7 @@ class Bot:
             response_remove = utils.remove_reviewer(reviewer_username, **kwarg_dict)
             response_remove.raise_for_status()
             return response_remove
-        except requests.exceptions.HTTPError as e: # pragma: no cover
+        except requests.exceptions.HTTPError as e:  # pragma: no cover
             err = f"**Error**: {response.json()['detail']}" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
@@ -359,4 +390,3 @@ class Bot:
         kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
         resonse = utils.approve_assessment(**kwarg_dict)
         return resonse
-

@@ -78,7 +78,8 @@ class Settings(BaseSettings):
     APP_ID: int
     APP_ENV_NAME: str
 
-print(os.environ.get("APP_ENV") )
+
+print(os.environ.get("APP_ENV"))
 if os.environ.get("APP_ENV") == "development":
     print("Loading development settings")
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
@@ -88,7 +89,7 @@ elif os.environ.get("APP_ENV") == "production":
 elif os.environ.get("APP_ENV") == "testing":
     print("Loading testing settings")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
-else: # pragma: no cover
+else:  # pragma: no cover
     print("Loading default settings (testing)")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
 
@@ -99,10 +100,11 @@ try:
     app_key = os.environ["BOT_KEY"]
 except KeyError:  # pragma: no cover
     # This will work when the key comes from a file (not in ENV)
-    with open(os.path.normpath(os.path.expanduser(settings.BOT_KEY_PATH)), "r") as cert_file:
+    with open(
+        os.path.normpath(os.path.expanduser(settings.BOT_KEY_PATH)), "r"
+    ) as cert_file:
         app_key = cert_file.read()
 
 
 # Create a GitHub integration instance
 git_integration = GithubIntegration(integration_id=settings.APP_ID, private_key=app_key)
-

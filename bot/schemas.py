@@ -7,6 +7,7 @@ class InitBotRequest(BaseModel):
     """
     Schema for the init command
     """
+
     name: str
     install_id: int
     repo_prefix: str
@@ -21,6 +22,7 @@ class DeleteBotRequest(BaseModel):
     """
     Schema for the delete command
     """
+
     name: str
     install_id: int
     repo_prefix: str

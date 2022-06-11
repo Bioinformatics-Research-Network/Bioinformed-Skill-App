@@ -1,5 +1,5 @@
 from urllib import response
-import random 
+import random
 import string
 import requests
 import copy
@@ -7,6 +7,7 @@ from time import sleep
 
 # Set the app environment to "testing" using os
 import os
+
 os.environ["APP_ENV"] = "testing"
 
 # Import the modules
@@ -110,6 +111,7 @@ def test_init():
 
 ### Test utils
 
+
 def test_get_assessment_name():
     """
     Test the bot's get_assessment_name command
@@ -190,8 +192,8 @@ def test_delete_comment():
     assert response.status_code == 404
 
 
-
 ### Test bot commands
+
 
 def test_hello():
     """
@@ -231,12 +233,11 @@ def test_help():
     assert "Available commands" in response.json()[-1]["body"]
 
 
-
 def test_update_on_commit():
     """
     Test the bot's update command on a commit
     """
-    
+
     ## Successful update command
     if utils.check_api_status():
         response = bot.process_commit(payload, access_tokens=access_tokens)
@@ -272,7 +273,7 @@ def test_review():
 
     # Set the assessment to be passing checks using the update command
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
-    # Get last commit 
+    # Get last commit
     latest_commit = utils.get_last_commit(
         owner=kwarg_dict["owner"],
         repo_name=kwarg_dict["repo_name"],
@@ -290,7 +291,7 @@ def test_review():
         request_url,
         json=body,
     )
-    # Set checks as passing    
+    # Set checks as passing
     request_url = f"{const.settings.CRUD_APP_URL}/api/check"
     body = {"latest_commit": latest_commit, "passed": True}
     print(body)

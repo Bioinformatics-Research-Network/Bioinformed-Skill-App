@@ -573,7 +573,7 @@ def add_assertion(
 
 
 def update_assessment_log(
-    db: Session, entry_id: int, latest_commit: str, update_logs: dict
+    db: Session, entry_id: int, latest_commit: str, update_logs: dict, status: str
 ):
     """
     Update the assessment tracker entry log.
@@ -595,6 +595,8 @@ def update_assessment_log(
     # Update the logs
     assessment_tracker_entry.last_updated = datetime.utcnow()
     assessment_tracker_entry.latest_commit = latest_commit
+    if status:
+        assessment_tracker_entry.status = status
     logs = list(assessment_tracker_entry.log)
     update_logs["commit"] = latest_commit
     update_logs["timestamp"] = str(assessment_tracker_entry.last_updated)

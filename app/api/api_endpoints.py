@@ -173,6 +173,7 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             db=db,
             entry_id=assessment_tracker_entry.id,
             latest_commit=update_request.latest_commit,
+            status=update_request.status,
             update_logs=copy.deepcopy(update_request.log),
         )
     except ValueError as e:
@@ -265,6 +266,7 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         - Assessment tracker entry does not exist
     """
     try:
+        print(check_request.latest_commit)
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=check_request.latest_commit
         )
@@ -282,8 +284,10 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
             update_logs=copy.deepcopy(update_logs),
         )
     except ValueError as e:
+        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     # Get the assessment table entry
@@ -340,8 +344,10 @@ def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewReque
             reviewer_info=reviewer_info,
         )
     except ValueError as e:
+        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return reviewer_info

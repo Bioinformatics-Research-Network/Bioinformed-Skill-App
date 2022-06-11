@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -66,6 +67,7 @@ class UpdateRequest(BaseModel):
     assessment_name: str
     latest_commit: str
     log: dict
+    status: Optional[str] = None
 
 
 class ReviewRequest(BaseModel):

@@ -78,12 +78,21 @@ You might encounter a `ModuleNotFoundError` in this step -- if so, see the solut
 poetry shell
 ```
 
+Or just use `pip` and `venv`:
+
+```shell
+# Install python3.10-venv if you have not already...
+# sudo apt install python3.10-venv
+
+python3.10 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 6. Set environmental variables
 
 ```shell
-export BADGR_TEST_USERNAME="**************"
-export BADGR_TEST_PASSWORD="**************"
-export MANDRILL_API_KEY="**************"
+export APP_ENV="development"
 ```
 
 7. Install and configure AWS CLI
@@ -93,13 +102,7 @@ conda install -c conda-forge aws-cli
 aws configure --profile brn
 ```
 
-8. AWS sync with `skill-assessment-app/` bucket to a local folder `s3_data/`
-
-```shell
-aws s3 --profile brn sync s3://skill-assessment-app s3_data/
-```
-
-9. Run unit tests:
+8. Run unit tests:
 
 ```shell
 pytest
@@ -107,22 +110,7 @@ pytest
 
 ## Run API locally
 
-1. Run the following command to create and fill the database.
-
-```shell
-python app/db/fill_db.py
-```
-
-2. Install smee client (and NodeJS) to recieve event payloads from registration form
-
-```shell
-curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
-sudo bash /tmp/nodesource_setup.sh
-sudo apt install nodejs
-sudo npm install -g smee-client
-```
-
-4. In a separate terminal, start the app using `uvicorn`:
+1. In a separate terminal, start the app using `uvicorn`:
 
 ```shell
 uvicorn main:app --reload --port 2000

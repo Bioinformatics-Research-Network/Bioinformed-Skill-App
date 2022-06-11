@@ -467,65 +467,8 @@ def approve_assessment(
     return True
 
 
-# Write a function that syncs the badges table with the badgr API
-def sync_badges(
-    settings: Settings, db: Session
-):
-    # Get all badges from the badgr API
-    bt = utils.get_bearer_token(settings)
-    try:
-        badges = utils.get_all_badges(bt, settings)
-        badgelst = badges.json()['result']
-    except Exception as e: # pragma: no cover
-        print(str(e))
-        raise e
-
-    # Loop through all badges and add them to the badges table
-    try:
-        for badge in badgelst:
-            print(badge['name'])
-
-            # Check if the badge already exists in the database
-            current_badge = db.query(models.Badges).filter_by(name=badge['name'])
-
-            # Convert all the fields to strings using dict comprehension
-            fields = {k: str(v) for k, v in badge.items()}
-
-            # If field is date, convert to datetime
-            # fields = {k: datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ") if k == 'createdAt' else v for k, v in fields.items()}
-
-            # Loop through all the fields and attempt to convert to datetime
-            for k, v in fields.items():
-                try: # pragma: no cover
-                    if type(v) == str:
-                        fields[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ")
-                except ValueError: 
-                    # Try different format
-                    try:
-                        fields[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
-                    except ValueError:
-                        pass
-
-            if current_badge.first() is None:
-                print("Badge does not exist in database")
-                badge = models.Badges(**fields)
-                db.add(badge)
-                db.commit()
-            else:
-                print('Badge already exists -- updating')
-                # Update the badge in the database
-                current_badge.update(values=fields)
-                db.commit()
-    except Exception as e: # pragma: no cover
-        print(str(e))
-        # Rollback the changes to the database
-        db.rollback()
-        raise e
-
-
 def add_assertion(
     db: Session,
-    settings: Settings,
     entry_id: int,
     assertion: str,
 ):
@@ -539,9 +482,7 @@ def add_assertion(
     badge = db.query(models.Badges).filter(models.Badges.entityId == assertion['badgeclass']).first()
     # Get the badge name for the assertion
     if badge is None:
-        print("Syncing badges")
-        sync_badges(settings=settings, db=db)
-        badge = db.query(models.Badges).filter_by(entityId=assertion['badgeclass']).first()
+        raise ValueError("Badge does not exist in database")
     try:
         badge_name = badge.name
     except Exception as e: # pragma: no cover

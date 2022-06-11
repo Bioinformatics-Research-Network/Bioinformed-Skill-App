@@ -1,5 +1,5 @@
 from app.utils import badgr_utils
-from app.api.services import get_settings
+from app.dependencies import get_settings
 from fastapi.testclient import TestClient
 
 

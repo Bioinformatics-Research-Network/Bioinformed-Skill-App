@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from main import app
-from app.api.services import get_db
-from app.db.base_class import Base
+from app.dependencies import get_db
+from app.db.models import Base
 from app.crud import random_data_crud
 import random
 

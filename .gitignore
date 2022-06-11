@@ -3,8 +3,7 @@
 htmlcov
 .pytest_cache
 *__pycache*
-.venv
-.env
+*venv*
 .pipenv
 codecov
 */*.db
@@ -15,6 +14,8 @@ s3_data/
 .aws
 *.env*
 *.zip
+
+*cache*
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

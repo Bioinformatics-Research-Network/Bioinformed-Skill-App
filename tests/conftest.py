@@ -5,8 +5,7 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from tests.utils import test_db
 from main import app
-from app.config import Settings
-from app.api.services import get_settings
+from app.dependencies import get_settings, Settings
 
 
 # Set Badgr test config

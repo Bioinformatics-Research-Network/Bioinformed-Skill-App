@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app import utils, crud, schemas
+from app import utils, crud
 import pytest
 
 

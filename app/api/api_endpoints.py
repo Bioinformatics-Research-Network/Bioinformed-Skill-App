@@ -452,7 +452,6 @@ def approve(
         # Add assertion to database
         crud.add_assertion(
             db=db,
-            settings=settings,
             entry_id=assessment_tracker_entry.id,
             assertion=resp.json()["result"][0],
         )

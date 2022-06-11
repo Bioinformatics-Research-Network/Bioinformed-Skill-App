@@ -5,7 +5,7 @@ from requests import request
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.config import Settings
+from app.dependencies import Settings
 from app import crud, utils
 import app.api.schemas as schemas
 from app.dependencies import get_db, get_settings

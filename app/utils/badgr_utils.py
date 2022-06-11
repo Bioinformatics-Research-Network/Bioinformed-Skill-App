@@ -2,7 +2,7 @@
 import requests
 import json
 from datetime import datetime
-from app.config import Settings
+from app import Settings
 from app.db import Assertions
 
 

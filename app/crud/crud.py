@@ -4,7 +4,7 @@ import random
 import requests
 import copy
 from app import utils
-from app.config import Settings
+from app import Settings
 import app.db.models as models
 
 # Reproducibility for randomly selecting reviewers

@@ -1,7 +1,7 @@
 # to create random data and test other crud utils
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.models import models
+from app.db import models
 from app.utils import random_data_utils
 import random
 import string

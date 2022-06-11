@@ -1,2 +1,2 @@
 from .api_endpoints import *
-from .services import *
+from .schemas import *

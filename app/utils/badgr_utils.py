@@ -3,7 +3,7 @@ import requests
 import json
 from datetime import datetime
 from app.config import Settings
-from app.models import Assertions
+from app.db import Assertions
 
 
 def get_bearer_token(config: Settings):
@@ -232,13 +232,20 @@ def issue_badge(
     :return: The assertion as a response object
     """
     # Get the URL for the badge, based on assessment name
+    print(1)
     url = (
         config.BADGR_BASE_URL
         + "/v2/badgeclasses/"
         + config.BADGE_IDs[assessment_name]
         + "/assertions"
     )
-
+    print(2)
+    print(url)
+    print(bearer_token)
+    print(user_email)
+    print(user_first)
+    print(user_last)
+    print(assessment_name)
     # Prepare the payload with custom text and evidence
     payload = json.dumps(
         {
@@ -256,10 +263,14 @@ def issue_badge(
             "notify": True,
         }
     )
+    print(3)
+    print(payload)
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + bearer_token,
     }
+    print(4)
     response = requests.request("POST", url, headers=headers, data=payload)
+    print(5)
     return response
 

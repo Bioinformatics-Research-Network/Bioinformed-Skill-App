@@ -1,5 +1,4 @@
-from datetime import datetime
-from app import schemas, models
+import app.db.models as models
 
 
 def verify_check(assessment_tracker_entry: models.AssessmentTracker):

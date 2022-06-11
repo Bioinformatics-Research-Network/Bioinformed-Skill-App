@@ -4,10 +4,11 @@ import hashlib
 from requests import request
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.api.services import get_db, get_settings
-from app.config import Settings
-from app import schemas, crud, utils
 
+from app.config import Settings
+from app import crud, utils
+import app.api.schemas as schemas
+from app.dependencies import get_db, get_settings
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -177,8 +178,10 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             update_logs=copy.deepcopy(update_request.log),
         )
     except ValueError as e:
+        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs Updated": True}
@@ -380,10 +383,13 @@ def approve(
         - The reviewer is the same as the user
         - The reviewer is not listed as a reviewer for this assessment
     """
+    print(approve_request)
     try:
+        print("A")
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=approve_request.latest_commit
         )
+        print("B")
     except ValueError as e:
         print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
@@ -391,26 +397,35 @@ def approve(
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+    print("C")
+
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
     try:
         # Get the trainee info
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+        print(user.__dict__)
+        print("D")
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=assessment_tracker_entry.assessment_id
         )
+        print("E")
         if assessment.review_required == 1:
+            print("F")
             # Get the reviewer info; error if not exists
             reviewer = crud.get_reviewer_by_username(
                 db=db, username=approve_request.reviewer_username
             )
+            print("G")
         else:
+            print("H")
             reviewer = None
         # Approve assessment, update logs, issue badge
         # Error if reviewer is not the one assigned;
         # Error if checks are not passed
         # Error if assessment is already approved;
         # Error if reviewer is same as trainee
+        print("I")
         crud.approve_assessment(
             db=db,
             trainee=user,
@@ -418,8 +433,11 @@ def approve(
             reviewer_username=approve_request.reviewer_username,
             assessment=assessment,
         )
+        print("J")
         # Issue badge
         bt = utils.get_bearer_token(settings)
+        print("K")
+        print(settings.__dict__)
         resp = utils.issue_badge(
             user_email=user.email,
             user_first=user.first_name,
@@ -428,7 +446,9 @@ def approve(
             bearer_token=bt,
             config=settings,
         )
+        print("L")
         resp.raise_for_status()
+        print("M")
         # Add assertion to database
         crud.add_assertion(
             db=db,
@@ -436,8 +456,10 @@ def approve(
             entry_id=assessment_tracker_entry.id,
             assertion=resp.json()["result"][0],
         )
+        print("N")
     except KeyError as e:  # pragma: no cover
         print(str(e))
+        print("O")
         msg = "Badgr: Unable to locate assessment: " + str(e)
 
         # If any error, revert status to original
@@ -455,6 +477,7 @@ def approve(
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
         print(str(e))
+        print("P")
 
         # If any error, revert status to original
         assessment_tracker_entry.status = orig_status

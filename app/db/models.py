@@ -1,4 +1,3 @@
-from enum import unique
 from sqlalchemy import (
     DateTime,
     JSON,
@@ -10,13 +9,30 @@ from sqlalchemy import (
     Table,
     Text,
 )
+from typing import Any
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.mutable import MutableDict
-from app import db
 
 
-class Users(db.Base):
+@as_declarative()
+class Base:
+    """Base class for the tables generated in the database"""
+
+    id: Any
+    __name__: str
+
+    @declared_attr
+    def __tablename__(cls) -> str:
+        """
+        Generates the name for the tables
+        """
+        return cls.__name__.lower()
+
+
+
+class Users(Base):
     """
     SQLAlchemy model for the "users" table
     """
@@ -63,7 +79,7 @@ class Users(db.Base):
         return f"<Users: {self.username}>"
 
 
-class OAuth(db.Base):
+class OAuth(Base):
     __tablename__ = "oauth"
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), nullable=False)
@@ -73,7 +89,7 @@ class OAuth(db.Base):
     user = relationship(Users)
 
 
-class Reviewers(db.Base):
+class Reviewers(Base):
     """
     SQLAlchemy model for the "reviewers" table
     """
@@ -91,14 +107,14 @@ class Reviewers(db.Base):
 # Create a mapping between the Assessment and Reviewer tables
 assessments_to_reviewers = Table(
     "assessments_to_reviewers",
-    db.Base.metadata,
+    Base.metadata,
     Column("id", Integer, primary_key=True),
     Column("assessment_id", Integer, ForeignKey("assessments.id")),
     Column("reviewer_id", Integer, ForeignKey("reviewers.id")),
 )
 
 
-class Assessments(db.Base):
+class Assessments(Base):
     """
     SQLAlchemy model for the "assessments" table
     """
@@ -121,7 +137,7 @@ class Assessments(db.Base):
     install_id = Column(String(250))
 
 
-class AssessmentTracker(db.Base):
+class AssessmentTracker(Base):
     """
     SQLAlchemy model for the "assessment_tracker" table
     """
@@ -154,7 +170,7 @@ class AssessmentTracker(db.Base):
     log = Column(JSON, nullable=False)
 
 
-class Badges(db.Base):
+class Badges(Base):
     """
     SQLAlchemy model for the "badges" table
 
@@ -184,7 +200,7 @@ class Badges(db.Base):
 
 
 
-class Assertions(db.Base):
+class Assertions(Base):
     """
     SQLAlchemy model for the "assertions" table
     """
@@ -233,7 +249,7 @@ class Assertions(db.Base):
     )
 
 
-class BadgrAuth(db.Base):
+class BadgrAuth(Base):
     """
     SQLAlchemy model for the "badgr_auth" table
     """

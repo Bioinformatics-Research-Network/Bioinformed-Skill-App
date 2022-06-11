@@ -3,10 +3,9 @@ from sqlalchemy.orm import Session
 import random
 import requests
 import copy
-from app import models, schemas, utils
+from app import utils
 from app.config import Settings
-from app.models.models import Badges
-
+import app.db.models as models
 
 # Reproducibility for randomly selecting reviewers
 random.seed(42)
@@ -573,8 +572,8 @@ def add_assertion(
 
 
 def update_assessment_log(
-    db: Session, entry_id: int, latest_commit: str, update_logs: dict, status: str
-):
+    db: Session, entry_id: int, latest_commit: str, update_logs: dict, status: str=None
+) -> bool:
     """
     Update the assessment tracker entry log.
 

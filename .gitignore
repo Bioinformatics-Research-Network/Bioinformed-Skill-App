@@ -21,3 +21,5 @@ botdata/*
 !.elasticbeanstalk/*.global.yml
 
 *.zip
+
+htmlcov

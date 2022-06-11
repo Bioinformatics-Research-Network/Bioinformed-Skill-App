@@ -1,3 +1,6 @@
+from urllib import response
+import random 
+import string
 import requests
 import copy
 from time import sleep
@@ -16,7 +19,6 @@ bot = bot.Bot()
 access_tokens = auth.retrieve_access_tokens()
 
 # Payload for test repo
-# https://github.com/Bioinformatics-Research-Network/test-bot/pull/1
 payload = {
     "number": 1,
     "pull_request": {
@@ -61,8 +63,17 @@ init_request = schemas.InitBotRequest(
     review_required=True,
 )
 
+# Delete request
+delete_request = schemas.DeleteBotRequest(
+    name="Test",
+    username="bioresnet",
+    install_id=26363998,
+    repo_prefix="test--",
+    github_org="brn-test-assessment",
+)
 
-def test_init_bot():
+
+def test_init():
     """
     Test the bot's init command
     """
@@ -75,43 +86,112 @@ def test_init_bot():
         "log": {},
         "status": "Initiated",
     }
-    print("Posting update")
-    print( f"{bot.CRUD_APP_URL}/api/update")
-    print(body)
     response = requests.patch(
         f"{bot.CRUD_APP_URL}/api/update",
         json=body,
     )
     response.raise_for_status()
-    print(response.json())
-
     access_token = access_tokens["tokens"][str(init_request.install_id)]
-
     repo_name = init_request.repo_prefix + init_request.username
     url = f"https://api.github.com/repos/{init_request.github_org}/{repo_name}"
-    print(url)
     # Check if repo exists
     response = requests.get(
         url=url,
         headers={"Authorization": f"token {access_token}"},
     )
     if response.status_code == 200:
-        print("Repo exists")
-        # Delete the repo 
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}"
-        sleep(1)
-        response = requests.delete(
-            request_url,
-            headers={"Authorization": f"token {access_token}"},
-        )
-        response.raise_for_status()
-        print("Deleted repo")
-
+        print("Repo exists... deleting")
+        assert bot.process_delete_repo(delete_request, access_tokens=access_tokens)
 
     resp = bot.process_init_payload(init_request, access_tokens=access_tokens)
 
     assert resp
 
+
+### Test utils
+
+def test_get_assessment_name():
+    """
+    Test the bot's get_assessment_name command
+    """
+    assessment_name = utils.get_assessment_name(payload)
+    # Assessment should be "test" for the test repo
+    assert assessment_name == "Test"
+
+
+def test_is_for_bot():
+    """
+    Test the bot's forbot command
+    """
+    assert utils.is_for_bot(payload)
+    payload["comment"]["body"] = "@brnbottt"
+    assert not utils.is_for_bot(payload)
+
+
+def test_get_recent_comments():
+    """
+    Test the bot's post_comment command
+    """
+    ## Success
+    kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
+    text = "test " + "".join(
+        random.choices(string.ascii_uppercase + string.digits, k=20)
+    )
+    response = utils.post_comment(text=text, **kwarg_dict)
+    # Comment should be posted to the test repo
+    assert response.status_code == 201
+    # Comment should be "test" for the test repo
+    assert response.json()["body"] == text
+    # Get last comment and check if it is the same as the one we posted
+    comments = utils.get_recent_comments(**kwarg_dict)
+    assert comments.json()[-1]["body"] == text
+
+    ## Confirm ordering of comments is correct
+    kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
+    text = "test 1 " + "".join(
+        random.choices(string.ascii_uppercase + string.digits, k=20)
+    )
+    utils.post_comment(text=text, **kwarg_dict)
+    text2 = "test 2 " + "".join(
+        random.choices(string.ascii_uppercase + string.digits, k=20)
+    )
+    utils.post_comment(text=text2, **kwarg_dict)
+
+    # Get last comment and check if it is the same as the one we posted
+    comments = utils.get_recent_comments(**kwarg_dict)
+    assert comments.status_code == 200
+    assert comments.json()[-1]["body"] == text2
+    assert comments.json()[-2]["body"] == text
+
+
+def test_delete_comment():
+    """
+    Test the bot's delete_comment command
+    """
+    ## Success
+    kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
+    text = "del " + "".join(
+        random.choices(string.ascii_uppercase + string.digits, k=20)
+    )
+    response = utils.post_comment(text=text, **kwarg_dict)
+    comment_id = response.json()["id"]
+    # Check if the comment was posted
+    comments = utils.get_comment_by_id(comment_id, **kwarg_dict)
+    assert comments.status_code == 404
+    # Delete the comment
+    response = utils.delete_comment(comment_id, **kwarg_dict)
+    assert response.status_code == 204
+    # Check if the comment is deleted
+    comments = utils.get_comment_by_id(comment_id, **kwarg_dict)
+    assert comments.status_code == 404
+
+    ## Failure to delete because comment does not exist
+    response = utils.delete_comment(comment_id, **kwarg_dict)
+    assert response.status_code == 404
+
+
+
+### Test bot commands
 
 def test_hello():
     """
@@ -122,6 +202,7 @@ def test_hello():
     print(const.settings)
     print(const.token_fp)
 
+    payload["comment"]["body"] = "@brnbot hello"
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
     assert bot.process_cmd(payload, access_tokens=access_tokens)
     response = utils.get_recent_comments(**kwarg_dict)

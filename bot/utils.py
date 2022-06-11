@@ -293,7 +293,7 @@ def delete_repo(
         response = requests.delete(request_url, headers=headers)
         response.raise_for_status()
         print("Deleted repo")
-    except requests.exceptions.HTTPError:
+    except requests.exceptions.HTTPError: # pragma: no cover
         print("Repo doesn't exist")
         pass
 
@@ -306,20 +306,8 @@ def archive_repo(
     """
     request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
     body = {
-        # "name": repo_name,
-        # "description": init_request.name
-        # + " Skill Assessment. Trainee: "
-        # + init_request.username,
-        # "private": True,
-        # "visibility": "private",
-        # "has_issues": False,
-        # "has_projects": False,
-        # "has_wiki": False,
-        # "is_template": False,
         "archived": True,
     }
-    print("Archive repo")
-    print(request_url)
     try:
         sleep(1)
         response = requests.patch(
@@ -332,7 +320,7 @@ def archive_repo(
         )
         response.raise_for_status()
         print("Repo archived")
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError as e: # pragma: no cover
         print(e)
         raise e
 
@@ -353,7 +341,7 @@ def init_create_repo(
         response = requests.delete(request_url, headers=headers)
         response.raise_for_status()
         print("Deleted repo")
-    except requests.exceptions.HTTPError:
+    except requests.exceptions.HTTPError: # pragma: no cover
         print("Repo didn't exist yet")
         pass
 
@@ -383,7 +371,7 @@ def init_create_repo(
         )
         response.raise_for_status()
         print("Repo created")
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError as e: # pragma: no cover
         print(e)
         raise e
 
@@ -408,7 +396,7 @@ def init_create_repo(
         response.raise_for_status()
         print(".tmp created")
         return sha
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -468,7 +456,7 @@ def init_fill_repo(
             response_files.raise_for_status()
             print(f"{target} uploaded")
         print("Code downloaded and uploaded to github")
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -505,7 +493,7 @@ def init_create_feedback_branch(
         )
         response.raise_for_status()
         print("Branch created")
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -537,7 +525,7 @@ def init_delete_tmp(
         # Get the SHA of the last commit on the main branch from the response
         sha = response.json()['commit']["sha"]
         return sha
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -617,7 +605,7 @@ def init_create_pr(
         response_pr.raise_for_status()
         print("PR created")
         return http_repo
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -636,7 +624,7 @@ def init_add_collaborator(
         )
         response.raise_for_status()
         print("Collaborator added")
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(e)
         raise e
 
@@ -665,7 +653,7 @@ def approve_assessment(**kwarg_dict):
         post_comment(text, **kwarg_dict)
         archive_repo(**kwarg_dict)
         return response
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError as e: # pragma: no cover
         msg = response.json()["detail"]
         if msg == "Reviewer cannot be the same as the trainee.":
             msg = "Trainee cannot approve their own skill assessment."

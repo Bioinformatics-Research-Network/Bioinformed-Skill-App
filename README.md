@@ -1,8 +1,9 @@
 # Developer notes
 
-![Build Status](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/BRN-bot/branch/main/graph/badge.svg?token=64FAWBD72C)](https://codecov.io/gh/Bioinformatics-Research-Network/BRN-bot)
+![Build Status](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/tests/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-App-GHBot/branch/main/graph/badge.svg?token=64FAWBD72C)](https://codecov.io/gh/Bioinformatics-Research-Network/Skill-App-GHBot)
 
-Primary maintainer: Henry Miller
+
+Primary maintainer: Henry Miller (@millerh1)
 
 This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
 

@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  web:
+  webui:
     build: webui/
     ports:
       - "9630:8000"
@@ -9,3 +9,28 @@ services:
       - ./webui:/app
     environment:
       FLASK_ENV: development
+  ghbot:
+    build: ghbot/
+    ports:
+      - "7410:2000"
+    volumes:
+      - ./ghbot:/app
+    environment:
+      APP_ENV: development
+  crud:
+    build: crud/
+    ports:
+      - "8520:2000"
+    volumes:
+      - ./crud:/app
+    environment:
+      APP_ENV: development
+  db:
+    build: db/
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/app
+    environment:
+      APP_ENV: development
+

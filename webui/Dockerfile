@@ -14,4 +14,4 @@ COPY . /app
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--capture-output", "--log-level", "debug", "--error-logfile", "-", "--access-logfile", "-", "--bind", ":8000", "wsgi:app"]
+CMD ["gunicorn", "--timeout", "1000", "--worker-tmp-dir", "/dev/shm", "--workers", "2", "--capture-output", "--log-level", "debug", "--error-logfile", "-", "--access-logfile", "-", "--bind", ":8000", "wsgi:app"]

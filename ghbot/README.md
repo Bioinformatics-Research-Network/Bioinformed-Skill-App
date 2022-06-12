@@ -39,7 +39,7 @@ sudo npm install -g smee-client
 4. Start smee channel
 
 ```shell
-smee -u https://smee.io/rSiwWHyU4AMt1zn --port 8001
+smee -u https://smee.io/rSiwWHyU4AMt1zn --port 2000
 ```
 
 5. Use pip, venv, and the `requirements.txt` file (make sure you have python3.10 or higher installed)

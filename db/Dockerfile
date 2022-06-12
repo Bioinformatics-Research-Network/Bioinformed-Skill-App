@@ -1,0 +1,7 @@
+FROM mysql:8.0
+
+RUN mysqldump -h $MYSQL_PROD_HOST -u $MYSQL_PROD_USER -p$MYSQL_PROD_PASSWORD $MYSQL_PROD_DATABASE > db.sql
+
+
+
+

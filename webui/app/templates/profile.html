@@ -1,0 +1,612 @@
+{% extends '_dashboard.html' %} {% block content_body %}
+<div class="row">
+  <div class="col-12">
+    <hr style="width: 100%" />
+    <br /><br />
+    <div class="row">
+      <div class="col-lg-4 col-sm-12 col-xs-12">
+        <!--Begin user profile display-->
+        <div class="row g-3">
+          <!--SECTION: Personal details-->
+          <!--Line 1: Profile picture, name, and GH username-->
+          <div class="col-lg-4 col-md-3">
+            <!--Add github icon with circular borders-->
+            <img
+              src="{{current_user.avatar_url}}"
+              alt="GitHub"
+              style="width: 90px; border-radius: 100%"
+            />
+          </div>
+          <div class="col-lg-8 col-md-9">
+            <div class="row">
+              <h2 class="col-lg-12 col-md-12">
+                {{current_user.first_name + ' ' + current_user.last_name}}
+              </h2>
+              <!--Add github font awesome icon-->
+              <span class="col-lg-12 col-md-12 mt-md-1">
+                <h2>
+                  <em style="color: darkgray">
+                    <a
+                      href="{{'https://github.com/' + current_user.username}}"
+                      style="outline: none; text-decoration: none; color: #000"
+                      target="_blank"
+                    >
+                      <i
+                        class="fa-brands fa-github text-center"
+                        style="width: 16px"
+                      ></i>
+                      <span class="ps-4" style="color: darkgray">
+                        {{current_user.username}}
+                      </span>
+                    </a>
+                  </em>
+                </h2>
+              </span>
+            </div>
+          </div>
+          <!--Line 2: Bio-->
+          {% if current_user.bio %}
+          <p class="col-12">
+            <em>{{current_user.bio}}</em>
+          </p>
+          {% endif %}
+          <!--SECTION: Status & Location-->
+          <!--Line 3: Location-->
+          {% if current_user.country %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-map-marker text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              {% if current_user.city %} {{current_user.city + ', '}} {% endif
+              %} {{current_user.country}}
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 4: Current position-->
+          {% if current_user.current_position %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-briefcase text-center" style="width: 16px"></i>
+            <em class="ps-2"> {{current_user.current_position}} </em>
+          </span>
+          {% endif %}
+          <!--Line 5: Current institution-->
+          {% if current_user.current_institution %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-building text-center" style="width: 16px"></i>
+            <em class="ps-2"> {{current_user.current_institution}} </em>
+          </span>
+          {% endif %}
+          <!--Line 6: LinkedIn-->
+          {% if current_user.linkedin_url %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-linkedin text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              <a
+                href="{{current_user.linkedin_url}}"
+                style="outline: none; text-decoration: none; color: #000"
+                target="_blank"
+              >
+                <span>
+                  {{current_user.linkedin_url.replace("https://",
+                  "").replace("http://", "").replace("www.", "")}}
+                </span>
+              </a>
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 7: Twitter-->
+          {% if current_user.twitter_handle %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-twitter text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              <a
+                href="{{'https://twitter.com/' + current_user.twitter_handle}}"
+                style="outline: none; text-decoration: none; color: #000"
+                target="_blank"
+              >
+                @{{current_user.twitter_handle}}
+              </a>
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 8: ORCID iD-->
+          {% if current_user.orcid_id %}
+          <span class="col-12 mt-1">
+            <i class="fa-brands fa-orcid text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              <a
+                href="{{'https://orcid.org/' + current_user.orcid_id}}"
+                style="outline: none; text-decoration: none; color: #000"
+                target="_blank"
+              >
+                {{current_user.orcid_id}}
+              </a>
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 9: CV URL-->
+          {% if current_user.cv_url %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-file-lines text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              <a
+                href="{{current_user.cv_url}}"
+                style="outline: none; text-decoration: none; color: #000"
+                target="_blank"
+              >
+                <span> CV &nbsp; </span>
+              </a>
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 9: Personal site-->
+          {% if current_user.personal_site %}
+          <span class="col-12 mt-1">
+            <i class="fa fa-globe text-center" style="width: 16px"></i>
+            <em class="ps-2">
+              <a
+                href="{{current_user.personal_site}}"
+                style="outline: none; text-decoration: none; color: #000"
+                target="_blank"
+              >
+                <span>
+                  {{current_user.personal_site.replace("https://",
+                  "").replace("http://", "").replace("www.", "")}}
+                </span>
+              </a>
+            </em>
+          </span>
+          {% endif %}
+          <!--Line 10: Profile shared with recruiters-->
+          {% if current_user.share_with_recruiters %}
+          <span class="col-12 mt-4">
+            <i class="fa fa-eye text-center" style="width: 16px"></i>
+            <em class="ps-2"> Profile is public </em>
+          </span>
+          {% else %}
+          <span class="col-12 mt-4">
+            <i class="fa fa-eye-slash text-center" style="width: 16px"></i>
+            <em class="ps-2"> Profile is not public </em>
+          </span>
+          {% endif %}
+        </div>
+        <!--End user profile display-->
+        <div class="row pt-4">
+          <!-- Button trigger modal -->
+          <div class="col-12">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100 btn-lg"
+              data-bs-toggle="modal"
+              data-bs-target="#editModal"
+            >
+              Edit profile
+            </button>
+          </div>
+          <!-- Start edit profile modal -->
+          <div
+            class="modal fade"
+            id="editModal"
+            tabindex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">
+                    Edit my profile
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  <!--Edit profile form-->
+                  <form
+                    class="container-fluid"
+                    action="{{url_for('routes.edit_profile')}}"
+                    method="post"
+                  >
+                    <div class="row g-3 mb-3">
+                      <h4>Personal details</h4>
+                      <div class="col-md-6">
+                        <label for="first_name">First name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="first_name"
+                          name="first_name"
+                          placeholder="First name"
+                          value="{{current_user.first_name}}"
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="last_name">Last name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="last_name"
+                          name="last_name"
+                          placeholder="Last name"
+                          value="{{current_user.last_name}}"
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="email"
+                          >Email &nbsp;<i class="fa fa-at"></i> &nbsp;(must be
+                          modified in
+                          <a href="{{url_for('routes.user_settings')}}"
+                            >settings</a
+                          >)</label
+                        >
+                        <input
+                          type="email"
+                          class="form-control"
+                          id="email"
+                          name="email"
+                          placeholder="Email"
+                          value="{{current_user.email}}"
+                          readonly
+                          disabled
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="username"
+                          >GitHub username
+                          <i class="fa fa-github"></i> &nbsp;(cannot be
+                          changed.)</label
+                        >
+                        <input
+                          type="username"
+                          class="form-control"
+                          id="username"
+                          name="username"
+                          placeholder="GitHub username"
+                          value="{{current_user.username}}"
+                          readonly
+                          disabled
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label for="avatar_url"
+                          >Profile picture URL &nbsp;<i class="fa fa-link"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="avatar_url"
+                          name="avatar_url"
+                          placeholder="Link to profile picture"
+                          value="{{current_user.avatar_url}}"
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label for="bio"
+                          >Bio &nbsp;<i class="fa fa-book"></i
+                        ></label>
+                        <textarea
+                          class="form-control"
+                          id="bio"
+                          name="bio"
+                          rows="3"
+                          placeholder="Description of your education, skills, career goals, etc."
+                        >
+{{current_user.bio if current_user.bio else '' }}</textarea
+                        >
+                      </div>
+                    </div>
+                    <hr />
+                    <h4>Location/Status</h4>
+                    <br />
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6">
+                        <label for="country"
+                          >Country &nbsp;<i class="fa fa-globe"></i></label
+                        ><br />
+                        <select
+                          class="selectpicker countrypicker form-control"
+                          id="country"
+                          name="country"
+                          placeholder="Country"
+                          data-live-search="true"
+                        >
+                          {% for country in countries %} {% if country ==
+                          current_user.country %}
+                          <option value="{{country}}" selected>
+                            {{country}}
+                          </option>
+                          {% else %}
+                          <option value="{{country}}">{{country}}</option>
+                          {% endif %} {% endfor %}
+                        </select>
+                        <script>
+                          $(document).ready(function () {
+                            $(".countrypicker").selectpicker();
+                          });
+                        </script>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="city"
+                          >City &nbsp;<i class="fa fa-map-marker"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="city"
+                          name="city"
+                          placeholder="City"
+                          value="{{current_user.city if current_user.city else ''}}"
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="current_position"
+                          >Current position &nbsp;<i class="fa fa-briefcase"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="current_position"
+                          name="current_position"
+                          placeholder="Current position"
+                          value="{{current_user.current_position if current_user.current_position else ''}}"
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="current_institution"
+                          >Current institution &nbsp;<i
+                            class="fa fa-building"
+                          ></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="current_institution"
+                          name="current_institution"
+                          placeholder="Current institution"
+                          value="{{current_user.current_institution if current_user.current_institution else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <hr />
+                    <h4>Links</h4>
+                    <br />
+                    <div class="row g-3 mb-3">
+                      <div class="col-12">
+                        <label for="linkedin_url"
+                          >LinkedIn URL &nbsp;<i class="fa fa-linkedin"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="linkedin_url"
+                          name="linkedin_url"
+                          placeholder="LinkedIn URL"
+                          value="{{current_user.linkedin_url if current_user.linkedin_url else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-12">
+                        <label for="cv_url"
+                          >CV URL &nbsp;<i class="fa fa-file-pdf"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="cv_url"
+                          name="cv_url"
+                          placeholder="CV URL"
+                          value="{{current_user.cv_url if current_user.cv_url else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-12">
+                        <label for="twitter_handle"
+                          >Twitter handle &nbsp;<i class="fa fa-twitter"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="twitter_handle"
+                          name="twitter_handle"
+                          placeholder="Twitter handle"
+                          value="{{current_user.twitter_handle if current_user.twitter_handle else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-12">
+                        <label for="orcid_id"
+                          >ORCiD &nbsp;<i class="fa-brands fa-orcid"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="orcid_id"
+                          name="orcid_id"
+                          placeholder="ORCID iD"
+                          value="{{current_user.orcid_id if current_user.orcid_id else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-12">
+                        <label for="personal_site"
+                          >Personal site &nbsp;<i class="fa fa-link"></i
+                        ></label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="personal_site"
+                          name="personal_site"
+                          placeholder="Personal site"
+                          value="{{current_user.personal_site if current_user.personal_site else ''}}"
+                        />
+                      </div>
+                    </div>
+                    <hr />
+                    <div class="row g-3 mb-3 justify-content-center">
+                      <div class="col-md-12">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="share_with_recruiters"
+                          name="share_with_recruiters"
+                          value="1"
+                          {%
+                          if
+                          current_user.share_with_recruiters
+                          %}
+                          checked
+                          {%
+                          endif
+                          %}
+                        />
+                        <label
+                          class="form-check-label"
+                          for="share_with_recruiters"
+                        >
+                          Share my profile publicly &nbsp;<i
+                            class="fa fa-star"
+                          ></i>
+                        </label>
+                      </div>
+                      <div class="col-12">
+                        <button
+                          type="submit"
+                          class="btn w-100 btn-lg btn-primary"
+                        >
+                          Update profile
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                  <!--end edit profile form-->
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End edit profile modal -->
+        </div>
+      </div>
+      <div class="col-lg-1 col-sm-12"></div>
+      <br /><br />
+      <div class="col-lg-7 col-sm-12 col-xs-12">
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto">
+            <h3>Badges earned</h3>
+          </div>
+          <div class="col-12">
+            <hr style="width: 100%" />
+          </div>
+        </div>
+        <div
+          class="row justify-content-md-start justify-content-sm-center justify-content-xs-start"
+        >
+          {% if assertions != [] %} {% for assertion in assertions %}
+          <div class="col-md-6 col-lg-4">
+            <div class="row justify-content-center">
+              {{assertion.embed_badge_html|safe}}
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="col-12">
+            <div class="row justify-content-center">
+              <div class="col-md-6 pt-3">
+                <div
+                  style="
+                    text-align: center;
+                    border-style: solid;
+                    border-radius: 10%;
+                    border-width: 1px;
+                    border-color: #000;
+                  "
+                >
+                  <p class="mt-5 px-5">
+                    Earn badges by
+                    completing skill assessments 🎯
+                  </p>
+                  <p>Click the link below to get started 🚀</p>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-lg px-5 mt-4 mb-5"
+                    data-bs-toggle="modal"
+                    data-bs-target="#letsGoModal"
+                  >
+                    Let's go!
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="letsGoModal"
+  tabindex="-1"
+  aria-labelledby="letsGoModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Choose your weapon ⚔️
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="row d-md-flex d-sm-none d-none justify-content-md-center">
+          <div
+            class="col-md-6 d-flex align-items-center justify-content-md-center"
+          >
+            <img
+              src="{{url_for('static', filename='img/R_logo.svg.png')}}"
+              style="max-width: 50%; max-height: 50%"
+            />
+          </div>
+          <div class="col-md-6 d-flex align-items-center justify-content-md-center">
+            <img
+              src="{{url_for('static', filename='img/python-logo.png')}}"
+              style="max-width: 50%; max-height: 50%"
+            />
+          </div>
+        </div>
+        <div class="row justify-content-md-center mb-2">
+          <div class="col-md-6 d-flex pt-1 justify-content-md-center">
+            <a
+              href="{{url_for('routes.assessment', id=2)}}"
+              class="btn btn-primary"
+              >Start with R</a
+            >
+          </div>
+          <div class="col-md-6 d-flex pt-1 justify-content-md-center">
+            <a
+              href="{{url_for('routes.assessment', id=1)}}"
+              class="btn btn-primary"
+              >Start with Python</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End edit profile modal -->
+
+{% endblock content_body %}

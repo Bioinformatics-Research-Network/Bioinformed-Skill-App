@@ -1,0 +1,58 @@
+<!-- templates/index.html -->
+
+{% extends '_base.html' %} {% block content %}
+<body class="d-flex flex-column h-100" style="padding-top: 3%">
+  {% block flashes %}{% endblock flashes %}
+  <div style="text-align: center">
+    <!--Our logo as a link-->
+    <a href="https://www.bioresnet.org/"
+      ><img
+        src="{{url_for('static', filename='img/logo.png')}}"
+        alt="Logo"
+        style="width: 100px"
+    /></a>
+    <br /><br />
+    <h1>BRN Skill Assessments</h1>
+    <br />
+    <h3>Are you <strong>Bioinformed</strong>?</h3>
+    <br /><br />
+    <p>
+      Welcome to the BRN Skill Assessments 👋. Please
+      <strong>login with GitHub</strong> to continue. <br />
+      Please consult the
+      <a
+        href="https://brnteam.notion.site/BRN-Skill-Assessments-09882a8300e64d33925593584afb0fab"
+      >
+        documentation
+      </a>
+      for additional information.
+    </p>
+    <br /><br />
+    <!-- GitHub button starts here -->
+    <a href="{{url_for('routes.login')}}" class="btn btn-secondary">
+      <i class="fa fa-github fa-fw"></i>
+      <span>Login with GitHub</span>
+    </a>
+    <!-- GitHub button ends here -->
+  </div>
+  <footer class="footer mt-auto py-3 bg-light">
+    <div class="container">
+      <span
+        class="text-muted"
+        style="
+          font-size: small;
+          text-align: center;
+          display: table;
+          margin: 0 auto;
+        "
+      >
+        Copyright &copy; 2022
+        <a style="color: grey" href="https://www.bioresnet.org/"
+          >Bioinformatics Research Network</a
+        >. Made with <i class="fa fa-heart"></i> in Atlanta, GA.
+      </span>
+    </div>
+  </footer>
+</body>
+
+{% endblock content %}

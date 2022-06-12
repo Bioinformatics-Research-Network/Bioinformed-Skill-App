@@ -1,0 +1,68 @@
+# This is a basic workflow that is manually triggered
+
+name: tests
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  push:
+    branches:
+      main
+  pull_request:
+    branches:
+      main
+  workflow_dispatch:
+
+# Use mamba to handle conda installs in a faster way.
+# mamba-version accepts a version string x.y (including "*").
+# It requires you specify conda-forge as part of the channels, ideally with the highest priority.
+jobs:
+  tests:
+    name: tests
+    runs-on: "ubuntu-latest"
+    env:
+      BADGR_TEST_USERNAME: ${{ secrets.BADGR_TEST_USERNAME }}
+      BADGR_TEST_PASSWORD: ${{ secrets.BADGR_TEST_PASSWORD }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Get AWS Buck
+        run: |
+          aws s3 sync s3://skill-assessment-app s3_data/
+      - name: Poetry install
+        run: |
+          pip install poetry
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+          poetry env use python
+          poetry install
+          source .venv/bin/activate
+      - name: Lint with flake8
+        run: |
+          source .venv/bin/activate
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with coverage + pytest
+        run: |
+          source .venv/bin/activate
+          python -m coverage run -m pytest
+          if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
+          python -m coverage report -m --fail-under=85
+          python -m coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -1,0 +1,25 @@
+*access_tokens*
+*cache*
+__pycache__
+*.pyc
+*venv*
+.DS_Store
+.idea
+.vscode
+.vscode/*
+.vscode/settings.json
+*nodesource*
+.coverage
+*.env*
+botdata
+botdata/*
+*.pem
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+*.zip
+
+htmlcov

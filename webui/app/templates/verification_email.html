@@ -1,0 +1,17 @@
+<!--HTML Document for email verification code-->
+
+{% extends '_base.html' %}
+
+{% block content %}
+<body class="d-flex flex-column h-100" style="padding-top: 3%;">
+    <div style="text-align:center;">
+        <!--Our logo as a link-->
+        <a href="https://www.bioresnet.org/"><img src="{{aws_url + '/assets/logo_small.png'}}" alt="Logo" style="max-width: 10px;"></a>
+        <br><br>
+        <h1>Verification code</h1>
+
+        <p>{{code}}</p>
+    </div>
+</body>
+  
+{% endblock content %}

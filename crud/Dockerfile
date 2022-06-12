@@ -12,6 +12,6 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 COPY . /app
 
-EXPOSE 5623
+EXPOSE 2000
 
-CMD ["gunicorn", "main:app", "--capture-output", "--log-level", "debug", "--error-logfile", "-", "--access-logfile", "-", "--bind", ":5623", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker"]
+CMD ["gunicorn", "main:app", "--capture-output", "--log-level", "debug", "--error-logfile", "-", "--access-logfile", "-", "--bind", ":2000", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker"]

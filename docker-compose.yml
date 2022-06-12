@@ -1,8 +1,24 @@
-version: "3.8"
+version: "3.9"
 
 services:
+  db:
+    build: 
+      context: db/
+      args:
+        MYSQL_PROD_HOST: ${MYSQL_PROD_HOST}
+        MYSQL_PROD_USER: ${MYSQL_PROD_USER}
+        MYSQL_PROD_PASSWORD: ${MYSQL_PROD_PASSWORD}
+        MYSQL_PROD_DATABASE: ${MYSQL_PROD_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/db
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
   webui:
     build: webui/
+    depends_on:
+      - db
     ports:
       - "9630:8000"
     volumes:
@@ -11,6 +27,8 @@ services:
       FLASK_ENV: development
   ghbot:
     build: ghbot/
+    depends_on:
+      - db
     ports:
       - "7410:2000"
     volumes:
@@ -19,18 +37,11 @@ services:
       APP_ENV: development
   crud:
     build: crud/
+    depends_on:
+      - db
     ports:
       - "8520:2000"
     volumes:
       - ./crud:/app
     environment:
       APP_ENV: development
-  db:
-    build: db/
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./db:/app
-    environment:
-      APP_ENV: development
-

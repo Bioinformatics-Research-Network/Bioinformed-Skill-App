@@ -5,7 +5,6 @@ import atexit
 import os
 
 from flask import Flask
-from apscheduler.schedulers.background import BackgroundScheduler
 
 from . import auth, db, utils
 from .db import db_session, init_db
@@ -50,14 +49,5 @@ def create_app(test_config=None):
         db_session.remove()
     
     print("App initialized")
-
-    ## If statement prevents the scheduler from running twice when running in debug mode
-    if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(func=utils.print_date_time, trigger="interval", seconds=60)
-        scheduler.start()
-
-        # Shut down the scheduler when exiting the app
-        atexit.register(lambda: scheduler.shutdown())
 
     return app

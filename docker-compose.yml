@@ -4,4 +4,8 @@ services:
   web:
     build: webui/
     ports:
-      - "9630:8080"
+      - "9630:8000"
+    volumes:
+      - ./webui:/app
+    environment:
+      FLASK_ENV: development

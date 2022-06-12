@@ -21,7 +21,7 @@ git_ref = "main"
 admins = ["millerh1", "itchytummy", "bioresnet"]
 
 # Dict of valid App install IDs
-if os.environ.get("APP_ENV") == "production":
+if os.environ.get("APP_ENV") == "production" or os.environ.get("APP_ENV") == "development":
     installation_ids = {
         "Skill Assessment Tutorial (Python)": 25630785,
         "Skill Assessment Tutorial (R)": 25901888,

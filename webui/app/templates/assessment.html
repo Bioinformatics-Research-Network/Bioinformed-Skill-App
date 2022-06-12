@@ -1,0 +1,236 @@
+{% extends '_dashboard.html' %} 
+
+{% block head %} 
+
+<script>
+  // This is the function that will be called when the user clicks the
+  // "Start Assessment" button.
+  // It should display a message to the user which says "Please wait while we
+  // are loading your assessment...".
+  // It should also disable the button so that the user can't click it again
+  // while the assessment is loading.
+  function startAssessment() {
+    // Get the button element
+    var button = document.getElementById("start-assessment-button");
+    // Disable the button
+    button.disabled = true;
+    // Set the button's text to "Please wait..."
+    button.innerHTML = "Please wait...";
+    // Get the message element
+    var message = document.getElementById("assessment-message");
+    // Set the message's text to "Please wait while we are loading your
+    // assessment..."
+    message.innerHTML = "Please wait while we load the assessment (takes ~30 seconds) ⌛. This page will update when it is ready.";
+
+    // Send a request to the server to start the assessment
+    // Should be a POST sent to "{{url_for('routes.assessment', id=assessment.id)}}"
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "{{url_for('routes.assessment', id=assessment.id)}}");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send();
+    // on response, reload the page
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        window.location.reload();
+      } else if (xhr.readyState == 4 && xhr.status != 200) {
+        // If the request failed, display an error message to the user
+        message.innerHTML = "Error: " + xhr.status + " " + xhr.statusText +
+          " while starting assessment. Please contact the administrator.";
+        
+        // Set the button's text to "Start Assessment"
+        button.innerHTML = "Start Assessment";
+      }
+    };
+
+    // // Print the response from the server to the console
+    // xhr.onload = function() {
+    //   console.log(xhr.responseText);
+    // };
+  }
+
+  // Start the function when the user clicks the button
+  // But the document should be ready before the user clicks the button
+  // so we'll use the window.onload event.
+  window.onload = function() {
+    var button = document.getElementById("start-assessment-button");
+    button.onclick = startAssessment;
+  };
+  
+</script>
+
+{% endblock head %} 
+
+{% block content_body %}
+<div class="row">
+  <div class="col-12">
+    <hr style="width: 100%" />
+    <br />
+    <div class="row align-items-end">
+      <div class="col-md-7">
+        <h1>{{assessment.name}}</h1>
+        <p>{{assessment.description}}</p>
+      </div>
+      <div class="col-md-2">
+        <img
+          src="{{badge.image}}"
+          alt="{{badge.name}}"
+          class="img-fluid img-thumbnail float-md-end"
+          style="max-height: 120px"
+        />
+      </div>
+    </div>
+    <div class="row pt-2">
+      <div class="col-md-9">
+        <div class="row">
+          <div class="col-12">
+            <hr />
+            <h2>Description</h2>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">{{assessment.long_description|safe}}</div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <hr />
+            {% if status is none %}
+            <div class="row">
+              <div class="col-auto align-self-center">
+                <button type="submit" class="btn btn-primary" id="start-assessment-button">
+                  Start Assessment
+                </button>
+              </div>
+              <div class="col-auto align-self-center">
+                <div id="assessment-message" class="text-center"></div>
+              </div>
+            </div>
+            {% elif status == "Loading" %}
+            <div class="text-center">
+              <p>Please wait while we are loading your assessment (takes ~ one minute). Refresh this page to assessment information.</p>
+            </div>
+            <form
+              class="row justify-content-between"
+              action="{{url_for('routes.assessment_delete', id=assessment.id)}}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="btn btn-warning"
+              >
+                Cancel Assessment
+              </button>
+            </form>
+            {% elif status != "Approved" %}
+            <div class="row">
+              <div class="col-auto align-self-center">
+                <span
+                  >Repo URL:
+                  <a target="_blank" href="{{github_repo}}"
+                    >{{github_repo.replace("https://www.github.com/", "") }}</a
+                  ></span
+                >
+              </div>
+            </div>
+            <div class="row pt-1">
+              <!-- Button trigger modal -->
+              <div class="col-auto">
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#quitAssessmentModal"
+                >
+                  Quit Assessment
+                </button>
+              </div>
+              <!-- Modal -->
+              <div
+                class="modal fade"
+                id="quitAssessmentModal"
+                tabindex="-1"
+                aria-labelledby="exampleModalLabel"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel">
+                        Quit assessment
+                      </h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you want to quit 
+                        "{{assessment.name}}"?<br />You will lose
+                        <strong>all data</strong> associated with this
+                        assessment. This includes:
+                      </p>
+                      <ul>
+                        <li>Your repository code</li>
+                        <li>Your checks</li>
+                        <li>Your reviews</li>
+                      </ul>
+                    </div>
+                    <div class="modal-footer">
+                      <form
+                        class="row justify-content-between"
+                        action="{{url_for('routes.assessment_delete', id=assessment.id)}}"
+                        method="POST"
+                      >
+                        <div class="form-check col-12">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            value=""
+                            id="privacy"
+                            name="privacy"
+                            required
+                          />
+                          <label class="form-check-label" for="privacy">
+                            I understand that this action is
+                            <strong>irreversible</strong> and I will
+                            <strong>not</strong> be able to recover my data.
+                          </label>
+                        </div>
+                        <br />
+                        <button
+                          type="submit"
+                          class="btn btn-danger btn-lg col-12"
+                        >
+                          Quit assessment
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <div class="row">
+                <div class="col-auto align-self-center">
+                  <button class="btn btn-success" disabled>Completed</button>
+                </div>
+                <div class="col-auto align-self-center">
+                  <span
+                    >Repo URL:
+                    <a target="_blank" href="{{github_repo}}"
+                      >{{github_repo.replace("https://www.github.com/", "") }}</a
+                    ></span
+                  >
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endblock content_body %}
+</div>

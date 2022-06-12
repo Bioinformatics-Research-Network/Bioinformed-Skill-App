@@ -1,0 +1,110 @@
+{% extends '_dashboard.html' %} {% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+  //Write a JQuery function that will detect a change in #programming_language or #completed or #available and will update the query string in the URL.
+  $(document).ready(function () {
+    $("#programming_language, #assessment_type, #show_completed").change(
+      function () {
+        console.log($("#show_completed").is(":checked"));
+        var queryString = "?";
+        queryString +=
+          "programming_language=" + $("#programming_language").val();
+        queryString += "&assessment_type=" + $("#assessment_type").val();
+        queryString += "&show_completed=" + $("#show_completed").is(":checked");
+        window.location.href =
+          '{{ url_for("routes.assessments") }}' + queryString;
+      }
+    );
+  });
+</script>
+
+{% endblock head %} {% block content_body %}
+<div class="row">
+  <div class="col-12">
+    <hr style="width: 100%" />
+    <br />
+    <div class="row">
+      <div class="col-auto">
+        <!--select programming language-->
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="programming_language"
+              >Language</label
+            >
+          </div>
+          <select class="form-control" id="programming_language">
+            {% for language in languages %} {% if language == "All" %}
+            <option value="">{{language}}</option>
+            {% else %}
+            <option value="{{language}}">{{language}}</option>
+            {% endif %} {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-auto">
+        <!--select type-->
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="assessment_type">Type</label>
+          </div>
+          <select class="form-control" id="assessment_type">
+            {% for type in types %} {% if type == "All" %}
+            <option value="">{{type}}</option>
+            {% else %}
+            <option value="{{type}}">{{type}}</option>
+            {% endif %} {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-auto">
+        <!--select available or not-->
+        <div class="form-check">
+          {% if show_completed %}
+          <input
+            type="checkbox"
+            class="form-check-input"
+            id="show_completed"
+            value="True"
+            checked
+          />
+          {% else %}
+          <input
+            type="checkbox"
+            class="form-check-input"
+            id="show_completed"
+            value="False"
+          />
+          {% endif %}
+          <label class="form-check-label" for="show_completed"
+            >Show completed assessments</label
+          >
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      {% for i in range(assessments| length) %}
+      <div class="col-lg-3 col-md-6 col-sm-9 col-xs-9">
+        <div class="card">
+          <img
+            src="{{badge_imgs[i]}}"
+            alt="{{assessments[i].name}}"
+            class="card-img-top pt-3"
+            style="max-height: 100px"
+          />
+          <div class="card-body">
+            <h5 class="card-title">{{assessments[i].name}}</h5>
+            <p class="card-text">{{assessments[i].description}}</p>
+          </div>
+          <div class="card-footer">
+            <a href="{{url_for('routes.assessment', id=assessments[i].id)}}" class="btn btn-primary">View</a>
+          </div>
+        </div>
+        <br />
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock content_body %}

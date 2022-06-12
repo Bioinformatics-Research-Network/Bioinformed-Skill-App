@@ -1,0 +1,85 @@
+<!-- templates/onboarding.html -->
+
+{% extends '_base.html' %} {% block content %}
+<body class="d-flex flex-column h-100 px-1" style="padding-top: 3%">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-6 col-sm-12 col-xs-12">
+      <div style="text-align: center">
+        <!--Our logo as a link-->
+        <a href="https://www.bioresnet.org/"
+          ><img
+            src="{{url_for('static', filename='img/logo.png')}}"
+            alt="Logo"
+            style="width: 100px"
+        /></a>
+        <br /><br />
+        <h1>Verification code sent</h1>
+        <br />
+        <p>Email sent to {{email}}</p>
+        <p>
+          Please check your email for a
+          <strong>verification code</strong>.<br />If you don't see the email,
+          check your spam folder.
+        </p>
+        <p>To send a new code, click here:</p>
+        <form
+          action="{{url_for('routes.resend_email_verification')}}"
+          class="row justify-content-center"
+          method="POST"
+        >
+          <button type="submit" class="btn btn-outline-dark col-3">
+            Resend
+          </button>
+        </form>
+        <br />
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7 col-sm-12 col-xs-12">
+      <!--Form for entering the verification code-->
+      <form
+        action="{{url_for('routes.email_verification_submit')}}"
+        class="row justify-content-center"
+        method="POST"
+      >
+        <div class="form-group col-7">
+          <input
+            type="text"
+            class="form-control"
+            id="verification_code"
+            name="verification_code"
+            placeholder="Verification code"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-outline-primary col-3">
+          Submit
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!--Footer Start-->
+  <footer class="footer mt-auto py-3 bg-light">
+    <div class="container">
+      <span
+        class="text-muted"
+        style="
+          font-size: small;
+          text-align: center;
+          display: table;
+          margin: 0 auto;
+        "
+      >
+        Copyright &copy; 2022
+        <a style="color: grey" href="https://www.bioresnet.org/"
+          >Bioinformatics Research Network</a
+        >. Made with <i class="fa fa-heart"></i> in Atlanta, GA.
+      </span>
+    </div>
+  </footer>
+  <!--Footer End-->
+</body>
+
+{% endblock content %}

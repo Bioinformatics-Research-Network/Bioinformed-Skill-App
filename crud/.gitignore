@@ -1,0 +1,23 @@
+.mypy_cache
+.coverage
+htmlcov
+.pytest_cache
+*__pycache*
+*venv*
+.pipenv
+codecov
+*/*.db
+*.db
+.vscode
+*nodesource*
+s3_data/
+.aws
+*.env*
+*.zip
+
+*cache*
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

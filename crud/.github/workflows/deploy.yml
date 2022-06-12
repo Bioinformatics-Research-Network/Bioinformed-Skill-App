@@ -1,0 +1,48 @@
+name: Build and Deploy
+
+on: workflow_dispatch
+
+env:
+  EB_PROD_ENVNAME: skill-app-crud-prod
+  PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
+  EB_CONFIG: ${{ secrets.EB_CONFIG }}
+  AWS_REGION: us-east-1
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy CRUD app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout Repository
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+          role-session-name: GitHub-Action-Role
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Set up Python 3.10 environment
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: create .prod.env file and EB config file
+        run: |
+          echo "$PROD_DOTENV" > .prod.env
+          mkdir .elasticbeanstalk
+          echo "$EB_CONFIG" > .elasticbeanstalk/config.yml
+      # Elastic Beanstalk CLI version
+      - name: Get EB CLI version
+        run: |
+          python -m pip install --upgrade pip
+          pip install awsebcli --upgrade
+          eb --version
+      # Deploy to the Elastic Beanstalk environment
+      - name: Deploy to production
+        run: |
+          zip skill-app-crud.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "*htmlcov*"
+          eb use $EB_PROD_ENVNAME && eb status $EB_PROD_ENVNAME && eb deploy --staged

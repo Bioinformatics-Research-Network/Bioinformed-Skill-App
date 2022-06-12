@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "skill-app-crud"
+version = "0.1.0"
+description = "CRUD app for skill certification for use by BRN"
+authors = ["Infrastructure Working Group <infrastructure@bioresnet.org>"]
+license = "MIT"
+packages = [
+    { include = "app" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.75.0"
+requests = "^2.27.1"
+pydantic = "^1.9.0"
+gunicorn = "^20.1.0"
+asyncio = "^3.4.3"
+SQLAlchemy = "^1.4.32"
+mailchimp-transactional = "^1.0.47"
+PyMySQL = "^1.0.2"
+SQLAlchemy-Utils = "^0.38.2"
+python-dotenv = "^0.20.0"
+uvicorn = {extras = ["standard"], version = "^0.17.6"}
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.1"
+flake8 = "^4.0.1"
+black = "^22.1.0"
+coverage = "^6.3.2"
+mypy = "^0.931"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

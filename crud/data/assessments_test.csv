@@ -1,0 +1,7 @@
+assessment_id,name,description,core_skill_areas,languages,type,release_url,prerequisites,reviewers,classroom_url
+1,Skill Assessment Tutorial (Python),Tutorial for the BRN Skill Assessment system in Python,"git,GitHub",Python,tutorial,https://github.com/Bioinformatics-Research-Network/Skill-Assessment-Tutorial-Python/releases/tag/v0.0.1a,,"1,6",https://classroom.github.com/a/9L8nMA6s
+2,Skill Assessment Tutorial (R),Tutorial for the BRN Skill Assessment system in R,"git,GitHub",R,tutorial,https://github.com/Bioinformatics-Research-Network/Skill-Assessment-Tutorial-R/releases/tag/v0.0.1a,,"1,6",https://classroom.github.com/a/fqVPuC4G
+3,R Programming I,Beginner programming assessment in R,programming,R,software,https://github.com/Bioinformatics-Research-Network/R-Programming-I/releases/tag/v0.0.1a,,"1,6",https://classroom.github.com/a/I_QIh2kb
+4,R Programming II,Intermediate programming assessment in R,"programming,unit tests",R,software,https://github.com/Bioinformatics-Research-Network/R-Programming-II/releases/tag/v0.0.1a,3,"1,6",https://classroom.github.com/a/I0x9GSYa
+5,Python Programming I,Beginner programming assessment in Python,programming,Python,software,https://github.com/Bioinformatics-Research-Network/Python-Programming-I/releases/tag/v0.0.1a,,"1,6",https://classroom.github.com/a/nULk5jlk
+6,Test,Beginner programming assessment in Python,programming,Python,software,https://github.com/Bioinformatics-Research-Network/Python-Programming-I/releases/tag/v0.0.1a,,"1,6",https://classroom.github.com/a/aCew8-kG

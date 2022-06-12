@@ -1,10 +1,13 @@
 tasks:
   - init: |
-      echo 'TODO: build project'
-    command: |
-      echo 'TODO: start app'
+      docker-compose pull
+  - command: |
+      docker-compose up
+ports:
+  - port: 9630
+    onOpen: open-browser
 vscode:
   extensions:
-    - "cweijan.vscode-mysql-client2"
-    - "ms-python.python"
-    
+    - cweijan.vscode-mysql-client2
+    - ms-python.python
+    - ms-azuretools.vscode-docker

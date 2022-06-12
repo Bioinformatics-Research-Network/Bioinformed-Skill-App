@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  web:
+    build: webui/
+    ports:
+      - "9630:8080"

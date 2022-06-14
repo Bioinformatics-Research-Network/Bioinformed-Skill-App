@@ -26,7 +26,7 @@ vscode:
     - cweijan.vscode-mysql-client2
     - ms-python.python
     - ms-azuretools.vscode-docker
-    # - GitHub.copilot
+    - GitHub.copilot
 github:
   prebuilds:
     # enable for the master/default branch (defaults to true)

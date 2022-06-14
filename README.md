@@ -1,4 +1,8 @@
 # Bioinformed-Skill-App
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App)
+
+
 Repository for the Bioinformed Skill Assessment App
 
 ## Dev environment

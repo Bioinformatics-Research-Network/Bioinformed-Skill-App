@@ -1,7 +1,7 @@
 FROM gitpod/workspace-full:latest
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip
-RUN ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+RUN sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
 RUN aws --profile default configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
 aws --profile default configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY 
 RUN aws s3 cp s3://skill-assessment-app/secrets/.env.download.sh . && ./.env.download.sh

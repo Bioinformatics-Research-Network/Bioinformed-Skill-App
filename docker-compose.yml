@@ -16,7 +16,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "root"
     healthcheck:
-      test: ["CMD-SHELL", 'mysqladmin ping']
+      test: mysql -uroot -proot -e 'show databases;'
       interval: 10s
       timeout: 2s
       retries: 10

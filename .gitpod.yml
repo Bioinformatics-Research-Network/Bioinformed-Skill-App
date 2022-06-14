@@ -1,8 +1,10 @@
+image:
+  file: .gitpod.Dockerfile
 tasks:
   - init: |
       docker-compose pull
   - command: |
-      docker-compose up
+      docker-compose up --build
 ports:
   - port: 9630
     onOpen: open-browser
@@ -11,3 +13,4 @@ vscode:
     - cweijan.vscode-mysql-client2
     - ms-python.python
     - ms-azuretools.vscode-docker
+    - GitHub.copilot

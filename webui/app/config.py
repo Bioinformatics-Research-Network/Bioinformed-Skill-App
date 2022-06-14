@@ -44,14 +44,14 @@ class Settings(BaseSettings):
     AWS_REGION: str
     AWS_PUBLIC_S3_URL: str
 
-print(os.environ.get("FLASK_ENV") )
-if os.environ.get("FLASK_ENV") == "development":
+print(os.environ.get("APP_ENV") )
+if os.environ.get("APP_ENV") == "development":
     print("Loading development settings")
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
-elif os.environ.get("FLASK_ENV") == "production":
+elif os.environ.get("APP_ENV") == "production":
     print("Loading production settings")
     settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
-elif os.environ.get("FLASK_ENV") == "testing":
+elif os.environ.get("APP_ENV") == "testing":
     print("Loading testing settings")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
 else: # pragma: no cover

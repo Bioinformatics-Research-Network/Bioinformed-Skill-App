@@ -2,7 +2,7 @@
 
 FROM python:3.10-slim-buster
 
-ENV FLASK_ENV production
+ENV APP_ENV production
 
 COPY ./requirements.txt /app/requirements.txt
 

@@ -1,5 +1,8 @@
 FROM gitpod/workspace-full:latest
 
+ENV AWS_ACCESS_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY
+
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip
 RUN sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
 RUN aws --profile default configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \

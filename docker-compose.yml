@@ -15,10 +15,16 @@ services:
       - ./db:/db
     environment:
       MYSQL_ROOT_PASSWORD: "root"
+    healthcheck:
+      test: ["CMD-SHELL", 'mysqladmin ping']
+      interval: 10s
+      timeout: 2s
+      retries: 10
   webui:
     build: webui/
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "9630:8000"
     volumes:
@@ -28,7 +34,8 @@ services:
   ghbot:
     build: ghbot/
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "7410:2000"
     volumes:
@@ -38,7 +45,8 @@ services:
   crud:
     build: crud/
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8520:2000"
     volumes:

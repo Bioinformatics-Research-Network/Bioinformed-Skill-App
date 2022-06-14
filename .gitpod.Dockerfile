@@ -8,4 +8,4 @@ RUN sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
 
 RUN pyenv install 3.10.4
 RUN pyenv global 3.10.4
-RUN python -m venv venv && source venv/bin/activate && pip install --upgrade -r requirements.txt 
+RUN python -m venv venv && . venv/bin/activate && pip install --upgrade -r requirements.txt 

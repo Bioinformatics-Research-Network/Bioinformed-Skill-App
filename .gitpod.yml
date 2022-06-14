@@ -1,8 +1,14 @@
-image:
-  file: .gitpod.Dockerfile
-ports:
-  - port: 9630
-    onOpen: open-browser
+tasks:
+  - name: Terminal 1
+    before: echo "AIDOASOIAS213"
+    init: echo 'Hello world!'
+    command: echo "ASDSAD"
+  - name: Terminal 2
+    init: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip
+    command: sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+  - name: Terminal 3
+    init: pyenv install 3.10.4 && pyenv global 3.10.4
+    command: python -m venv venv && source venv/bin/activate && pip install --upgrade -r requirements.txt 
 vscode:
   extensions:
     - cweijan.vscode-mysql-client2

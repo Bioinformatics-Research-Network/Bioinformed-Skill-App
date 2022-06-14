@@ -4,6 +4,9 @@ tasks:
       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
       unzip awscliv2.zip
       sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+    command: |
+      aws --profile default configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+      aws --profile default configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY 
   - name: Pyenv install python
     init: |
       pyenv install 3.10.4
@@ -11,6 +14,7 @@ tasks:
       python -m venv venv
       source venv/bin/activate
       pip install --upgrade -r requirements.txt 
+      echo "Prebuild is almost ready -- please be patient..."
     command: |
       source venv/bin/activate
 vscode:

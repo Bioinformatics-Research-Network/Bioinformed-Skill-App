@@ -30,7 +30,7 @@ services:
     volumes:
       - ./webui:/app
     environment:
-      FLASK_ENV: development
+      APP_ENV: development
   ghbot:
     build: ghbot/
     depends_on:

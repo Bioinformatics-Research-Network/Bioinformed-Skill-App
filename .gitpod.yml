@@ -1,11 +1,10 @@
 tasks:
-  - name: Terminal 1
+  - name: AWS install
     init: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip
     command: sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
-  - name: Terminal 3
-    init: echo "HEllo world"
-    # init: pyenv install 3.10.4 && pyenv global 3.10.4
-    # command: python -m venv venv && source venv/bin/activate && pip install --upgrade -r requirements.txt 
+  - name: Main terminal
+    init: pyenv install 3.10.4 && pyenv global 3.10.4
+    command: python -m venv venv && source venv/bin/activate && pip install --upgrade -r requirements.txt 
 vscode:
   extensions:
     - cweijan.vscode-mysql-client2

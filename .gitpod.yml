@@ -1,5 +1,4 @@
-image: 
-  file: .gitpod.Dockerfile
+image: gitpod/workspace-python-3.10
 tasks:
   - name: AWS install, configure, get secrets
     init: |
@@ -15,8 +14,6 @@ tasks:
       bash .env.download.sh
   - name: Pyenv install python
     init: |
-      # pyenv install 3.10.4
-      # pyenv local 3.10.4
       python -m venv venv
       source venv/bin/activate
       pip install --upgrade -r requirements.txt 

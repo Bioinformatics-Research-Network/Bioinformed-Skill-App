@@ -1,7 +1,7 @@
 image: gitpod/workspace-python-3.10
 tasks:
-  - before: printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc && exit
   - name: AWS install, configure, get secrets
+    before: printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc && exit
     init: |
       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
       unzip awscliv2.zip
@@ -15,6 +15,7 @@ tasks:
       aws s3 cp s3://skill-assessment-app/secrets/.env.download.sh .
       bash .env.download.sh
   - name: Pyenv install python
+    before: printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc && exit
     init: |
       python -m venv venv
       source venv/bin/activate

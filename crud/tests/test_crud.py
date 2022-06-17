@@ -5,7 +5,6 @@ import pytest
 import copy
 from app import crud, utils
 import app.db.models as models
-import app.api.schemas as schemas
 from app.dependencies import settings
 from sqlalchemy.exc import IntegrityError
 import time

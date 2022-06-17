@@ -1,9 +1,7 @@
-from urllib import response
 import random
 import string
 import requests
 import copy
-from time import sleep
 
 # Set the app environment to "testing" using os
 import os
@@ -266,7 +264,7 @@ def test_check():
 
     # Second person on the repo can request a check
     payload2 = copy.deepcopy(payload)
-    payload2["sender"]["login"] = "millerh1"
+    payload2["sender"]["login"] = "brnbot2"
     assert bot.process_cmd(payload2, access_tokens=access_tokens)
 
 
@@ -319,16 +317,3 @@ def test_review():
         reviewer_response.json()["users"][0]["login"]
         == response.json()["reviewer_username"]
     )
-
-
-def test_approve():
-    """
-    Test the bot's approve command
-    """
-    # Successful approve command
-    payload["comment"]["body"] = "@brnbot approve"
-    payload2 = copy.deepcopy(payload)
-    payload2["sender"]["login"] = "millerh1"
-    response = bot.process_cmd(payload2, access_tokens=access_tokens)
-    assert response.status_code == 200
-    assert response.json() == {"Assessment Approved": True}

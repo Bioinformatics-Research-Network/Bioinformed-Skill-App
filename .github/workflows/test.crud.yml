@@ -11,14 +11,24 @@ on:
 defaults:
   run:
     working-directory: crud
-env:
-  TEST_DOTENV: ${{ secrets.CRUD_TEST_DOTENV }}
 jobs:
   tests:
     name: Test CRUD
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
     steps:
       - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_TEST_DEPLOY }}
+          role-session-name: GitHub-Action-Role
+          aws-region: us-east-1
+      - name: Download .env
+        run:
+          cd ../
+          aws s3 cp s3://bioinformed-skill-app/secrets/.env.download.sh .
+          bash .env.download.sh
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -27,9 +37,6 @@ jobs:
       - name: Pip install
         run: |
           pip install -r requirements.txt
-      - name: create .test.env file 
-        run: |
-          echo "$TEST_DOTENV" > .test.env
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -40,7 +47,7 @@ jobs:
         run: |
           python -m coverage run -m pytest
           if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
-          python -m coverage report -m --fail-under=85
+          python -m coverage report
           python -m coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

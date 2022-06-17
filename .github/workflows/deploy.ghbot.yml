@@ -24,7 +24,7 @@ jobs:
         name: Checkout Repository
       - uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+          role-to-assume: ${{ secrets.IAM_ROLE_TEST_DEPLOY }}
           role-session-name: GitHub-Action-Role
           aws-region: ${{ env.AWS_REGION }}
 

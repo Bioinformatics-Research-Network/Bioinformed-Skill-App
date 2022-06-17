@@ -7,21 +7,27 @@ on:
     branches:
       - main
   workflow_dispatch:
-env:
-  TEST_DOTENV: ${{ secrets.GHBOT_TEST_DOTENV }}
+defaults:
+  run:
+    working-directory: ghbot
 jobs:
   tests:
     name: Test GHBot
     runs-on: ubuntu-latest
     env:
-      BOT_KEY: ${{ secrets.BOT_KEY_DEV }}
-      APP_ID: ${{ secrets.APP_ID_DEV }}
-      BOT_KEY_PATH: bot_key_test.pem
-    defaults:
-      run:
-        shell: bash -l {0}
+      APP_ENV: testing
     steps:
       - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_TEST_DEPLOY }}
+          role-session-name: GitHub-Action-Role
+          aws-region: us-east-1
+      - name: Download .env
+        run:
+          cd ../
+          aws s3 cp s3://bioinformed-skill-app/secrets/.env.download.sh .
+          bash .env.download.sh
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -30,9 +36,6 @@ jobs:
       - name: Pip install
         run: |
           pip install -r requirements.txt
-      - name: create .test.env file 
-        run: |
-          echo "$TEST_DOTENV" > .test.env 
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names

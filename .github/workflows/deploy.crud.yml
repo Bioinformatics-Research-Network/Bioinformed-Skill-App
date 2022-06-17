@@ -4,9 +4,7 @@ on: workflow_dispatch
 
 env:
   EB_PROD_ENVNAME: skill-app-crud-prod
-  PROD_DOTENV: ${{ secrets.CRUD_PROD_DOTENV }}
   EB_CONFIG: ${{ secrets.EB_CONFIG }}
-  AWS_REGION: us-east-1
 permissions:
   id-token: write
   contents: read
@@ -23,9 +21,9 @@ jobs:
         name: Checkout Repository
       - uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+          role-to-assume: ${{ secrets.IAM_ROLE_TEST_DEPLOY }}
           role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:

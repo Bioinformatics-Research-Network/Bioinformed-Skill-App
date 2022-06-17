@@ -28,7 +28,7 @@ jobs:
           role-session-name: GitHub-Action-Role
           aws-region: us-east-1
       - name: Download .env
-        run:
+        run: |
           cd ../
           aws s3 cp s3://bioinformed-skill-app/secrets/.env.download.sh .
           bash .env.download.sh

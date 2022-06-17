@@ -1,7 +1,6 @@
 image: gitpod/workspace-python-3.10
 tasks:
   - name: AWS install, configure, get secrets
-    before: printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc && exit
     init: |
       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
       unzip awscliv2.zip
@@ -9,20 +8,21 @@ tasks:
       rm -r aws/
       rm awscliv2.zip
     command: |
-      source ~/.bashrc
+      printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc
+      source $HOME/.bashrc
       aws --profile default configure set aws_access_key_id $AWS_ACCESS_KEY_ID
       aws --profile default configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY 
       aws s3 cp s3://skill-assessment-app/secrets/.env.download.sh .
       bash .env.download.sh
   - name: Pyenv install python
-    before: printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc && exit
     init: |
       python -m venv venv
       source venv/bin/activate
       pip install --upgrade -r requirements.txt 
       echo "Prebuild is almost ready -- please be patient..."
     command: |
-      source ~/.bashrc
+      printf 'export PATH="%s:$PATH"\n' "/workspace/bin" >> $HOME/.bashrc
+      source $HOME/.bashrc
       source venv/bin/activate
 vscode:
   extensions:

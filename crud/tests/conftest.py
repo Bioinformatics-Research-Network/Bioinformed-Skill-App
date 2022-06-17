@@ -37,26 +37,3 @@ def client() -> Generator:
     with TestClient(app) as client:
         yield client
 
-
-def pytest_sessionstart(session):
-    """
-    Called after the Session object has been created and
-    before performing collection and entering the run test loop.
-    """
-    print("Session start")
-    # Drop all tables
-    Base.metadata.drop_all(engine)
-    # Create all tables
-    Base.metadata.create_all(engine)
-    # Create all tables tests/test_data.py
-    with SessionLocal() as session:
-        session.add_all(test_users)
-        session.commit()
-        session.add_all(test_reviewers)
-        session.commit()
-        session.add_all(test_assessments)
-        session.commit()
-        session.add_all(test_at)
-        session.commit()
-        session.add_all(test_badges)
-        session.commit()

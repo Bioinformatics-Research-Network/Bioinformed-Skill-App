@@ -80,26 +80,6 @@ SQLALCHEMY_DATABASE_URI = (
 engine = create_engine(SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# If testing, delete and then create the database
-if os.environ.get("APP_ENV") == "testing":  # pragma: no cover
-    # Drop all tables
-    Base.metadata.drop_all(engine)
-    # Create all tables
-    Base.metadata.create_all(engine)
-    # Create all tables tests/test_data.py
-    with SessionLocal() as session:
-        session.add_all(test_users)
-        session.commit()
-        session.add_all(test_reviewers)
-        session.commit()
-        session.add_all(test_assessments)
-        session.commit()
-        session.add_all(test_at)
-        session.commit()
-        session.add_all(test_badges)
-        session.commit()
-
-
 # to get local DB
 def get_db():
     """

@@ -57,12 +57,15 @@ def get_reviewer_by_username(db: Session, username: str):
 
     :raises: ValueError if reviewer does not exist.
     """
+    print("E")
     user_id = get_user_by_username(db=db, username=username).id
+    print("F")
     reviewer = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.user_id == user_id)
         .first()
     )
+    print("G")
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
 

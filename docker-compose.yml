@@ -11,8 +11,6 @@ services:
         MYSQL_PROD_DATABASE: ${MYSQL_PROD_DATABASE}
     ports:
       - "3306:3306"
-    volumes:
-      - ./db:/db
     environment:
       MYSQL_ROOT_PASSWORD: "root"
     healthcheck:

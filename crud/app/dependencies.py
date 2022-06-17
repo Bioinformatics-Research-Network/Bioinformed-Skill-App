@@ -2,14 +2,6 @@ from functools import lru_cache
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-from app.db.models import Base
-from app.db.test_data import (
-    test_users,
-    test_reviewers,
-    test_assessments,
-    test_at,
-    test_badges,
-)
 from pydantic import BaseSettings
 
 

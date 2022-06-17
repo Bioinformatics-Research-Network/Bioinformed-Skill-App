@@ -44,158 +44,161 @@ def test_get_user_by_id(db: Session):
 def test_get_reviewer_by_username(db: Session):
 
     # get a valid reviewer
+    print("A")
     reviewer = db.query(models.Reviewers).first()
-
+    print("B")
     # Success
     reviewer = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.id == reviewer.id)
         .first()
     )
+    print("C")
     username = (
         db.query(models.Users)
         .filter(models.Users.id == reviewer.user_id)
         .with_entities(models.Users.username)
         .scalar()
     )
+    print("D")
     reviewer_id = crud.get_reviewer_by_username(db=db, username=username).id
     assert reviewer_id == reviewer.id
 
-    # Unsuccessful - reviewer does not exist as a user
-    with pytest.raises(ValueError) as exc:
-        crud.get_reviewer_by_username(db=db, username="")
-    assert "User name does not exist" in str(exc.value)
+    # # Unsuccessful - reviewer does not exist as a user
+    # with pytest.raises(ValueError) as exc:
+    #     crud.get_reviewer_by_username(db=db, username="")
+    # assert "User name does not exist" in str(exc.value)
 
-    # Unsuccessful - selected reviewer is a user but not a reviewer
-    # First, get all reviewers
-    reviewers = db.query(models.Reviewers).all()
-    # Then, get a random user who is not in the list of reviewers
-    user = (
-        db.query(models.Users)
-        .filter(
-            models.Users.id.notin_([reviewer.user_id for reviewer in reviewers])
-        )
-        .first()
-    )
-    # Raise an error when attempting to get a reviewer by username
-    with pytest.raises(ValueError) as exc:
-        crud.get_reviewer_by_username(db=db, username=user.username)
-    assert "Reviewer does not exist" in str(exc.value)
-
-
-def test_get_reviewer_by_id(db: Session):
-
-    # get a valid reviewer
-    reviewer = db.query(models.Reviewers).first()
-
-    # Success
-    id = crud.get_reviewer_by_id(db=db, reviewer_id=reviewer.id).id
-    assert id == reviewer.id
-
-    # Unsuccessful
-    with pytest.raises(ValueError) as exc:
-        crud.get_reviewer_by_id(db=db, reviewer_id=0)
-
-    assert "Reviewer does not exist" in str(exc.value)
+    # # Unsuccessful - selected reviewer is a user but not a reviewer
+    # # First, get all reviewers
+    # reviewers = db.query(models.Reviewers).all()
+    # # Then, get a random user who is not in the list of reviewers
+    # user = (
+    #     db.query(models.Users)
+    #     .filter(
+    #         models.Users.id.notin_([reviewer.user_id for reviewer in reviewers])
+    #     )
+    #     .first()
+    # )
+    # # Raise an error when attempting to get a reviewer by username
+    # with pytest.raises(ValueError) as exc:
+    #     crud.get_reviewer_by_username(db=db, username=user.username)
+    # assert "Reviewer does not exist" in str(exc.value)
 
 
-def test_get_assessment_by_name(db: Session):
+# def test_get_reviewer_by_id(db: Session):
 
-    # get a valid assessment
-    assessment = db.query(models.Assessments).first()
+#     # get a valid reviewer
+#     reviewer = db.query(models.Reviewers).first()
 
-    # Success
-    assessment_q = crud.get_assessment_by_name(
-        db=db, assessment_name=assessment.name
-    )
-    assert assessment_q.id == assessment.id
-    assert assessment_q.name == assessment.name
+#     # Success
+#     id = crud.get_reviewer_by_id(db=db, reviewer_id=reviewer.id).id
+#     assert id == reviewer.id
 
-    # Unsuccessful
-    with pytest.raises(ValueError) as exc:
-        crud.get_assessment_by_name(db=db, assessment_name="")
-    assert "Assessment does not exist" in str(exc.value)
+#     # Unsuccessful
+#     with pytest.raises(ValueError) as exc:
+#         crud.get_reviewer_by_id(db=db, reviewer_id=0)
+
+#     assert "Reviewer does not exist" in str(exc.value)
 
 
-def test_get_assessment_by_id(db: Session):
+# def test_get_assessment_by_name(db: Session):
 
-    # get a valid assessment
-    assessment = db.query(models.Assessments).first()
+#     # get a valid assessment
+#     assessment = db.query(models.Assessments).first()
 
-    # Success
-    assessment_q = crud.get_assessment_by_id(db=db, assessment_id=assessment.id)
-    assert assessment_q.id == assessment.id
+#     # Success
+#     assessment_q = crud.get_assessment_by_name(
+#         db=db, assessment_name=assessment.name
+#     )
+#     assert assessment_q.id == assessment.id
+#     assert assessment_q.name == assessment.name
 
-    # Unsuccessful
-    with pytest.raises(ValueError) as exc:
-        crud.get_assessment_by_id(db=db, assessment_id=0)
-
-    assert "Assessment ID does not exist" in str(exc.value)
-
-
-def test_get_assessment_tracker_entry(db: Session):
-
-    # get a valid assessment
-    assessment = db.query(models.Assessments).first()
-
-    # Get a valid user
-    user = db.query(models.Users).first()
-
-    # Successful query
-    tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.id, assessment_id=assessment.id
-    )
-    assert tracker_entry.user_id == user.id
-    assert tracker_entry.assessment_id == assessment.id
-
-    # Unsuccessful query
-    user_id = 0
-    with pytest.raises(ValueError) as exc:
-        crud.get_assessment_tracker_entry(
-            db=db, user_id=user_id, assessment_id=assessment.id
-        )
-    assert "Assessment tracker entry unavailable." in str(exc.value)
+#     # Unsuccessful
+#     with pytest.raises(ValueError) as exc:
+#         crud.get_assessment_by_name(db=db, assessment_name="")
+#     assert "Assessment does not exist" in str(exc.value)
 
 
-def test_init_assessment_tracker(db: Session):
+# def test_get_assessment_by_id(db: Session):
 
-    # get a valid assessment
-    assessment = db.query(models.Assessments).first()
+#     # get a valid assessment
+#     assessment = db.query(models.Assessments).first()
 
-    # Get a valid user
-    user = db.query(models.Users).first()
+#     # Success
+#     assessment_q = crud.get_assessment_by_id(db=db, assessment_id=assessment.id)
+#     assert assessment_q.id == assessment.id
 
-    commit = "".join(
-        random.choices(string.ascii_uppercase + string.digits, k=10)
-    )
+#     # Unsuccessful
+#     with pytest.raises(ValueError) as exc:
+#         crud.get_assessment_by_id(db=db, assessment_id=0)
 
-    # Check if the assessment tracker entry exists
-    try:
-        tracker_entry = crud.get_assessment_tracker_entry(
-            db=db, user_id=user.id, assessment_id=assessment.id
-        )
-        db.delete(tracker_entry)
-        db.commit()
-    except ValueError:
-        print("Assessment tracker entry does not exist... creating.")
+#     assert "Assessment ID does not exist" in str(exc.value)
 
-    # Init assessment tracker
-    initiate_assessment = crud.create_assessment_tracker_entry(
-        db=db, user_id=user.id, assessment_id=assessment.id, commit=commit
-    )
 
-    assert initiate_assessment
+# def test_get_assessment_tracker_entry(db: Session):
 
-    # Get the entry
-    assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.id, assessment_id=assessment.id
-    )
+#     # get a valid assessment
+#     assessment = db.query(models.Assessments).first()
 
-    # Check that the entry is correct
-    assert assessment_tracker_entry.status == "Pre-assessment"
-    assert assessment_tracker_entry.assessment_id == assessment.id
-    assert assessment_tracker_entry.user_id == user.id
-    assert assessment_tracker_entry.latest_commit == commit
+#     # Get a valid user
+#     user = db.query(models.Users).first()
+
+#     # Successful query
+#     tracker_entry = crud.get_assessment_tracker_entry(
+#         db=db, user_id=user.id, assessment_id=assessment.id
+#     )
+#     assert tracker_entry.user_id == user.id
+#     assert tracker_entry.assessment_id == assessment.id
+
+#     # Unsuccessful query
+#     user_id = 0
+#     with pytest.raises(ValueError) as exc:
+#         crud.get_assessment_tracker_entry(
+#             db=db, user_id=user_id, assessment_id=assessment.id
+#         )
+#     assert "Assessment tracker entry unavailable." in str(exc.value)
+
+
+# def test_init_assessment_tracker(db: Session):
+
+#     # get a valid assessment
+#     assessment = db.query(models.Assessments).first()
+
+#     # Get a valid user
+#     user = db.query(models.Users).first()
+
+#     commit = "".join(
+#         random.choices(string.ascii_uppercase + string.digits, k=10)
+#     )
+
+#     # Check if the assessment tracker entry exists
+#     try:
+#         tracker_entry = crud.get_assessment_tracker_entry(
+#             db=db, user_id=user.id, assessment_id=assessment.id
+#         )
+#         db.delete(tracker_entry)
+#         db.commit()
+#     except ValueError:
+#         print("Assessment tracker entry does not exist... creating.")
+
+#     # Init assessment tracker
+#     initiate_assessment = crud.create_assessment_tracker_entry(
+#         db=db, user_id=user.id, assessment_id=assessment.id, commit=commit
+#     )
+
+#     assert initiate_assessment
+
+#     # Get the entry
+#     assessment_tracker_entry = crud.get_assessment_tracker_entry(
+#         db=db, user_id=user.id, assessment_id=assessment.id
+#     )
+
+#     # Check that the entry is correct
+#     assert assessment_tracker_entry.status == "Pre-assessment"
+#     assert assessment_tracker_entry.assessment_id == assessment.id
+#     assert assessment_tracker_entry.user_id == user.id
+#     assert assessment_tracker_entry.latest_commit == commit
 
 
 # def test_select_reviewer(db: Session):

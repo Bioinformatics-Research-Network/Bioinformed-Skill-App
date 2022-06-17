@@ -4,16 +4,6 @@ import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
 from main import app
-
-from app.dependencies import engine, SessionLocal
-from app.db.test_data import (
-    test_users,
-    test_reviewers,
-    test_assessments,
-    test_at,
-    test_badges,
-)
-from app.db.models import Base
 from app.dependencies import get_db, get_settings, Settings
 
 

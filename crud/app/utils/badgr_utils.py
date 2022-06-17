@@ -60,6 +60,7 @@ def get_assertion(
         "Authorization": "Bearer " + bearer_token,
     }
 
+    print(url)
     response = requests.request("GET", url, headers=headers)
     return response
 
@@ -264,6 +265,7 @@ def issue_badge(
     """
     # Get the URL for the badge, based on assessment name
     print(1)
+    print(config.BADGE_IDs[assessment_name])
     url = (
         config.BADGR_BASE_URL
         + "/v2/badgeclasses/"

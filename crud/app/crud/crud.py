@@ -510,6 +510,7 @@ def add_assertion(
     :param entry_id: Assessment tracker entry id
     :param assertion: Assertion to add
     """
+    print(assertion["badgeclass"])
     badge = (
         db.query(models.Badges)
         .filter(models.Badges.entityId == assertion["badgeclass"])

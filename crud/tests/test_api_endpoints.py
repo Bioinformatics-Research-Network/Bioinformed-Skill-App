@@ -44,9 +44,8 @@ def test_init(client: TestClient, db: Session):
 
     # Error for initializing with an incorrect username
     request_json = {
-        "assessment_name": assessment_name,
-        "latest_commit": commit,
-        "username": "error",
+        "user_id": 0,
+        "assessment_id": assessment.id,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
@@ -55,9 +54,8 @@ def test_init(client: TestClient, db: Session):
     # Error for initializing with an incorrect assessment name
     username = crud.get_user_by_id(db, 2).username
     request_json = {
-        "assessment_name": "error",
-        "latest_commit": commit,
-        "username": username,
+        "user_id": user.id,
+        "assessment_id": 0,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422

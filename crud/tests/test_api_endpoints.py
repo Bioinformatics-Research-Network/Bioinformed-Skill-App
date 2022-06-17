@@ -221,7 +221,7 @@ def test_approve(client: TestClient, db: Session):
     # Produces error because badge is for testenv but does not exist in db
     # TODO: Fix this so that it can fully pass
     assert response.status_code == 422
-    assert response.json() == "Badge does not exist in database"
+    assert response.json() == {'detail': 'Badge does not exist in database'}
 
 
 def test_update(client: TestClient, db: Session):

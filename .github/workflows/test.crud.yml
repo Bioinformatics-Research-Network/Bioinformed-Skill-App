@@ -11,6 +11,9 @@ on:
 defaults:
   run:
     working-directory: crud
+permissions:
+  id-token: write
+  contents: read
 jobs:
   tests:
     name: Test CRUD

@@ -9,20 +9,18 @@ import app.api.schemas as schemas
 from app.dependencies import settings
 from sqlalchemy.exc import IntegrityError
 
+
 def test_get_user_by_username(db: Session):
 
     # Get a valid user
-    user = (
-        db.query(models.Users)
-        .first()
-    )
+    user = db.query(models.Users).first()
 
-    ## Success
+    # Success
     print(user)
     username = crud.get_user_by_username(db=db, username=user.username).username
     assert username == user.username
 
-    ## Unsuccessful
+    # Unsuccessful
     with pytest.raises(ValueError) as exc:
         crud.get_user_by_username(db=db, username="")
     assert "User name does not exist" in str(exc.value)
@@ -31,16 +29,13 @@ def test_get_user_by_username(db: Session):
 def test_get_user_by_id(db: Session):
 
     # Get a valid user
-    user = (
-        db.query(models.Users)
-        .first()
-    )
+    user = db.query(models.Users).first()
 
-    ## Success
+    # Success
     id = crud.get_user_by_id(db=db, user_id=user.id).id
     assert id == user.id
 
-    ## Unsuccessful
+    # Unsuccessful
     with pytest.raises(ValueError) as exc:
         crud.get_user_by_id(db=db, user_id=0)
     assert "User ID does not exist" in str(exc.value)
@@ -49,12 +44,9 @@ def test_get_user_by_id(db: Session):
 def test_get_reviewer_by_username(db: Session):
 
     # get a valid reviewer
-    reviewer = (
-        db.query(models.Reviewers)
-        .first()
-    )
+    reviewer = db.query(models.Reviewers).first()
 
-    ## Success
+    # Success
     reviewer = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.id == reviewer.id)
@@ -69,21 +61,20 @@ def test_get_reviewer_by_username(db: Session):
     reviewer_id = crud.get_reviewer_by_username(db=db, username=username).id
     assert reviewer_id == reviewer.id
 
-    ## Unsuccessful - reviewer does not exist as a user
+    # Unsuccessful - reviewer does not exist as a user
     with pytest.raises(ValueError) as exc:
         crud.get_reviewer_by_username(db=db, username="")
     assert "User name does not exist" in str(exc.value)
 
-    ## Unsuccessful - selected reviewer is a user but not a reviewer
+    # Unsuccessful - selected reviewer is a user but not a reviewer
     # First, get all reviewers
-    reviewers = (
-        db.query(models.Reviewers)
-        .all()
-    )
+    reviewers = db.query(models.Reviewers).all()
     # Then, get a random user who is not in the list of reviewers
     user = (
         db.query(models.Users)
-        .filter(models.Users.id.notin_([reviewer.user_id for reviewer in reviewers]))
+        .filter(
+            models.Users.id.notin_([reviewer.user_id for reviewer in reviewers])
+        )
         .first()
     )
     # Raise an error when attempting to get a reviewer by username
@@ -95,16 +86,13 @@ def test_get_reviewer_by_username(db: Session):
 def test_get_reviewer_by_id(db: Session):
 
     # get a valid reviewer
-    reviewer = (
-        db.query(models.Reviewers)
-        .first()
-    )
+    reviewer = db.query(models.Reviewers).first()
 
-    ## Success
+    # Success
     id = crud.get_reviewer_by_id(db=db, reviewer_id=reviewer.id).id
     assert id == reviewer.id
 
-    ## Unsuccessful
+    # Unsuccessful
     with pytest.raises(ValueError) as exc:
         crud.get_reviewer_by_id(db=db, reviewer_id=0)
 
@@ -114,17 +102,16 @@ def test_get_reviewer_by_id(db: Session):
 def test_get_assessment_by_name(db: Session):
 
     # get a valid assessment
-    assessment = (
-        db.query(models.Assessments)
-        .first()
-    )
+    assessment = db.query(models.Assessments).first()
 
-    ## Success
-    assessment_q = crud.get_assessment_by_name(db=db, assessment_name=assessment.name)
+    # Success
+    assessment_q = crud.get_assessment_by_name(
+        db=db, assessment_name=assessment.name
+    )
     assert assessment_q.id == assessment.id
     assert assessment_q.name == assessment.name
 
-    ## Unsuccessful
+    # Unsuccessful
     with pytest.raises(ValueError) as exc:
         crud.get_assessment_by_name(db=db, assessment_name="")
     assert "Assessment does not exist" in str(exc.value)
@@ -133,16 +120,13 @@ def test_get_assessment_by_name(db: Session):
 def test_get_assessment_by_id(db: Session):
 
     # get a valid assessment
-    assessment = (
-        db.query(models.Assessments)
-        .first()
-    )
+    assessment = db.query(models.Assessments).first()
 
-    ## Success
+    # Success
     assessment_q = crud.get_assessment_by_id(db=db, assessment_id=assessment.id)
     assert assessment_q.id == assessment.id
 
-    ## Unsuccessful
+    # Unsuccessful
     with pytest.raises(ValueError) as exc:
         crud.get_assessment_by_id(db=db, assessment_id=0)
 
@@ -151,27 +135,20 @@ def test_get_assessment_by_id(db: Session):
 
 def test_get_assessment_tracker_entry(db: Session):
 
-    
     # get a valid assessment
-    assessment = (
-        db.query(models.Assessments)
-        .first()
-    )
+    assessment = db.query(models.Assessments).first()
 
     # Get a valid user
-    user = (
-        db.query(models.Users)
-        .first()
-    )
+    user = db.query(models.Users).first()
 
-    ## Successful query
+    # Successful query
     tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
     )
     assert tracker_entry.user_id == user.id
     assert tracker_entry.assessment_id == assessment.id
 
-    ## Unsuccessful query
+    # Unsuccessful query
     user_id = 0
     with pytest.raises(ValueError) as exc:
         crud.get_assessment_tracker_entry(
@@ -181,20 +158,16 @@ def test_get_assessment_tracker_entry(db: Session):
 
 
 def test_init_assessment_tracker(db: Session):
-    
+
     # get a valid assessment
-    assessment = (
-        db.query(models.Assessments)
-        .first()
-    )
+    assessment = db.query(models.Assessments).first()
 
     # Get a valid user
-    user = (
-        db.query(models.Users)
-        .first()
+    user = db.query(models.Users).first()
+
+    commit = "".join(
+        random.choices(string.ascii_uppercase + string.digits, k=10)
     )
-    
-    commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
     # Check if the assessment tracker entry exists
     try:
@@ -230,13 +203,13 @@ def test_init_assessment_tracker(db: Session):
 #         db=db, entry_id=1
 #     )
 
-#     ## Success
+#     # Success
 #     reviewer = crud.select_reviewer(
 #         db=db, assessment_tracker_entry=assessment_tracker_entry
 #     )
 #     assert reviewer.user_id != assessment_tracker_entry.user_id
 
-#     ## Success with no invalid reviewers
+#     # Success with no invalid reviewers
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
 #         db=db, entry_id=7
 #     )
@@ -249,7 +222,7 @@ def test_init_assessment_tracker(db: Session):
 # def test_approve_assessment(
 #     db: Session,
 # ):
-#     ## Successful approval
+#     # Successful approval
 #     trainee = crud.get_user_by_id(db=db, user_id=1)
 #     a = trainee.__repr__  # Gets repr of user object
 #     assert a is not None
@@ -289,8 +262,8 @@ def test_init_assessment_tracker(db: Session):
 #     )
 #     assert assessment_tracker_entry.status == "Approved"
 
-#     ## Unsuccessful approval
-#     ## Due to not being under review
+#     # Unsuccessful approval
+#     # Due to not being under review
 #     assessment = crud.get_assessment_by_id(db=db, assessment_id=5)
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry(
 #         db=db, user_id=trainee.id, assessment_id=5
@@ -306,7 +279,7 @@ def test_init_assessment_tracker(db: Session):
 #         )
 #     assert "Assessment is not under review." in str(exc.value)
 
-#     ## Dut to no reviewer assigned
+#     # Dut to no reviewer assigned
 #     assessment_tracker_entry.status = "Under review"
 #     assessment_tracker_entry.reviewer_id = None
 #     db.commit()
@@ -337,8 +310,8 @@ def test_init_assessment_tracker(db: Session):
 #     assert assessment_tracker_entry.assessment_id == 5
 #     assert assessment_tracker_entry.user_id == 1
 
-#     ## Unsuccessful approval
-#     ## Due to checks failing
+#     # Unsuccessful approval
+#     # Due to checks failing
 #     # Refresh status to be "Under review"
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
 #         db=db, entry_id=6
@@ -379,8 +352,8 @@ def test_init_assessment_tracker(db: Session):
 #         )
 #     assert "Last commit checks failed." in str(exc.value)
 
-#     ## Unsuccessful approval
-#     ## Due to reviewer being same as trainee
+#     # Unsuccessful approval
+#     # Due to reviewer being same as trainee
 #     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=2)
 #     reviewer_username = crud.get_user_by_id(db=db, user_id=reviewer.user_id).username
 #     with pytest.raises(ValueError) as exc:
@@ -393,8 +366,8 @@ def test_init_assessment_tracker(db: Session):
 #         )
 #     assert "Reviewer cannot be the same as the trainee." in str(exc.value)
 
-#     ## Unsuccessful approval
-#     ## Due to reviewer being different from the assessment tracker record
+#     # Unsuccessful approval
+#     # Due to reviewer being different from the assessment tracker record
 #     # Update logs to pass checks
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
 #         db=db, entry_id=6
@@ -436,7 +409,8 @@ def test_init_assessment_tracker(db: Session):
 #     # Get assertion from badgr
 #     bt = utils.get_bearer_token(config=settings)
 #     resp = utils.get_assertion(
-#         assessment_name="Test", user_email="nicole_cayer3@gmail.com", bearer_token=bt, config=settings
+#         assessment_name="Test", user_email="nicole_cayer3@gmail.com",
+#         bearer_token=bt, config=settings
 #     )
 #     assert resp.status_code == 200
 #     assert resp.json()["status"] == {'description': 'ok', 'success': True}
@@ -445,7 +419,7 @@ def test_init_assessment_tracker(db: Session):
 
 #     # Change entity ID
 #     assertion["entityId"] = "ABC"
-    
+
 #     # Add assertion
 #     res = crud.add_assertion(
 #         db=db, settings=settings, assertion=assertion, entry_id=6
@@ -478,7 +452,8 @@ def test_init_assessment_tracker(db: Session):
 #             db=db, settings=settings, assertion=assertion2, entry_id=6
 #         )
 
-#     # Add a second assertion where the expires field is set in %Y-%m-%dT%H:%M:%SZ format
+#     # Add a second assertion where the expires field is set
+#     # in %Y-%m-%dT%H:%M:%SZ format
 #     assertion2 = copy.deepcopy(assertion)
 #     assertion2["expires"] = "2020-01-01T00:00:00Z"
 #     assertion2["entityId"] = "ABCDEF"
@@ -487,7 +462,8 @@ def test_init_assessment_tracker(db: Session):
 #     )
 #     assert res
 
-#     # Add a second assertion where the recipient identity is set to 'url' instead of email
+#     # Add a second assertion where the recipient identity is set to 'url'
+#     # instead of email
 #     assertion2 = copy.deepcopy(assertion)
 #     assertion2["recipient"]["type"] = "url"
 #     # Drop recipient salt
@@ -528,8 +504,8 @@ def test_init_assessment_tracker(db: Session):
 #     logs = list(assessment_tracker_entry.log)
 #     assert logs[-1]["Test update log"]
 
-#     ## Unsuccessful update
-#     ## Due to incorrect assessment tracker ID
+#     # Unsuccessful update
+#     # Due to incorrect assessment tracker ID
 #     with pytest.raises(ValueError) as exc:
 #         crud.update_assessment_log(
 #             db=db,

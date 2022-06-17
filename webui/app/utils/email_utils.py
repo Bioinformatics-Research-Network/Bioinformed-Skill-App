@@ -9,7 +9,9 @@ import mailchimp_transactional as MailchimpTransactional
 from mailchimp_transactional.api_client import ApiClientError
 
 
-def send_email(email_address: str, recipient_name: str, subject: str, message: str):
+def send_email(
+    email_address: str, recipient_name: str, subject: str, message: str
+):
     """
     Sends an email via Mandrill
     """
@@ -22,7 +24,11 @@ def send_email(email_address: str, recipient_name: str, subject: str, message: s
                     "from_email": "brnbot@bioresnet.org",
                     "from_name": "BRN Bot 🤖",
                     "to": [
-                        {"email": email_address, "name": recipient_name, "type": "to"}
+                        {
+                            "email": email_address,
+                            "name": recipient_name,
+                            "type": "to",
+                        }
                     ],
                     "html": message,
                 }
@@ -45,7 +51,11 @@ def send_verification_email(db: db.db_session, user: models.Users):
         email_address=user.email,
         recipient_name=user.first_name + " " + user.last_name,
         subject="Your verification code",
-        message=render_template("verification_email.html", code=verification_code, aws_url=settings.AWS_PUBLIC_S3_URL),
+        message=render_template(
+            "verification_email.html",
+            code=verification_code,
+            aws_url=settings.AWS_PUBLIC_S3_URL,
+        ),
     )
 
 

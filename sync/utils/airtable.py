@@ -65,4 +65,3 @@ def sync_assessments(settings: Settings, db_session: Session):
         raise e
 
     return True
-

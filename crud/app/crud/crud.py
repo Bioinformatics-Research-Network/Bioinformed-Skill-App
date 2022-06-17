@@ -4,7 +4,6 @@ import random
 import requests
 import copy
 from app import utils
-from app import Settings
 import app.db.models as models
 
 # Reproducibility for randomly selecting reviewers
@@ -22,7 +21,9 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
-    user = db.query(models.Users).filter(models.Users.username == username).first()
+    user = (
+        db.query(models.Users).filter(models.Users.username == username).first()
+    )
     if user is None:
         raise ValueError("User name does not exist")
     return user
@@ -58,7 +59,9 @@ def get_reviewer_by_username(db: Session, username: str):
     """
     user_id = get_user_by_username(db=db, username=username).id
     reviewer = (
-        db.query(models.Reviewers).filter(models.Reviewers.user_id == user_id).first()
+        db.query(models.Reviewers)
+        .filter(models.Reviewers.user_id == user_id)
+        .first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -78,7 +81,9 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     :raises: ValueError if reviewer does not exist.
     """
     reviewer = (
-        db.query(models.Reviewers).filter(models.Reviewers.id == reviewer_id).first()
+        db.query(models.Reviewers)
+        .filter(models.Reviewers.id == reviewer_id)
+        .first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -247,7 +252,7 @@ def create_assessment_tracker_entry(
                 {
                     "status": "Pre-assessment",
                     "timestamp": str(datetime.utcnow()),
-                    "commit": None
+                    "commit": None,
                 }
             ],
         )
@@ -282,7 +287,7 @@ def update_assessment_tracker_entry(
     assessment_tracker = get_assessment_tracker_entry(
         db=db, assessment_id=assessment_id, user_id=user_id
     )
-    
+
     try:
         # Update the entry
         assessment_tracker.status = status
@@ -296,7 +301,7 @@ def update_assessment_tracker_entry(
             {
                 "status": status,
                 "timestamp": str(datetime.utcnow()),
-                "commit": commit
+                "commit": commit,
             }
         )
         db.commit()
@@ -307,16 +312,20 @@ def update_assessment_tracker_entry(
         raise e
 
 
-def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTracker):
+def select_reviewer(
+    db: Session, assessment_tracker_entry: models.AssessmentTracker
+):
     """
     Select a reviewer for the assessment tracker entry.
 
     :param db: Generator for Session of database
     :param assessment_tracker_entry: assessment tracker entry
 
-    :returns: Reviewer info as an entry from the Reviewer's table in sqlalchemy query object format.
+    :returns: Reviewer info as an entry from the Reviewer's table in
+    sqlalchemy query object format.
 
-    :raises: Uncaught error if no reviewer is available (should not happen).
+    :raises: Uncaught error if no reviewer is available
+    (should not happen).
     """
     invalid_rev = (
         db.query(models.Reviewers)
@@ -341,19 +350,29 @@ def select_reviewer(db: Session, assessment_tracker_entry: models.AssessmentTrac
     try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
-    except Exception as e: # pragma: no cover
-        raise ValueError("No reviewer available. Please contact the administrator.")
+        random_id = valid_reviewers[
+            random.randint(0, len(valid_reviewers) - 1)
+        ][0]
+    except Exception:  # pragma: no cover
+        raise ValueError(
+            "No reviewer available. Please contact the administrator."
+        )
 
     try:
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
         return random_reviewer
     except Exception as e:  # pragma: no cover
-        raise Exception("Error selecting reviewer. Contact the administrators. Error string: " + str(e))
+        raise Exception(
+            "Error selecting reviewer. Contact the administrators. Error"
+            " string: "
+            + str(e)
+        )
 
 
 def assign_reviewer(
-    db: Session, assessment_tracker_entry: models.AssessmentTracker, reviewer_info: dict
+    db: Session,
+    assessment_tracker_entry: models.AssessmentTracker,
+    reviewer_info: dict,
 ):
     """
     Assign a reviewer to the assessment tracker entry.
@@ -396,10 +415,13 @@ def approve_assessment(
     Approve an assessment.
 
     :param db: Generator for Session of database
-    :param trainee: trainee's db entry from the Users table in sqlalchemy query object format.
-    :param reviewer: reviewer's db entry from the Reviewers table in sqlalchemy query object format.
+    :param trainee: trainee's db entry from the Users table in
+    sqlalchemy query object format.
+    :param reviewer: reviewer's db entry from the Reviewers table in
+    sqlalchemy query object format.
     :param reviewer_username: reviewer's github username
-    :param assessment: assessment's db entry from the Assessments table in sqlalchemy query object format.
+    :param assessment: assessment's db entry from the Assessments table in
+    sqlalchemy query object format.
 
     :returns: True
 
@@ -410,19 +432,22 @@ def approve_assessment(
         - No reviewer is assigned
         - Last commit check failed
         - Assessment tracker entry does not exist
-        - Reviewer is not the same as the reviewer assigned in the assessment tracker entry
+        - Reviewer is not the same as the reviewer assigned in
+        the assessment tracker entry
     """
-
 
     # Verify checks passing on latest commit
     assessment_tracker_entry = get_assessment_tracker_entry(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
-    
-    if not utils.verify_check(assessment_tracker_entry=assessment_tracker_entry):
+
+    if not utils.verify_check(
+        assessment_tracker_entry=assessment_tracker_entry
+    ):
         raise ValueError("Last commit checks failed.")
 
-    # Verify that the reviewer is the same as the reviewer assigned in the assessment tracker entry
+    # Verify that the reviewer is the same as the reviewer assigned in the
+    # assessment tracker entry
     if assessment.review_required == 1:
         # Get user ids and confirm they are different
         if reviewer.user_id == trainee.id:
@@ -436,15 +461,18 @@ def approve_assessment(
         reviewer_real = get_reviewer_by_id(
             db=db, reviewer_id=assessment_tracker_entry.reviewer_id
         )
-        reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
+        reviewer_real_user = get_user_by_id(
+            db=db, user_id=reviewer_real.user_id
+        )
         # Verify the approval request is from the reviewer
         if reviewer_real_user.username != reviewer_username:
             raise ValueError(
-                "Reviewer is not the same as the reviewer assigned to the assessment."
+                "Reviewer is not the same as the reviewer assigned to the"
+                " assessment."
             )
         reviewer = reviewer.id
     else:
-        reviewer = 'brnbot'
+        reviewer = "brnbot"
 
     # Get assessment id and latest commit
     latest_commit = assessment_tracker_entry.latest_commit
@@ -479,16 +507,20 @@ def add_assertion(
     :param entry_id: Assessment tracker entry id
     :param assertion: Assertion to add
     """
-    badge = db.query(models.Badges).filter(models.Badges.entityId == assertion['badgeclass']).first()
+    badge = (
+        db.query(models.Badges)
+        .filter(models.Badges.entityId == assertion["badgeclass"])
+        .first()
+    )
     # Get the badge name for the assertion
     if badge is None:
         raise ValueError("Badge does not exist in database")
     try:
         badge_name = badge.name
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         print(str(e))
         raise e
-    
+
     # Wrangle the assertion
     fields = utils.wrangle_assertion(
         assertion=assertion,
@@ -513,7 +545,11 @@ def add_assertion(
 
 
 def update_assessment_log(
-    db: Session, entry_id: int, latest_commit: str, update_logs: dict, status: str=None
+    db: Session,
+    entry_id: int,
+    latest_commit: str,
+    update_logs: dict,
+    status: str = None,
 ) -> bool:
     """
     Update the assessment tracker entry log.
@@ -560,15 +596,17 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
 
     # Uncover all repositories for the user by querying the assessment tracker
     assessment_tracker = (
-        db.query(models.AssessmentTracker)
-        .filter_by(user_id=user.id)
-        .all()
+        db.query(models.AssessmentTracker).filter_by(user_id=user.id).all()
     )
 
     # For each assessment tracker entry send a delete request to the bot
     if assessment_tracker:
         for at in assessment_tracker:
-            assessment = db.query(models.Assessments).filter_by(id=at.assessment_id).first()
+            assessment = (
+                db.query(models.Assessments)
+                .filter_by(id=at.assessment_id)
+                .first()
+            )
             payload = {
                 "name": assessment.name,
                 "install_id": int(assessment.install_id),
@@ -579,8 +617,7 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
             print(payload)
             print("Sending request to bot init")
             response = requests.post(
-                url=f"{settings.GITHUB_BOT_URL}/delete", 
-                json=payload
+                url=f"{settings.GITHUB_BOT_URL}/delete", json=payload
             )
             print("Bot responded")
             response.raise_for_status()
@@ -634,4 +671,3 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
         db.rollback()
         print("rollback")
         raise e
-

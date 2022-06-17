@@ -44,4 +44,5 @@ class Settings(BaseSettings):
     AWS_PUBLIC_S3_URL: str
     APPDATA_DIR: str
 
+
 settings = Settings(_env_file=".env", _env_file_encoding="utf-8")

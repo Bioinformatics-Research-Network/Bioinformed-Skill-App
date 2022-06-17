@@ -21,14 +21,22 @@ def get_assessments(
         .filter(
             models.Assessments.languages.isnot(None),
             models.Assessments.types.isnot(None),
-            models.Assessments.latest_release.isnot(None)
+            models.Assessments.latest_release.isnot(None),
         )
         .all()
     )
     if language:
-        assessments = [ assessment for assessment in assessments if assessment.languages in language ]
+        assessments = [
+            assessment
+            for assessment in assessments
+            if assessment.languages in language
+        ]
     if types:
-        assessments = [ assessment for assessment in assessments if assessment.types in types ]
+        assessments = [
+            assessment
+            for assessment in assessments
+            if assessment.types in types
+        ]
     if not completed == "true":
         # Get the user's assessments from the assertions
         ats = get_assessment_tracker_entries_by_user(db, user)
@@ -37,10 +45,13 @@ def get_assessments(
             at.assessment_id for at in ats if at.status == "Approved"
         ]
         # Get the assessments that the user has completed
-        assessments = [ assessment for assessment in assessments if assessment.id not in user_assessment_ids ]
+        assessments = [
+            assessment
+            for assessment in assessments
+            if assessment.id not in user_assessment_ids
+        ]
 
     return assessments
-
 
 
 def get_assessment_by_name(db: Session, name: str) -> models.Assessments:
@@ -59,7 +70,9 @@ def get_assessment_by_id(db: Session, id: int) -> models.Assessments:
     return assessment
 
 
-def get_badge_by_assessment_id(db: Session, assessment_id: int) -> models.Badges:
+def get_badge_by_assessment_id(
+    db: Session, assessment_id: int
+) -> models.Badges:
     """
     To get badge by assessment id.
     """
@@ -96,7 +109,10 @@ def update_user_info(
 
 # Function for adding the verification code to the user
 def add_email_verification_code(
-    db: Session, user: models.Users, verification_code: str, expires_at: datetime
+    db: Session,
+    user: models.Users,
+    verification_code: str,
+    expires_at: datetime,
 ) -> models.Users:
     """
     To add email verification code to user.
@@ -114,9 +130,7 @@ def get_assertions_by_user(db: Session, user: models.Users) -> list:
     """
     # First get the assessment tracker entries for the user
     assessment_tracker = (
-        db.query(models.AssessmentTracker)
-        .filter_by(user_id=user.id)
-        .all()
+        db.query(models.AssessmentTracker).filter_by(user_id=user.id).all()
     )
     # Then get the assertions for each assessment tracker entry
     assertions = []
@@ -139,9 +153,11 @@ def get_assessment_tracker_entry(
     To get assessment tracker entry.
     """
     # Get the assessment tracker entry
-    at = db.query(models.AssessmentTracker).filter_by(
-        user_id=user_id, assessment_id=assessment_id
-    ).first()
+    at = (
+        db.query(models.AssessmentTracker)
+        .filter_by(user_id=user_id, assessment_id=assessment_id)
+        .first()
+    )
     return at
 
 
@@ -153,9 +169,6 @@ def get_assessment_tracker_entries_by_user(
     """
     # Get the assessment tracker entries for the user
     assessment_tracker = (
-        db.query(models.AssessmentTracker)
-        .filter_by(user_id=user.id)
-        .all()
+        db.query(models.AssessmentTracker).filter_by(user_id=user.id).all()
     )
     return assessment_tracker
-

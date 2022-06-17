@@ -25,8 +25,12 @@ def download_releases_from_github(settings: Settings, db_session: Session):
         print("Downloading release: " + release.name)
         release_url = f"https://api.github.com/repos/Bioinformatics-Research-Network/{release.template_repo}/zipball/{release.latest_release}"
         # Creat the download folder if it doesn't exist
-        download_folder = f"{appdatadir}/tmp/{release.template_repo}/{release.latest_release}"
-        output_folder = f"{appdatadir}/{release.template_repo}/{release.latest_release}"
+        download_folder = (
+            f"{appdatadir}/tmp/{release.template_repo}/{release.latest_release}"
+        )
+        output_folder = (
+            f"{appdatadir}/{release.template_repo}/{release.latest_release}"
+        )
         if not os.path.exists(download_folder):
             os.makedirs(download_folder)
         if not os.path.exists(output_folder):
@@ -51,7 +55,7 @@ def download_releases_from_github(settings: Settings, db_session: Session):
 def upload_releases_to_aws(settings: Settings):
     # Configure s3 client
     s3 = boto3.client(
-        's3',
+        "s3",
         aws_access_key_id=settings.AWS_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_SECRET_KEY,
         region_name=settings.AWS_REGION,
@@ -63,12 +67,16 @@ def upload_releases_to_aws(settings: Settings):
     for subdir, dirs, files in os.walk(path):
         for file in files:
             full_path = os.path.join(subdir, file)
-            file_mime = mimetypes.guess_type(file)[0] or 'binary/octet-stream'
-            key = "templates/" + full_path[len(path):]
+            file_mime = mimetypes.guess_type(file)[0] or "binary/octet-stream"
+            key = "templates/" + full_path[len(path) :]
             print(key)
-            with open(full_path, 'rb') as data:
-                s3.put_object(Key=key, Body=data, ContentType=file_mime, Bucket=settings.AWS_BUCKET)
+            with open(full_path, "rb") as data:
+                s3.put_object(
+                    Key=key,
+                    Body=data,
+                    ContentType=file_mime,
+                    Bucket=settings.AWS_BUCKET,
+                )
             # Make sure the file is publically accessible
 
     # s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_BUCKET, Key=key)
-

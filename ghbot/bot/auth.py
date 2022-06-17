@@ -20,7 +20,9 @@ def get_access_token(installation_id, jwt) -> dict:
         "Authorization": f"Bearer {jwt}",
         "Accept": "application/vnd.github.v3+json",
     }
-    request_url = f"{const.gh_url}/app/installations/{installation_id}/access_tokens"
+    request_url = (
+        f"{const.gh_url}/app/installations/{installation_id}/access_tokens"
+    )
     response = requests.post(request_url, headers=headers)
     response_dict = response.json()
     print(response_dict)
@@ -72,7 +74,9 @@ def retrieve_access_tokens():
         get_all_access_tokens(const.installation_ids, jwt=jwt)
     with open(const.token_fp, "r") as f:
         current_tokens = json.load(f)
-    exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
+    exp_time = datetime.strptime(
+        current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
+    )
     if exp_time < datetime.now():
         print("EXPIRED")
         print("Getting jwt")

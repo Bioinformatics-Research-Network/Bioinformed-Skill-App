@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-## Request schemas
+# Request schemas
 
 
 class InitRequest(BaseModel):
@@ -78,7 +78,7 @@ class ReviewRequest(BaseModel):
     latest_commit: str
 
 
-## Response schemas
+# Response schemas
 
 
 class RegisterResponse(BaseModel):

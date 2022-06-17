@@ -4,7 +4,7 @@
 
 Primary maintainer: Anmol Singh ([itchytummy](https://github.com/itchytummy))
 
-This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
+This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time.
 
 ## Workflow for contributing:
 

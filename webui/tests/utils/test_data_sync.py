@@ -19,7 +19,7 @@ from app.config import settings
 #         # Try to create a user. It will fail if they already exist.
 #         db_session.add(Users(username="test_user", name="test_user"))
 #         db_session.commit()
-#     except: 
+#     except:
 #         # If the user already exists, delete it.
 #         db_session.rollback()
 
@@ -87,4 +87,3 @@ def test_sync_releases():
 
     # Update releases to AWS
     utils.upload_releases_to_aws(settings=settings)
-

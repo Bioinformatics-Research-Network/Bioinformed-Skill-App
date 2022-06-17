@@ -44,7 +44,8 @@ class Settings(BaseSettings):
     AWS_REGION: str
     AWS_PUBLIC_S3_URL: str
 
-print(os.environ.get("APP_ENV") )
+
+print(os.environ.get("APP_ENV"))
 if os.environ.get("APP_ENV") == "development":
     print("Loading development settings")
     settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
@@ -54,6 +55,6 @@ elif os.environ.get("APP_ENV") == "production":
 elif os.environ.get("APP_ENV") == "testing":
     print("Loading testing settings")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
-else: # pragma: no cover
+else:  # pragma: no cover
     print("Loading default settings (testing)")
     settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")

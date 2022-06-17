@@ -1,10 +1,15 @@
 from functools import lru_cache
-from requests import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
 from app.db.models import Base
-from app.db.test_data import test_users, test_reviewers, test_assessments, test_at, test_badges
+from app.db.test_data import (
+    test_users,
+    test_reviewers,
+    test_assessments,
+    test_at,
+    test_badges,
+)
 from pydantic import BaseSettings
 
 
@@ -36,20 +41,19 @@ class Settings(BaseSettings):
     GITHUB_BOT_URL: str
 
 
-
 @lru_cache()
 def get_settings():
     # Set the config based on the environment
-    if os.environ.get("APP_ENV") == "development": # pragma: no cover
+    if os.environ.get("APP_ENV") == "development":  # pragma: no cover
         print("Loading development settings")
         settings = Settings(_env_file=".dev.env", _env_file_encoding="utf-8")
-    elif os.environ.get("APP_ENV") == "production": # pragma: no cover
+    elif os.environ.get("APP_ENV") == "production":  # pragma: no cover
         print("Loading production settings")
         settings = Settings(_env_file=".prod.env", _env_file_encoding="utf-8")
-    elif os.environ.get("APP_ENV") == "testing": # pragma: no cover
+    elif os.environ.get("APP_ENV") == "testing":  # pragma: no cover
         print("Loading testing settings")
         settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
-    else: # pragma: no cover
+    else:  # pragma: no cover
         print("Loading default settings (testing)")
         settings = Settings(_env_file=".test.env", _env_file_encoding="utf-8")
     return settings
@@ -77,7 +81,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # If testing, delete and then create the database
-if os.environ.get("APP_ENV") == "testing": # pragma: no cover
+if os.environ.get("APP_ENV") == "testing":  # pragma: no cover
     # Drop all tables
     Base.metadata.drop_all(engine)
     # Create all tables
@@ -103,7 +107,7 @@ def get_db():
 
     :yields: Generator object for the local session. finally closes the session.
     """
-    try: # pragma: no cover
+    try:  # pragma: no cover
         db = SessionLocal()
         yield db
     finally:

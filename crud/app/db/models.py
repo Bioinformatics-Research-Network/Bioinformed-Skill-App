@@ -31,7 +31,6 @@ class Base:
         return cls.__name__.lower()
 
 
-
 class Users(Base):
     """
     SQLAlchemy model for the "users" table
@@ -100,7 +99,9 @@ class Reviewers(Base):
     user_id = Column(Integer, ForeignKey("users.id", name="fk_reviewers_users"))
     assessment_reviewing_id = Column(
         Integer,
-        ForeignKey("assessments.id", use_alter=True, name="fk_reviewers_assessments"),
+        ForeignKey(
+            "assessments.id", use_alter=True, name="fk_reviewers_assessments"
+        ),
     )
 
 
@@ -147,12 +148,16 @@ class AssessmentTracker(Base):
     id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(
         Integer,
-        ForeignKey("users.id", use_alter=True, name="fk_assessment_tracker_users"),
+        ForeignKey(
+            "users.id", use_alter=True, name="fk_assessment_tracker_users"
+        ),
     )
     assessment_id = Column(
         Integer,
         ForeignKey(
-            "assessments.id", use_alter=True, name="fk_assessment_tracker_assessments"
+            "assessments.id",
+            use_alter=True,
+            name="fk_assessment_tracker_assessments",
         ),
     )
     status = Column(String(250))
@@ -161,7 +166,9 @@ class AssessmentTracker(Base):
     reviewer_id = Column(
         Integer,
         ForeignKey(
-            "reviewers.id", use_alter=True, name="fk_assessment_tracker_reviewers"
+            "reviewers.id",
+            use_alter=True,
+            name="fk_assessment_tracker_reviewers",
         ),
     )
     repo_owner = Column(String(250))
@@ -175,7 +182,8 @@ class Badges(Base):
     SQLAlchemy model for the "badges" table
 
     This comes directly from an API call to badgr.io
-    Using config.BADGR_BASE_URL + "/v2/issuers/" + config.BADGR_ISSUER_ID + "/badgeclasses"
+    Using config.BADGR_BASE_URL + "/v2/issuers/" +
+    config.BADGR_ISSUER_ID + "/badgeclasses"
     """
 
     __tablename__ = "badges"
@@ -199,7 +207,6 @@ class Badges(Base):
     extensions = Column(Text)
 
 
-
 class Assertions(Base):
     """
     SQLAlchemy model for the "assertions" table
@@ -213,7 +220,10 @@ class Assertions(Base):
     createdAt = Column(DateTime)
     createdBy = Column(String(250))
     badgeClass = Column(
-        String(250), ForeignKey("badges.entityId", use_alter=True, name="fk_assertions_badges")
+        String(250),
+        ForeignKey(
+            "badges.entityId", use_alter=True, name="fk_assertions_badges"
+        ),
     )
     recipient_identity = Column(String(500))
     recipient_hashed = Column(Boolean)

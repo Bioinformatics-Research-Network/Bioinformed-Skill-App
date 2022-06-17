@@ -10,7 +10,6 @@ app = create_app()
 # Found from reading the Flask-Dance docs
 if os.environ.get("APP_ENV") == "production":
     app.wsgi_app = ProxyFix(app.wsgi_app)
-   
 
 
 if __name__ == "__main__":

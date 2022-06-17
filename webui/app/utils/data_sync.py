@@ -28,7 +28,9 @@ def sync_badges(settings: Settings):
             print(badge["name"])
 
             # Check if the badge already exists in the database
-            current_badge = db_session.query(Badges).filter_by(name=badge["name"])
+            current_badge = db_session.query(Badges).filter_by(
+                name=badge["name"]
+            )
 
             # Convert all the fields to strings using dict comprehension
             fields = {k: str(v) for k, v in badge.items()}
@@ -147,6 +149,7 @@ import urllib
 import os
 import shutil
 
+
 def download_releases_from_github(settings: Settings):
     # Get list of releases from the assessments database table using sqlalchemy
     # Filter the query to only include rows where the latest_release is not null
@@ -163,8 +166,12 @@ def download_releases_from_github(settings: Settings):
         release_url = f"https://api.github.com/repos/Bioinformatics-Research-Network/{release.template_repo}/zipball/{release.latest_release}"
         print(release_url)
         # Creat the download folder if it doesn't exist
-        download_folder = f"../appdata/tmp/{release.template_repo}/{release.latest_release}"
-        output_folder = f"../appdata/{release.template_repo}/{release.latest_release}"
+        download_folder = (
+            f"../appdata/tmp/{release.template_repo}/{release.latest_release}"
+        )
+        output_folder = (
+            f"../appdata/{release.template_repo}/{release.latest_release}"
+        )
         print(download_folder)
         print(output_folder)
         if not os.path.exists(download_folder):
@@ -189,13 +196,14 @@ def download_releases_from_github(settings: Settings):
         # Delete the tmp/ directory
         shutil.rmtree("../appdata/tmp")
 
+
 import mimetypes
 
 
 def upload_releases_to_aws(settings: Settings):
     # Configure s3 client
     s3 = boto3.client(
-        's3',
+        "s3",
         aws_access_key_id=settings.AWS_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_SECRET_KEY,
         region_name=settings.AWS_REGION,
@@ -207,13 +215,16 @@ def upload_releases_to_aws(settings: Settings):
     for subdir, dirs, files in os.walk(path):
         for file in files:
             full_path = os.path.join(subdir, file)
-            file_mime = mimetypes.guess_type(file)[0] or 'binary/octet-stream'
-            key = "templates/" + full_path[len(path):]
+            file_mime = mimetypes.guess_type(file)[0] or "binary/octet-stream"
+            key = "templates/" + full_path[len(path) :]
             print(key)
-            with open(full_path, 'rb') as data:
-                s3.put_object(Key=key, Body=data, ContentType=file_mime, Bucket=settings.AWS_BUCKET)
+            with open(full_path, "rb") as data:
+                s3.put_object(
+                    Key=key,
+                    Body=data,
+                    ContentType=file_mime,
+                    Bucket=settings.AWS_BUCKET,
+                )
             # Make sure the file is publically accessible
 
     # s3.put_object_acl(ACL='public-read', Bucket=settings.AWS_BUCKET, Key=key)
-
-

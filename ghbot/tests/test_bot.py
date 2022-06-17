@@ -102,14 +102,16 @@ def test_init():
     )
     if response.status_code == 200:
         print("Repo exists... deleting")
-        assert bot.process_delete_repo(delete_request, access_tokens=access_tokens)
+        assert bot.process_delete_repo(
+            delete_request, access_tokens=access_tokens
+        )
 
     resp = bot.process_init_payload(init_request, access_tokens=access_tokens)
 
     assert resp
 
 
-### Test utils
+## Test utils
 
 
 def test_get_assessment_name():
@@ -134,7 +136,7 @@ def test_get_recent_comments():
     """
     Test the bot's post_comment command
     """
-    ## Success
+    # Success
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
     text = "test " + "".join(
         random.choices(string.ascii_uppercase + string.digits, k=20)
@@ -148,7 +150,7 @@ def test_get_recent_comments():
     comments = utils.get_recent_comments(**kwarg_dict)
     assert comments.json()[-1]["body"] == text
 
-    ## Confirm ordering of comments is correct
+    # Confirm ordering of comments is correct
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
     text = "test 1 " + "".join(
         random.choices(string.ascii_uppercase + string.digits, k=20)
@@ -170,7 +172,7 @@ def test_delete_comment():
     """
     Test the bot's delete_comment command
     """
-    ## Success
+    # Success
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
     text = "del " + "".join(
         random.choices(string.ascii_uppercase + string.digits, k=20)
@@ -187,12 +189,12 @@ def test_delete_comment():
     comments = utils.get_comment_by_id(comment_id, **kwarg_dict)
     assert comments.status_code == 404
 
-    ## Failure to delete because comment does not exist
+    # Failure to delete because comment does not exist
     response = utils.delete_comment(comment_id, **kwarg_dict)
     assert response.status_code == 404
 
 
-### Test bot commands
+## Test bot commands
 
 
 def test_hello():
@@ -238,10 +240,12 @@ def test_update_on_commit():
     Test the bot's update command on a commit
     """
 
-    ## Successful update command
+    # Successful update command
     if utils.check_api_status():
         response = bot.process_commit(payload, access_tokens=access_tokens)
-        kwarg_dict = bot.parse_commit_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = bot.parse_commit_payload(
+            payload, access_tokens=access_tokens
+        )
         assert response.json()
         assert response.status_code == 200
         # Confirm the latest comment is the output of the command
@@ -256,11 +260,11 @@ def test_check():
     Test the bot's check command
     """
 
-    ## Successful check command
+    # Successful check command
     payload["comment"]["body"] = "@brnbot check"
     assert bot.process_cmd(payload, access_tokens=access_tokens)
 
-    ## Second person on the repo can request a check
+    # Second person on the repo can request a check
     payload2 = copy.deepcopy(payload)
     payload2["sender"]["login"] = "millerh1"
     assert bot.process_cmd(payload2, access_tokens=access_tokens)
@@ -302,7 +306,7 @@ def test_review():
     )
     response.raise_for_status()
 
-    ## Successful review command
+    # Successful review command
     print("Review")
     payload["comment"]["body"] = "@brnbot review"
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)

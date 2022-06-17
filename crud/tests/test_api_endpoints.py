@@ -11,16 +11,10 @@ import app.db.models as models
 def test_init(client: TestClient, db: Session):
 
     # get a valid assessment
-    assessment = (
-        db.query(models.Assessments)
-        .first()
-    )
+    assessment = db.query(models.Assessments).first()
 
     # Get a valid user
-    user = (
-        db.query(models.Users)
-        .first()
-    )
+    user = db.query(models.Users).first()
 
     # Successful query
     request_json = {
@@ -36,13 +30,17 @@ def test_init(client: TestClient, db: Session):
     # Error on initializing for a second time
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {"detail": "Assessment tracker entry already exists."}
+    assert response.json() == {
+        "detail": "Assessment tracker entry already exists."
+    }
 
     # Error for reinitializing with a different commit
     request_json["latest_commit"] = "commit123"
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {"detail": "Assessment tracker entry already exists."}
+    assert response.json() == {
+        "detail": "Assessment tracker entry already exists."
+    }
 
     # Error for initializing with an incorrect username
     request_json = {
@@ -72,7 +70,7 @@ def test_init(client: TestClient, db: Session):
 #     username = crud.get_user_by_id(db, user_id).username
 #     assessment_name = crud.get_assessment_by_id(db, assessment_id).name
 
-#     ## Successful query
+#     # Successful query
 #     request_json = {
 #         "assessment_name": assessment_name,
 #         "username": username,
@@ -84,7 +82,7 @@ def test_init(client: TestClient, db: Session):
 #     assert data["user_id"] == user_id
 #     assert data["assessment_id"] == assessment_id
 
-#     ## Error on invalid username
+#     # Error on invalid username
 #     request_json = {
 #         "assessment_name": assessment_name,
 #         "username": "error",
@@ -93,7 +91,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "User name does not exist"}
 
-#     ## Error on invalid assessment name
+#     # Error on invalid assessment name
 #     request_json = {
 #         "assessment_name": "error",
 #         "username": username,
@@ -102,7 +100,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "Assessment does not exist"}
 
-#     ## Error on missing entry
+#     # Error on missing entry
 #     assessment_id = 3
 #     assessment_name = crud.get_assessment_by_id(db, assessment_id).name
 #     request_json = {
@@ -128,7 +126,7 @@ def test_init(client: TestClient, db: Session):
 #     }
 #     response = client.post("/api/init", json=request_json)
 
-#     ## Success: Delete entry
+#     # Success: Delete entry
 #     request_json = {
 #         "assessment_name": assessment_name,
 #         "username": username,
@@ -141,7 +139,7 @@ def test_init(client: TestClient, db: Session):
 #         )
 #     assert str(exc.value) == "Assessment tracker entry unavailable."
 
-#     ## Error: Delete entry that does not exist
+#     # Error: Delete entry that does not exist
 #     request_json = {
 #         "assessment_name": assessment_name,
 #         "username": username,
@@ -150,7 +148,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
-#     ## Error: Delete entry with incorrect username
+#     # Error: Delete entry with incorrect username
 #     request_json = {
 #         "assessment_name": assessment_name,
 #         "username": "error",
@@ -159,7 +157,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "User name does not exist"}
 
-#     ## Error: Delete entry with incorrect assessment name
+#     # Error: Delete entry with incorrect assessment name
 #     request_json = {
 #         "assessment_name": "error",
 #         "username": username,
@@ -171,7 +169,7 @@ def test_init(client: TestClient, db: Session):
 
 # def test_check(client: TestClient, db: Session):
 
-#     ## Successful query
+#     # Successful query
 #     user = crud.get_user_by_id(db, 1)
 #     assessment = crud.get_assessment_by_id(db, 2)
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry(
@@ -185,7 +183,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 200
 #     assert response.json() == {"Check": True}
 
-#     ## Successful query with passed checks
+#     # Successful query with passed checks
 #     user = crud.get_user_by_id(db, 1)
 #     assessment = crud.get_assessment_by_id(db, 2)
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry(
@@ -199,7 +197,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 200
 #     assert response.json() == {"Check": True}
 
-#     ## Error on invalid commit
+#     # Error on invalid commit
 #     request_json = {
 #         "latest_commit": assessment_tracker_entry.latest_commit + "error",
 #         "passed": True,
@@ -208,7 +206,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
-#     ## Error on already approved
+#     # Error on already approved
 #     user = crud.get_user_by_id(db, 1)
 #     assessment = crud.get_assessment_by_id(db, 2)
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry(
@@ -235,7 +233,7 @@ def test_init(client: TestClient, db: Session):
 
 # def test_review(client: TestClient, db: Session):
 
-#     ## Success: The repo is passing checks
+#     # Success: The repo is passing checks
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
 #     # Therefore, successful query
 #     request_json = {
@@ -248,7 +246,7 @@ def test_init(client: TestClient, db: Session):
 #         "reviewer_username": "Toni_Hernandez31",
 #     }
 
-#     ## Error: The repo is not passing checks
+#     # Error: The repo is not passing checks
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
 #     crud.update_assessment_log(
 #         db=db,
@@ -278,7 +276,7 @@ def test_init(client: TestClient, db: Session):
 #     assert response.status_code == 422
 #     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
-#     ## Error: Assessment is not at the initialization stage
+#     # Error: Assessment is not at the initialization stage
 #     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
 #     assessment_tracker_entry.status = "Approved"
 #     db.add(assessment_tracker_entry)

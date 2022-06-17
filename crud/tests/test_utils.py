@@ -14,7 +14,7 @@ def test_verify_check(db: Session):
         )
     assert "Check results not available for latest commit." in str(exc.value)
 
-    ## Fail due to missing logs
+    # Fail due to missing logs
     assessment_tracker_entry.log = None
     with pytest.raises(ValueError) as exc:
         utils.verify_check(
@@ -22,7 +22,7 @@ def test_verify_check(db: Session):
         )
     assert "No logs found." in str(exc.value)
 
-    ## Fail due to missing log for last commit
+    # Fail due to missing log for last commit
     assessment_tracker_entry.log = [{"commit": "123456789"}]
     with pytest.raises(ValueError) as exc:
         utils.verify_check(

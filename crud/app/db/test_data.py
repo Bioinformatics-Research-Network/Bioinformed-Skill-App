@@ -1,4 +1,10 @@
-from app.db.models import *
+from app.db.models import (
+    Users,
+    Reviewers,
+    Assessments,
+    AssessmentTracker,
+    Badges,
+)
 
 # Create database with test data
 test_users = [
@@ -12,14 +18,14 @@ test_users = [
         username="bioresnet",
         first_name="test2",
         last_name="user2",
-        email="none2@none.com"
+        email="none2@none.com",
     ),
     Users(
         username="henrymiller2024",
         first_name="test3",
         last_name="user3",
-        email="none3@none.com"
-    )
+        email="none3@none.com",
+    ),
 ]
 
 test_reviewers = [
@@ -59,8 +65,5 @@ test_at = [
 
 
 test_badges = [
-    Badges(
-        entityId="OcVxPZEORASs4dBL0h5mOw",
-        name="Test"
-    ),
+    Badges(entityId="OcVxPZEORASs4dBL0h5mOw", name="Test"),
 ]

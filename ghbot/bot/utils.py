@@ -118,7 +118,9 @@ def get_recent_comments(
     request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     one_minute_ago = datetime.now(tz=timezone.utc) - delt
     response = requests.get(
-        request_url, headers=headers, params={"since": one_minute_ago.isoformat()}
+        request_url,
+        headers=headers,
+        params={"since": one_minute_ago.isoformat()},
     )
     return response
 
@@ -155,7 +157,9 @@ def get_assessment_name(payload: dict) -> str:
     """
     install_id = payload["installation"]["id"]
     assessment = [
-        key for key, value in const.installation_ids.items() if value == install_id
+        key
+        for key, value in const.installation_ids.items()
+        if value == install_id
     ][0]
     if assessment is None:
         return "Unknown"
@@ -280,7 +284,9 @@ def delete_repo(
     """
     Process a delete repo request
     """
-    request_url = f"{const.gh_url}/repos/{delete_request.github_org}/{repo_name}"
+    request_url = (
+        f"{const.gh_url}/repos/{delete_request.github_org}/{repo_name}"
+    )
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": const.accept_header,
@@ -301,7 +307,9 @@ def archive_repo(**kwargs: dict):
     """
     Process an archive repo request
     """
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
+    request_url = (
+        f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
+    )
     body = {
         "archived": True,
     }
@@ -374,9 +382,7 @@ def init_create_repo(
 
     try:
         # Put an empty README in the repo
-        request_url = (
-            f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
-        )
+        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
         base64content = base64.b64encode(b".")
         body = {
             "message": "Initial commit",
@@ -419,13 +425,18 @@ def init_fill_repo(
             + init_request.latest_release
         )
         local_dir = (
-            "botdata/" + init_request.template_repo + "/" + init_request.latest_release
+            "botdata/"
+            + init_request.template_repo
+            + "/"
+            + init_request.latest_release
         )
         for obj in bucket.objects.filter(Prefix=object_dir):
             target = (
                 obj.key
                 if local_dir is None
-                else os.path.join(local_dir, os.path.relpath(obj.key, object_dir))
+                else os.path.join(
+                    local_dir, os.path.relpath(obj.key, object_dir)
+                )
             )
             if not os.path.exists(os.path.dirname(target)):
                 os.makedirs(os.path.dirname(target))
@@ -438,7 +449,9 @@ def init_fill_repo(
             with open(target, "rb") as f:
                 base64content = base64.b64encode(f.read())
             # Create the file in the repo
-            request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
+            request_url = (
+                f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
+            )
             body = {
                 "message": "Adding assessment files...",
                 "content": base64content.decode("utf-8"),
@@ -475,9 +488,7 @@ def init_create_feedback_branch(
         sha2 = response.json()["object"]["sha"]
 
         # Create the ref
-        request_url = (
-            f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs"
-        )
+        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs"
         body = {
             "ref": "refs/heads/feedback",
             "sha": sha2,
@@ -503,9 +514,7 @@ def init_delete_tmp(
 ):
     # Delete the .tmp file from the main branch
     try:
-        request_url = (
-            f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
-        )
+        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
         body = {
             "message": "Deleted .tmp file",
             "sha": tmp_sha,
@@ -537,53 +546,77 @@ def init_create_pr(
         )
         if init_request.review_required:
             opt_statement = (
-                "then you can trigger manual review using the '@brnbot review' command. The reviewer will be notified and"
-                + " will be added to this pull request. They will review your code :memo: and (probably) will request changes.\n"
-                + "7. Once you successfully respond to each reviewer critique :dart:, they will approve your code and "
+                "then you can trigger manual review using the '@brnbot review'"
+                " command. The reviewer will be notified and"
+                + " will be added to this pull request. They will review your"
+                " code :memo: and (probably) will request changes.\n"
+                + "7. Once you successfully respond to each reviewer critique"
+                " :dart:, they will approve your code and "
             )
             opt_statement2 = (
                 "**@brnbot review** - Request a review of your skill assessment"
-                + " (only works if you have already passed the automated tests)\n"
+                + " (only works if you have already passed the automated"
+                " tests)\n"
             )
         else:
             opt_statement = ""
             opt_statement2 = ""
 
-        http_repo = const.gh_http + "/" + init_request.github_org + "/" + repo_name
+        http_repo = (
+            const.gh_http + "/" + init_request.github_org + "/" + repo_name
+        )
         welcome_message = (
             "Hello, @"
             + init_request.username
             + " :wave:!\n\n"
-            + "My name is BRN Bot :robot: and I'm here to help you complete this "
-            + "skill assessment!\n\nWe will use this Pull Request (PR) as a place to talk :speech_balloon:"
-            + "(so please **do not** close or merge the PR).\n\n<details>\n\n<summary>Instructions</summary>\n\n\n"
-            + "<hr>\n\nTo complete the assessment, do the following:\n\n1. Clone the repository"
-            + " and open the code in your favorite editor (or open it in the GitHub editor by navigating"
+            + "My name is BRN Bot :robot: and I'm here to help you complete"
+            " this "
+            + "skill assessment!\n\nWe will use this Pull Request (PR) as a"
+            " place to talk :speech_balloon:"
+            + "(so please **do not** close or merge the"
+            " PR).\n\n<details>\n\n<summary>Instructions</summary>\n\n\n"
+            + "<hr>\n\nTo complete the assessment, do the following:\n\n1."
+            " Clone the repository"
+            + " and open the code in your favorite editor (or open it in the"
+            " GitHub editor by navigating"
             + f" to the [repo code]({http_repo}) and pressing the '.' key).\n"
             + "2. Modify the repo code to meet the requirements described in "
             + f" [README.md]({http_repo}/blob/main/README.md).\n3. "
-            + "When you are ready, push your changes to the `main` branch and trigger "
-            + "automated tests :white_check_mark: by writing '@brnbot check' in the comments below. "
-            + "I will see your message and run the tests for you :gear: and will let you know the outcome."
+            + "When you are ready, push your changes to the `main` branch and"
+            " trigger "
+            + "automated tests :white_check_mark: by writing '@brnbot check' in"
+            " the comments below. "
+            + "I will see your message and run the tests for you :gear: and"
+            " will let you know the outcome."
             + "\n5. If the tests fail, examine the "
-            + f"output in the [Actions]({http_repo}/actions) tab to see what went wrong :mag:. Then, update your code "
-            + "to fix the problem, push your changes to the `main` branch, and run '@brnbot check' again.\n"
+            + f"output in the [Actions]({http_repo}/actions) tab to see what"
+            " went wrong :mag:. Then, update your code "
+            + "to fix the problem, push your changes to the `main` branch, and"
+            " run '@brnbot check' again.\n"
             + "6. Once your code passess the tests, "
             + opt_statement
-            + "then the badge for this assessment will be awarded to you :trophy:. \n\n"
-            + "Once completed, the assessment repo will be archived to prevent changes :lock:.\n\n<hr>\n\n</details>\n\n"
-            + "Here are the **bot commands** you can issue as part of this assessment:\n\n"
+            + "then the badge for this assessment will be awarded to you"
+            " :trophy:. \n\n"
+            + "Once completed, the assessment repo will be archived to prevent"
+            " changes :lock:.\n\n<hr>\n\n</details>\n\n"
+            + "Here are the **bot commands** you can issue as part of this"
+            " assessment:\n\n"
             + "**@brnbot hello** - Say hello to brnbot :wave:.\n"
             + "**@brnbot check** - Check your code using automated tests\n"
             + opt_statement2
-            + "**@brnbot help** - Get a list of commands and information about them\n\n"
+            + "**@brnbot help** - Get a list of commands and information about"
+            " them\n\n"
             + "Good luck! And have fun! :smile:\n\n<hr>\n\n"
-            + "**Note**: If you have any questions or if something isn't working right,"
-            + " please send a message to the '#skill-assessment-wg channel' in the BRN Slack (however,"
+            + "**Note**: If you have any questions or if something isn't"
+            " working right,"
+            + " please send a message to the '#skill-assessment-wg channel' in"
+            " the BRN Slack (however,"
             + " don't share any repo code or answers there).\n\n"
             + "Finally, if you observe any violations of our "
-            + "[code of conduct](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit?usp=sharing) "
-            + "or [academic honesty policy](https://docs.google.com/document/d/1-Xoko7VDr0lK7olboGQ2CPmEnUTV3WmiDxwQQuGBgiQ/edit),"
+            + "[code of"
+            " conduct](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit?usp=sharing) "
+            + "or [academic honesty"
+            " policy](https://docs.google.com/document/d/1-Xoko7VDr0lK7olboGQ2CPmEnUTV3WmiDxwQQuGBgiQ/edit),"
             + " please report them to"
             + " codeofconduct@bioresnet.org and someone will respond shortly.\n"
         )
@@ -644,7 +677,10 @@ def approve_assessment(**kwarg_dict):
     )
     try:
         response.raise_for_status()
-        text = "Skill assessment approved 🎉. Please check your email for your badge 😎."
+        text = (
+            "Skill assessment approved 🎉. Please check your email for your"
+            " badge 😎."
+        )
         post_comment(text, **kwarg_dict)
         archive_repo(**kwarg_dict)
         return response

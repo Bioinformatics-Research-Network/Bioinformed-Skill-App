@@ -26,7 +26,7 @@ def init(
     :param db: Generator for Session of database
     :param init_request: Pydantic request model schema used by `/api/init` endpoint
 
-    :returns: Json indicating if assessment was initiated, first name of user for bot use
+    :returns: Json indicating if assessment was initiated, first name of user
 
     :raises: HTTPException 422 if:
         - Entry already exists
@@ -105,19 +105,23 @@ def init(
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
-    # bool signifies if the assessment tracker entry was initialized as well as that the member is valid
+    # bool signifies if the assessment tracker entry was initialized as well as that the
+    # member is valid
     return True
 
 
 @router.get("/view")
 def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     """
-    Returns the assessment tracker entry for the given user and assessment as a json object.
+    Returns the assessment tracker entry for the given user and assessmen
+    t as a json object.
 
     :param db: Generator for Session of database
-    :param view_request: Pydantic request model schema used by `/api/view` endpoint
+    :param view_request: Pydantic request model schema used by
+    `/api/view` endpoint
 
-    :returns: Json object containing the assessment tracker entry for the given user and assessment
+    :returns: Json object containing the assessment tracker entry for the given
+     user and assessment
 
     :raises: HTTPException 422 if:
         - User does not exist
@@ -145,9 +149,12 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
 
 
 @router.patch("/update")
-def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
+def update(
+    *, db: Session = Depends(get_db), update_request: schemas.UpdateRequest
+):
     """
-    Updates the assessment tracker entry for the given user and assessment with the given commit and log.
+    Updates the assessment tracker entry for the given user and assessment with the
+    given commit and log.
 
     :param db: Generator for Session of database
     :param update_request: Pydantic request model schema used by `/api/update` endpoint
@@ -161,7 +168,9 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
     """
     try:
 
-        user = crud.get_user_by_username(db=db, username=update_request.username)
+        user = crud.get_user_by_username(
+            db=db, username=update_request.username
+        )
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=update_request.assessment_name
         )
@@ -220,7 +229,7 @@ def delete(
         user = crud.get_user_by_id(db=db, user_id=delete_request.user_id)
         db.delete(assessment_tracker_entry)
         db.commit()
-        
+
         # Call bot to delete the assessment repo
         payload = {
             "name": assessment.name,
@@ -254,14 +263,19 @@ def delete(
 
 
 @router.post("/check")
-def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
+def check(
+    *, db: Session = Depends(get_db), check_request: schemas.CheckRequest
+):
     """
-    Run automated checks on the assessment tracker entry for the given user and assessment.
+    Run automated checks on the assessment tracker entry for the
+    given user and assessment.
 
     :param db: Generator for Session of database
-    :param check_request: Pydantic request model schema used by `/api/check` endpoint
+    :param check_request: Pydantic request model schema used by
+    `/api/check` endpoint
 
-    :returns: Json object indicating if the assessment tracker entry was checked
+    :returns: Json object indicating if the assessment tracker entry
+    was checked
 
     :raises: HTTPException 422 if:
         - User does not exist
@@ -301,7 +315,9 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
 
 
 @router.post("/review", response_model=schemas.ReviewResponse)
-def review(*, db: Session = Depends(get_db), review_request: schemas.ReviewRequest):
+def review(
+    *, db: Session = Depends(get_db), review_request: schemas.ReviewRequest
+):
     """
     Assign the assessment tracker entry for the given user and assessment to a reviewer.
 
@@ -364,12 +380,15 @@ def approve(
     settings: Settings = Depends(get_settings),
 ):
     """
-    Approve the assessment tracker entry for the given user and assessment.
+    Approve the assessment tracker entry for the
+    given user and assessment.
 
     :param db: Generator for Session of database
-    :param approve_request: Pydantic request model schema used by `/api/approve` endpoint
+    :param approve_request: Pydantic request model schema used
+    by `/api/approve` endpoint
 
-    :returns: Json object indicating if the assessment tracker entry was approved
+    :returns: Json object indicating if the assessment tracker
+    entry was approved
 
     :raises: HTTPException 422 if:
         - User does not exist
@@ -402,7 +421,9 @@ def approve(
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
     try:
         # Get the trainee info
-        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+        user = crud.get_user_by_id(
+            db=db, user_id=assessment_tracker_entry.user_id
+        )
         print(user.__dict__)
         print("D")
         # Get the assessment info
@@ -487,7 +508,6 @@ def approve(
     return {"Assessment Approved": True}
 
 
-
 @router.post("/user/delete")
 def delete_user(
     *,
@@ -507,7 +527,9 @@ def delete_user(
         - User does not exist
     """
     try:
-        crud.delete_user(db=db, user_id=delete_request.user_id, settings=settings)
+        crud.delete_user(
+            db=db, user_id=delete_request.user_id, settings=settings
+        )
     except Exception as e:  # pragma: no cover
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))

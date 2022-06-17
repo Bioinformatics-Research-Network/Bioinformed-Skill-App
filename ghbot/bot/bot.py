@@ -56,7 +56,9 @@ class Bot:
         install_id = payload["installation"]["id"]
         access_token = access_tokens["tokens"][str(install_id)]
         return {
-            "issue_number": payload["workflow_run"]["pull_requests"][0]["number"],
+            "issue_number": payload["workflow_run"]["pull_requests"][0][
+                "number"
+            ],
             "owner": payload["repository"]["owner"]["login"],
             "repo_name": payload["repository"]["name"],
             "access_token": access_token,
@@ -84,7 +86,9 @@ class Bot:
         Process the commit and run the update function
         """
         # TODO: This will only capture the HEAD on pushes, not all commits
-        kwarg_dict = self.parse_commit_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_commit_payload(
+            payload, access_tokens=access_tokens
+        )
         log = {"type": "commit"}
         print(kwarg_dict["sender"])
         # Update the assessment in the database using API
@@ -135,7 +139,9 @@ class Bot:
         # Create a repo, and upload the code, and create a branch
         print(f"Creating repo: {repo_name}")
         tmp_sha = utils.init_create_repo(
-            init_request=init_request, repo_name=repo_name, access_token=access_token
+            init_request=init_request,
+            repo_name=repo_name,
+            access_token=access_token,
         )
         print(f"Filling repo: {repo_name}")
         utils.init_fill_repo(
@@ -178,13 +184,15 @@ class Bot:
         )
         return True
 
-    ## Bot commands ##
+    # Bot commands #
 
     def invalid(self, payload: dict, access_tokens: dict):
         """
         Return an error message
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
         text = "Invalid command. Try @brnbot help"
         utils.post_comment(text, **kwarg_dict)
         return True
@@ -193,7 +201,9 @@ class Bot:
         """
         Say hello to the user
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
         text = f"Hello, @{kwarg_dict['sender']}! 😊"
         print("Hello")
         utils.post_comment(text, **kwarg_dict)
@@ -203,7 +213,9 @@ class Bot:
         """
         Return a list of commands
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
 
         # Get formatted list of commands
         text = "**Available commands:**\n"
@@ -219,10 +231,10 @@ class Bot:
         """
         Check the skill assessment using automated tests via API
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
-        actions_url = (
-            f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
         )
+        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
         try:
             response = utils.dispatch_workflow(**kwarg_dict)
             response.raise_for_status()
@@ -250,9 +262,7 @@ class Bot:
         kwarg_dict = self.parse_workflow_run_payload(
             payload, access_tokens=access_tokens
         )
-        actions_url = (
-            f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
-        )
+        actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
         print(kwarg_dict)
 
         # Confirm that latest commit is the same as the one in the database
@@ -263,8 +273,10 @@ class Bot:
         )["sha"]
         if latest_commit != kwarg_dict["last_commit"]:
             msg = (
-                "Checks are complete 🔥! However, the current commit has changed since the "
-                + "checks were initiated. Re-run the checks with `@brnbot check`."
+                "Checks are complete 🔥! However, the current commit has changed"
+                " since the "
+                + "checks were initiated. Re-run the checks with `@brnbot"
+                " check`."
             )
             utils.post_comment(msg, **kwarg_dict)
             return None
@@ -282,12 +294,19 @@ class Bot:
             if passed:
                 # Check if review is required
                 if response.json()["review_required"]:
-                    text = "Checks have **passed** 😎. You can now request manual review with `@brnbot review`."
+                    text = (
+                        "Checks have **passed** 😎. You can now request manual"
+                        " review with `@brnbot review`."
+                    )
                 else:
-                    text = "Checks have **passed** 😎. I will issue your badge now 🎉.\n"
+                    text = (
+                        "Checks have **passed** 😎. I will issue your badge now"
+                        " 🎉.\n"
+                    )
             else:
                 text = (
-                    "Checks have **failed** 💥. Please check the logs for more information: [`link`]("
+                    "Checks have **failed** 💥. Please check the logs for more"
+                    " information: [`link`]("
                     + actions_url
                     + ")"
                 )
@@ -319,7 +338,9 @@ class Bot:
         """
         Find a reviewer for the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
         # Find a reviewer for the assessment in the database using API
         request_url = f"{self.CRUD_APP_URL}/api/review"
         body = {
@@ -361,13 +382,17 @@ class Bot:
         """
         Remove a reviewer for the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
         # Remove a reviewer from the github api
         response = utils.get_reviewer(**kwarg_dict)
         try:
             response.raise_for_status()
             reviewer_username = response.json()["users"][0]["login"]
-            response_remove = utils.remove_reviewer(reviewer_username, **kwarg_dict)
+            response_remove = utils.remove_reviewer(
+                reviewer_username, **kwarg_dict
+            )
             response_remove.raise_for_status()
             return response_remove
         except requests.exceptions.HTTPError as e:  # pragma: no cover
@@ -387,6 +412,8 @@ class Bot:
         """
         Approve the assessment via API
         """
-        kwarg_dict = self.parse_comment_payload(payload, access_tokens=access_tokens)
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
         resonse = utils.approve_assessment(**kwarg_dict)
         return resonse

@@ -80,7 +80,6 @@ class Badges(Base):
     extensions = Column(Text)
 
 
-
 class Assertions(Base):
     """
     SQLAlchemy model for the "assertions" table
@@ -94,7 +93,10 @@ class Assertions(Base):
     createdAt = Column(DateTime)
     createdBy = Column(String(250))
     badgeclass = Column(
-        String(250), ForeignKey("badges.entityId", use_alter=True, name="fk_assertions_badges")
+        String(250),
+        ForeignKey(
+            "badges.entityId", use_alter=True, name="fk_assertions_badges"
+        ),
     )
     recipient_identity = Column(String(500))
     recipient_hashed = Column(Boolean)

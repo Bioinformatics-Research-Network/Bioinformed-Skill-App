@@ -1,0 +1,48 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        base: auto
+        if_not_found: success
+        informational: false
+        only_pulls: false
+    patch:
+      crud:
+        target: 95%
+        threshold: 0%
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+      webui:
+        target: 50%
+        threshold: 0%
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+      ghbot:
+        target: 75%
+        threshold: 0%
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+comment:
+  layout: "diff, flags, files"
+
+flags:
+  crud:
+    carryforward: false
+    paths:
+      - crud/
+  webui:
+    carryforward: false
+    paths:
+      - webui/
+  ghbot:
+    carryforward: false
+    paths:
+      - "ghbot/"
+
+github_checks:
+  annotations: true

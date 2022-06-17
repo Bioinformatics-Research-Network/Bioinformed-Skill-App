@@ -48,7 +48,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Test with coverage + pytest
         run: |
-          docker-compose -f ../docker-compose.yml up -d --scale crud=0 
+          docker-compose -f ../docker-compose.yml up -d --scale ghbot=0 
           python -m coverage run -m pytest
           if [ $? -ne 0 ]; then exit 1; fi  # Fail if pytest failed
           python -m coverage report
@@ -56,4 +56,4 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: ghbot

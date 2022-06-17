@@ -32,6 +32,7 @@ if (
         "R Programming I": 25958132,
         "Python Programming II": 25476585,
         "R Programming II": 25520792,
+        "Test": 25533349,
     }
     BADGE_IDs = {
         "Skill Assessment Tutorial (R)": "zS91nadxSQCchE_ahLFgvw",
@@ -40,6 +41,7 @@ if (
         "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
         "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
         "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
+        "Test": "OcVxPZEORASs4dBL0h5mOw",
     }
     # file for storing temporary access tokens
     token_fp = "access_tokens.json"

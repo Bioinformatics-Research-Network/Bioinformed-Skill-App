@@ -94,8 +94,8 @@ def init(
         print("Updating assessment tracker")
         crud.update_assessment_tracker_entry(
             db=db,
-            user_id=init_request.user_id,
-            assessment_id=init_request.assessment_id,
+            user_id=user.id,
+            assessment_id=assessment.id,
             github_url=response.json()["github_url"],
             status="Initiated",
             commit=response.json()["latest_commit"],
@@ -104,6 +104,15 @@ def init(
     except Exception as e:  # pragma: no cover
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+    print(user.id)
+    print(assessment.id)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
+    print("ABC")
+    print(settings.APP_ENV_NAME)
+    print(assessment_tracker_entry.__dict__)
 
     # bool signifies if the assessment tracker entry was initialized as well as that the
     # member is valid
@@ -217,37 +226,11 @@ def delete(
         - Assessment tracker entry does not exist
     """
     try:
-        # Delete the AT entry
-        assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        crud.delete_assessment_tracker_entry(
             db=db,
             user_id=delete_request.user_id,
             assessment_id=delete_request.assessment_id,
         )
-        assessment = crud.get_assessment_by_id(
-            db=db, assessment_id=delete_request.assessment_id
-        )
-        user = crud.get_user_by_id(db=db, user_id=delete_request.user_id)
-        db.delete(assessment_tracker_entry)
-        db.commit()
-
-        # Call bot to delete the assessment repo
-        payload = {
-            "name": assessment.name,
-            "install_id": int(assessment.install_id),
-            "repo_prefix": assessment.repo_prefix,
-            "github_org": assessment.github_org,
-            "username": user.username,
-        }
-        print(payload)
-        print("Sending request to bot init")
-        response = request(
-            "POST",
-            f"{settings.GITHUB_BOT_URL}/delete",
-            json=payload,
-        )
-        print("Bot responded")
-        response.raise_for_status()
-
     except ValueError as e:
         print(str(e))
         db.rollback()
@@ -316,7 +299,8 @@ def check(
 
 @router.post("/review", response_model=schemas.ReviewResponse)
 def review(
-    *, db: Session = Depends(get_db), review_request: schemas.ReviewRequest
+    *, db: Session = Depends(get_db), review_request: schemas.ReviewRequest,
+    settings: Settings = Depends(get_settings),
 ):
     """
     Assign the assessment tracker entry for the given user and assessment to a reviewer.
@@ -348,9 +332,10 @@ def review(
         )
         if not verify_check:
             raise ValueError("Automated checks not passed for latest commit")
-
+        
         reviewer = crud.select_reviewer(
-            db=db, assessment_tracker_entry=assessment_tracker_entry
+            db=db, assessment_tracker_entry=assessment_tracker_entry,
+            settings=settings
         )
         reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
         reviewer_info = {

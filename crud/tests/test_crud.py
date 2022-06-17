@@ -223,7 +223,7 @@ def test_select_reviewer(db: Session):
 
     # Success
     reviewer = crud.select_reviewer(
-        db=db, assessment_tracker_entry=assessment_tracker_entry
+        db=db, assessment_tracker_entry=assessment_tracker_entry, settings=settings
     )
     assert reviewer.user_id != assessment_tracker_entry.user_id
 

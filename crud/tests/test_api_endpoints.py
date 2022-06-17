@@ -6,15 +6,32 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app import crud
 import app.db.models as models
+from app.dependencies import Settings, get_db
 
 
 def test_init(client: TestClient, db: Session):
 
-    # get a valid assessment
-    assessment = db.query(models.Assessments).first()
+    # Get assessment where name is Test
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
 
-    # Get a valid user
-    user = db.query(models.Users).first()
+    # get a user where username is brnbot
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+
+    # Check if the assessment tracker entry exists
+    tracker_entry = db.query(models.AssessmentTracker).filter(
+        models.AssessmentTracker.assessment_id == assessment.id,
+        models.AssessmentTracker.user_id == user.id,
+    ).first()
+    if tracker_entry is not None:
+        # Get any assertions tied to this entry
+        assertions = db.query(models.Assertions).filter(
+            models.Assertions.assessment_tracker_id == tracker_entry.id
+        ).all()
+        # Delete all assertions tied to this entry
+        for assertion in assertions:
+            db.delete(assertion)
+        db.delete(tracker_entry)
+        db.commit()
 
     # Successful query
     request_json = {
@@ -23,9 +40,7 @@ def test_init(client: TestClient, db: Session):
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 200
-    data = response.json()
-    assert data["Initiated"] is True
-    assert type(data["username"]) == str
+    assert response.json()
 
     # Error on initializing for a second time
     response = client.post("/api/init", json=request_json)
@@ -34,398 +49,197 @@ def test_init(client: TestClient, db: Session):
         "detail": "Assessment tracker entry already exists."
     }
 
-    # Error for reinitializing with a different commit
-    request_json["latest_commit"] = "commit123"
-    response = client.post("/api/init", json=request_json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": "Assessment tracker entry already exists."
-    }
-
-    # Error for initializing with an incorrect username
+    # Error for initializing with an incorrect user
     request_json = {
         "user_id": 0,
         "assessment_id": assessment.id,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {"detail": "User name does not exist"}
+    assert response.json() == {"detail": "User ID does not exist"}
 
     # Error for initializing with an incorrect assessment name
-    username = crud.get_user_by_id(db, 2).username
     request_json = {
         "user_id": user.id,
         "assessment_id": 0,
     }
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment ID does not exist"}
+
+
+def test_view(client: TestClient, db: Session):
+
+    # Get assessment where name is Test
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+
+    # get a user where username is brnbot
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+
+    # Successful query
+    request_json = {
+        "assessment_name": assessment.name,
+        "username": user.username,
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "Initiated"
+    assert data["user_id"] == user.id
+    assert data["assessment_id"] == assessment.id
+
+    # Error on invalid username
+    request_json = {
+        "assessment_name":  assessment.name,
+        "username": "error",
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "User name does not exist"}
+
+    # Error on invalid assessment name
+    request_json = {
+        "assessment_name": "error",
+        "username": user.username,
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
     assert response.json() == {"detail": "Assessment does not exist"}
 
-
-# def test_view(client: TestClient, db: Session):
-#     user_id = 1
-#     assessment_id = 2
-#     username = crud.get_user_by_id(db, user_id).username
-#     assessment_name = crud.get_assessment_by_id(db, assessment_id).name
-
-#     # Successful query
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": username,
-#     }
-#     response = client.get("/api/view", json=request_json)
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data["status"] == "Initiated"
-#     assert data["user_id"] == user_id
-#     assert data["assessment_id"] == assessment_id
-
-#     # Error on invalid username
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": "error",
-#     }
-#     response = client.get("/api/view", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "User name does not exist"}
-
-#     # Error on invalid assessment name
-#     request_json = {
-#         "assessment_name": "error",
-#         "username": username,
-#     }
-#     response = client.get("/api/view", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment does not exist"}
-
-#     # Error on missing entry
-#     assessment_id = 3
-#     assessment_name = crud.get_assessment_by_id(db, assessment_id).name
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": username,
-#     }
-#     response = client.get("/api/view", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+    # Error on missing entry
+    request_json = {
+        "assessment_name": assessment.name,
+        "username": "errorbot",
+    }
+    response = client.get("/api/view", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
 
-# def test_delete(client: TestClient, db: Session):
-#     user_id = 1
-#     assessment_id = 3
-#     username = crud.get_user_by_id(db, user_id).username
-#     assessment_name = crud.get_assessment_by_id(db, assessment_id).name
-#     commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
-#     # Create entry
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": username,
-#         "latest_commit": commit,
-#     }
-#     response = client.post("/api/init", json=request_json)
+def test_check(client: TestClient,  db: Session):
 
-#     # Success: Delete entry
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": username,
-#     }
-#     response = client.post("/api/delete", json=request_json)
-#     assert response.status_code == 200
-#     with pytest.raises(Exception) as exc:
-#         crud.get_assessment_tracker_entry(
-#             db, user_id=user_id, assessment_id=assessment_id
-#         )
-#     assert str(exc.value) == "Assessment tracker entry unavailable."
+    db = next(get_db())
 
-#     # Error: Delete entry that does not exist
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": username,
-#     }
-#     response = client.post("/api/delete", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+    # For some reason, we have to retrieve the db session again
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    assessment_tracker_entry = db.query(models.AssessmentTracker).filter(
+        models.AssessmentTracker.assessment_id == assessment.id,
+        models.AssessmentTracker.user_id == user.id,
+    ).first()
+    print(assessment_tracker_entry.__dict__)
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
 
-#     # Error: Delete entry with incorrect username
-#     request_json = {
-#         "assessment_name": assessment_name,
-#         "username": "error",
-#     }
-#     response = client.post("/api/delete", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "User name does not exist"}
+    # Successful query
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": False,
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Check": True, "review_required": True}
 
-#     # Error: Delete entry with incorrect assessment name
-#     request_json = {
-#         "assessment_name": "error",
-#         "username": username,
-#     }
-#     response = client.post("/api/delete", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment does not exist"}
+    # Error on invalid commit
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit + "error",
+        "passed": True,
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
+    # Error on already approved
+    assessment_tracker_entry.status = "Approved"
+    db.add(assessment_tracker_entry)
+    db.commit()
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": True,
+    }
+    response = client.post("/api/check", json=request_json)
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Assessment already approved"}
 
-# def test_check(client: TestClient, db: Session):
-
-#     # Successful query
-#     user = crud.get_user_by_id(db, 1)
-#     assessment = crud.get_assessment_by_id(db, 2)
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-#         db, user.id, assessment.id
-#     )
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "passed": False,
-#     }
-#     response = client.post("/api/check", json=request_json)
-#     assert response.status_code == 200
-#     assert response.json() == {"Check": True}
-
-#     # Successful query with passed checks
-#     user = crud.get_user_by_id(db, 1)
-#     assessment = crud.get_assessment_by_id(db, 2)
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-#         db, user.id, assessment.id
-#     )
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "passed": True,
-#     }
-#     response = client.post("/api/check", json=request_json)
-#     assert response.status_code == 200
-#     assert response.json() == {"Check": True}
-
-#     # Error on invalid commit
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit + "error",
-#         "passed": True,
-#     }
-#     response = client.post("/api/check", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
-
-#     # Error on already approved
-#     user = crud.get_user_by_id(db, 1)
-#     assessment = crud.get_assessment_by_id(db, 2)
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-#         db, user.id, assessment.id
-#     )
-#     assessment_tracker_entry.status = "Approved"
-#     db.add(assessment_tracker_entry)
-#     db.commit()
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "passed": True,
-#     }
-#     response = client.post("/api/check", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment already approved"}
-#     # Revert back to initial state for subsequent tests
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry(
-#         db, user.id, assessment.id
-#     )
-#     assessment_tracker_entry.status = "Initiated"
-#     db.add(assessment_tracker_entry)
-#     db.commit()
+    # Revert back to initial state for subsequent tests
+    assessment_tracker_entry.status = "Initiated"
+    db.add(assessment_tracker_entry)
+    db.commit()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db, user.id, assessment.id
+    )
+    assert assessment_tracker_entry.status == "Initiated"
 
 
-# def test_review(client: TestClient, db: Session):
+def test_review(client: TestClient, db: Session):
 
-#     # Success: The repo is passing checks
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-#     # Therefore, successful query
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.post("/api/review", json=request_json)
-#     assert response.status_code == 200
-#     assert response.json() == {
-#         "reviewer_id": 5,
-#         "reviewer_username": "Toni_Hernandez31",
-#     }
+    # For some reason, we have to retrieve the db session again
+    db = next(get_db())
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
 
-#     # Error: The repo is not passing checks
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
-#     crud.update_assessment_log(
-#         db=db,
-#         entry_id=assessment_tracker_entry.id,
-#         latest_commit=assessment_tracker_entry.latest_commit,
-#         update_logs={
-#             "checks_passed": False,
-#             "commit": assessment_tracker_entry.latest_commit,
-#         },
-#     )
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 3)
-#     # Therefore, successful query
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.post("/api/review", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {
-#         "detail": "Automated checks not passed for latest commit"
-#     }
-
-#     # Error commit not found
-#     request_json = {
-#         "latest_commit": "error",
-#     }
-#     response = client.post("/api/review", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
-
-#     # Error: Assessment is not at the initialization stage
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
-#     assessment_tracker_entry.status = "Approved"
-#     db.add(assessment_tracker_entry)
-#     db.commit()
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 2)
-#     request_json = {
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.post("/api/review", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {
-#         "detail": "Assessment tracker entry already under review or approved"
-#     }
+    # Success: The repo is passing checks
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "passed": True,
+    }
+    response = client.post("/api/check", json=request_json)
+    # Therefore, successful reviewer query
+    request_json = {
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.post("/api/review", json=request_json)
+    assert response.status_code == 200
 
 
-# def test_approve(client: TestClient, db: Session):
+def test_approve(client: TestClient, db: Session):
 
-#     # Tracker entry for which checks are passing
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-#     # Set the assessment to be "Test"
-#     orig_assessment_id = assessment_tracker_entry.assessment_id
-#     assessment_tracker_entry.assessment_id = 6
-#     db.commit()
-#     reviewer_id = assessment_tracker_entry.reviewer_id
-#     reviewer_userid = crud.get_reviewer_by_id(db, reviewer_id=reviewer_id)
-#     reviewer_username = crud.get_user_by_id(
-#         db, user_id=reviewer_userid.user_id
-#     ).username
+    db = next(get_db())
 
-#     # Successful query
-#     request_json = {
-#         "reviewer_username": reviewer_username,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 200
-#     assert response.json() == {"Assessment Approved": True}
-#     db.refresh(assessment_tracker_entry)
-#     assert assessment_tracker_entry.status == "Approved"
+    # For some reason, we have to retrieve the db session again
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
+    reviewer = crud.get_reviewer_by_id(
+        db=db, reviewer_id=assessment_tracker_entry.reviewer_id
+    )
+    revuser = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
 
-#     # Error on incorrect reviewer username
-#     request_json = {
-#         "reviewer_username": "error",
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "User name does not exist"}
-
-#     # Error on incorrect commit
-#     request_json = {
-#         "reviewer_username": reviewer_username,
-#         "latest_commit": "error",
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
-
-#     # Error on requesting approval for an assessment that is already approved
-#     request_json = {
-#         "reviewer_username": reviewer_username,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment is not under review."}
-
-#     # Error on commit for which checks are not passing
-#     assessment_tracker_entry.status = "Under review"  # Reset status
-#     db.add(assessment_tracker_entry)
-#     db.commit()
-#     db.refresh(assessment_tracker_entry)
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-#     crud.update_assessment_log(
-#         db=db,
-#         entry_id=assessment_tracker_entry.id,
-#         latest_commit=assessment_tracker_entry.latest_commit,
-#         update_logs={
-#             "checks_passed": False,
-#             "commit": assessment_tracker_entry.latest_commit,
-#         },
-#     )
-#     request_json = {
-#         "reviewer_username": reviewer_username,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Last commit checks failed."}
-
-#     # Error where no reviewer is assigned to the assessment
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 1)
-#     request_json = {
-#         "reviewer_username": reviewer_username,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#     }
-#     response = client.patch("/api/approve", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "No reviewer is assigned to the assessment."}
-
-#     # Reset the assessment tracker entry #6 to its original assessment
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db, 6)
-#     assessment_tracker_entry.assessment_id = orig_assessment_id
-#     db.commit()
+    # Successful query
+    request_json = {
+        "reviewer_username": revuser.username,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+    }
+    response = client.patch("/api/approve", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Assessment Approved": True}
 
 
-# def test_update(client: TestClient, db: Session):
-#     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(
-#         db=db, entry_id=6
-#     )
-#     username = crud.get_user_by_id(
-#         db, user_id=assessment_tracker_entry.user_id
-#     ).username
-#     assessment_name = crud.get_assessment_by_id(
-#         db, assessment_id=assessment_tracker_entry.assessment_id
-#     ).name
+def test_update(client: TestClient, db: Session):
+    db = next(get_db())
 
-#     # Successful query
-#     log = {"Test": "Tested"}
-#     request_json = {
-#         "username": username,
-#         "assessment_name": assessment_name,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "log": log,
-#     }
-#     response = client.patch("/api/update", json=request_json)
-#     assert response.status_code == 200
-#     assert response.json() == {"Logs Updated": True}
+    # For some reason, we have to retrieve the db session again
+    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
 
-#     # Incorrect assessment
-#     request_json = {
-#         "username": username,
-#         "assessment_name": "error",
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "log": log,
-#     }
-#     response = client.patch("/api/update", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "Assessment does not exist"}
+    # Successful query
+    log = {"Test": "Tested"}
+    request_json = {
+        "username": user.username,
+        "assessment_name": assessment.name,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "log": log,
+    }
+    response = client.patch("/api/update", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Logs Updated": True}
 
-#     # Incorrect username
-#     request_json = {
-#         "username": "error",
-#         "assessment_name": assessment_name,
-#         "latest_commit": assessment_tracker_entry.latest_commit,
-#         "log": log,
-#     }
-#     response = client.patch("/api/update", json=request_json)
-#     assert response.status_code == 422
-#     assert response.json() == {"detail": "User name does not exist"}
-
-
-# /api/confirm-reviewer
-# /api/deny-reviewer

@@ -1,10 +1,12 @@
 from datetime import datetime
+from sqlalchemy import true
 from sqlalchemy.orm import Session
 import random
 import requests
 import copy
 from app import utils
 import app.db.models as models
+from app.dependencies import Settings
 
 # Reproducibility for randomly selecting reviewers
 random.seed(42)
@@ -244,10 +246,16 @@ def create_assessment_tracker_entry(
         if str(e) != "Assessment tracker entry unavailable.":
             raise e
 
+        # Ensure user exists
+        user = get_user_by_id(db=db, user_id=user_id)
+
+        # Ensure assessment exists
+        assessment = get_assessment_by_id(db=db, assessment_id=assessment_id)
+
         # Create a new entry if it doesn't exist yet
         db_obj = models.AssessmentTracker(
-            user_id=user_id,
-            assessment_id=assessment_id,
+            user_id=user.id,
+            assessment_id=assessment.id,
             last_updated=datetime.utcnow(),
             status="Pre-assessment",
             latest_commit=commit,
@@ -316,7 +324,8 @@ def update_assessment_tracker_entry(
 
 
 def select_reviewer(
-    db: Session, assessment_tracker_entry: models.AssessmentTracker
+    db: Session, assessment_tracker_entry: models.AssessmentTracker,
+    settings: Settings
 ):
     """
     Select a reviewer for the assessment tracker entry.
@@ -330,6 +339,9 @@ def select_reviewer(
     :raises: Uncaught error if no reviewer is available
     (should not happen).
     """
+    if settings.APP_ENV_NAME == "testing":
+        return get_reviewer_by_username(db=db, username="brnbot2")
+
     invalid_rev = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.user_id == assessment_tracker_entry.user_id)
@@ -675,3 +687,42 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
         db.rollback()
         print("rollback")
         raise e
+
+
+def delete_assessment_tracker_entry(
+    db: Session, delete_request, settings: dict
+) -> None:
+    """
+    To delete assessment tracker entry.
+    """
+    # Delete the AT entry
+    assessment_tracker_entry = get_assessment_tracker_entry(
+        db=db,
+        user_id=delete_request.user_id,
+        assessment_id=delete_request.assessment_id,
+    )
+    assessment = get_assessment_by_id(
+        db=db, assessment_id=delete_request.assessment_id
+    )
+    user = get_user_by_id(db=db, user_id=delete_request.user_id)
+    db.delete(assessment_tracker_entry)
+    db.commit()
+
+    # Call bot to delete the assessment repo
+    payload = {
+        "name": assessment.name,
+        "install_id": int(assessment.install_id),
+        "repo_prefix": assessment.repo_prefix,
+        "github_org": assessment.github_org,
+        "username": user.username,
+    }
+    print(payload)
+    print("Sending request to bot init")
+    response = requests.post(
+        url=f"{settings.GITHUB_BOT_URL}/delete",
+        json=payload,
+    )
+    print("Bot responded")
+    response.raise_for_status()
+
+    return True

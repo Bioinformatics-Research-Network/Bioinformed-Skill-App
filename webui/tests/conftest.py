@@ -8,6 +8,7 @@ def app():
     app.config.update(
         {
             "TESTING": True,
+            "LOGIN_DISABLED": True,
         }
     )
 

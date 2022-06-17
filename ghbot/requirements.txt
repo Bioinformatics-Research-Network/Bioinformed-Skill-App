@@ -4,7 +4,7 @@ atomicwrites==1.4.0; python_version >= "3.7" and python_full_version < "3.0.0" a
 attrs==21.4.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 black==22.3.0; python_full_version >= "3.6.2"
 boto3==1.24.4; python_version >= "3.7"
-botocore==1.27.4; python_version >= "3.7"
+botocore==1.27.11; python_version >= "3.7"
 certifi==2022.5.18.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 cffi==1.15.0; python_version >= "3.6"
 charset-normalizer==2.0.12; python_full_version >= "3.6.0" and python_version >= "3.6"

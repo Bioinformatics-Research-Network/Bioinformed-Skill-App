@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'webui/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'webui/**'
   workflow_dispatch:
 defaults:
   run:

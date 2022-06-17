@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'crud/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'crud/**'
   workflow_dispatch:
 defaults:
   run:

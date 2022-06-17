@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'ghbot/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'ghbot/**'
   workflow_dispatch:
 defaults:
   run:

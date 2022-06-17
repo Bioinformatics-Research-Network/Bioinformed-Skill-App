@@ -1,6 +1,6 @@
 # Developer notes
 
-![Tests](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/test.ghbot.yml/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=ghbot)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
+[![Test GHBot](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.ghbot.yml/badge.svg)](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.ghbot.yml) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=ghbot)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
 
 Primary maintainer: Henry Miller (@millerh1)

@@ -1,6 +1,6 @@
 # Skill App WebUI
 
-![Tests](https://github.com/Bioinformatics-Research-Network/BRN-bot/workflows/test.webui.yml/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=webui)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
+[![Test WebUI](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.webui.yml/badge.svg)](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.webui.yml) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=webui)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
 **Maintainer**: @millerh1
 

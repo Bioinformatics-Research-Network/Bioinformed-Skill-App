@@ -1,6 +1,6 @@
 # Developer notes
 
-![Tests](https://github.com/Bioinformatics-Research-Network/Skill-cert-API/workflows/test.crud.yml/badge.svg) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=crud)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
+[![Test CRUD](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.crud.yml/badge.svg)](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.crud.yml) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=crud)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
 Primary maintainer: Anmol Singh ([itchytummy](https://github.com/itchytummy))
 

@@ -8,7 +8,7 @@ Repository for the Bioinformed Skill Assessment App
 
 The purpose of this app is to enable users to complete BRN skill assessments. 
 
-It contains six components:
+It contains **six components**:
 
 1. A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
 2. A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.

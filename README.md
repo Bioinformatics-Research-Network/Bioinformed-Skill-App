@@ -8,18 +8,28 @@ Repository for the Bioinformed Skill Assessment App
 
 The purpose of this app is to enable users to complete BRN skill assessments. 
 
-It contains **six components**:
+It contains **six services**:
 
-1. A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
-2. A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
-3. A Slack App + FastAPI gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
-4. A CRUD app + FastAPI gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
-5. A MySQL database which holds the data necessary for the platform. 
-6. An [AWS Lambda](https://aws.amazon.com/lambda/) function for synchronizing all data sources used by the app. It is located in the `sync/` directory.
+1. `webui`
+  - A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
+2. `ghbot`
+  - A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
+3. `slackbot`
+  - A Slack App + FastAPI gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
+4. `crud` 
+  - A CRUD app + FastAPI gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
+5. `db`
+  - A MySQL database which holds the data necessary for the platform. 
+6. `sync`
+  - An [AWS Lambda](https://aws.amazon.com/lambda/) function for synchronizing all data sources used by the app. It is located in the `sync/` directory.
+
+**Overview diagram**:
+
+![](https://lucid.app/publicSegments/view/4c2784e9-45ce-4f69-ba17-7bd9e8d74261/image.png)
 
 ## Dev guide
 
-**Note**: These instructions apply broadly to all services in the app. For additional details, see the `README.md` within each directory.
+For a quickstart watch the first 20 min of this project's [video dev notes](https://www.loom.com/share/10fc59eaeb1b47af8293ac83e9be3bac). The instructions in that video and in the following documentation apply to all services in the app. For additional details, see the `README.md` within each service directory.
 
 ### Contributing
 
@@ -28,9 +38,11 @@ The workflow for contributing is as follows:
 1. Assign yourself to an issue.
 2. Create a new branch for this issue (or fork the repo if you are not in BRN).
 3. Work on the code and complete the requirements of the issue. Please write descriptive commit messages!
-4. Test your code locally to make sure it is working. Make sure any new features are covered by unit tests. Run `black .` to style your code before final push to github.
-5. Submit a pull request on the `main` branch for your feature. Attach the issue to your PR.
-6. Respond to reviewer critiques until the PR is merged. This will also close the issue automatically.
+4. Test your code locally to make sure it is working. 
+  - Make sure any new features are covered by unit tests. 
+  - Run `black .` to style your code before final push to github.
+5. Submit a pull request (PR) to add your changes to the `main` branch. 
+6. Respond to reviewer critiques until the PR is merged. 
 
 #### Issues
 
@@ -60,17 +72,15 @@ The `CODEOWNERS` file describes these roles:
 /.github     @millerh1
 ```
 
-For example, the line `/crud    @itchytummy` indicates that only @itchytummy can push commits to `main` which involve changes in the `crud/` dir.
+For example, the line `/crud    @itchytummy` indicates that only @itchytummy can push commits to `main` if they include changes in the `crud/` dir.
 
 ### Dev environment
 
-The ideal environment for developing this app is [gitpod](https://gitpod.io/). You can launch that environment by creating a gitpod account, defining your AWS credentials in your user variables, and then clicking the "Open in Gitpod" button (above).
+The ideal environment for developing this app is [gitpod](https://gitpod.io/). You can launch that environment by creating a gitpod account, defining your AWS credentials in your user variables (watch video to see how to do this), and then click the "Open in Gitpod" button (above).
 
-To launch the dev environment, follow the quickstart video [here](https://www.loom.com/share/10fc59eaeb1b47af8293ac83e9be3bac) (just the first 20 minutes).
+The gitpod dev environment is defined by `.gitpod.yml` -- and if you wish to develop without gitpod, you are encouraged to repeat the steps in the `.gitpod.yml` file locally so that you can faithfully reproduce the dev environment. 
 
-Finally, the dev environment is defined by `.gitpod.yml` -- and if you wish to develop without gitpod, you are encouraged to repeat the steps in the `.gitpod.yml` file locally so that you can faithfully reproduce the dev environment. 
-
-#### Starting the dev env
+#### Spinning up a local copy of the prod env
 
 To spin up all services and create a copy of the production environment in gitpod (or your local computer), simply run the following:
 
@@ -120,7 +130,7 @@ This should spin up the db with a full copy of the current prod database.
 
 ### Testing and coverage
 
-We use unit tests to ensure the code works as expected, even after new features are added or bugs squashed. Because all the repos are python-based, we use the [pytest](https://docs.pytest.org/en/6.2.x/index.html) unit testing system. Each directory will have a folder, labelled `tests/` which contains the tests for that service. You can learn more about writing tests from the official pytest docs [here](https://docs.pytest.org/en/6.2.x/index.html).
+We use unit tests to ensure the code works as expected, even after new features are added or bugs squashed. Because all the repos are python-based, we use the [pytest](https://docs.pytest.org/en/6.2.x/index.html) unit testing system. Within the directory for each service is a `tests/` folder -- this contains the tests. You can learn more about writing and running tests from the official pytest docs [here](https://docs.pytest.org/en/6.2.x/index.html).
 
 To run tests, simply navigate to the service of interest, and run `pytest`:
 
@@ -167,8 +177,12 @@ To automate the process of unit tests, code coverage, and deployment, we use [Gi
 
 For each service, there are two workflows currently defined:
 
-1. `test.<service>.yml` - runs unit tests and code coverage. This is triggered anytime a chance is made on the `main` branch in the directory for that service OR whenever a pull request is made to add changes to the main branch for that service. If it fails, see the output on the [actions tab](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions) and try to fix what went wrong. If you need help, just let @millerh1 know!
-2. `deploy.<service>.yml` - deploys the service into production on AWS. This is only triggered manually by @millerh1.
+1. `test.<service>.yml` - runs unit tests and code coverage. 
+  - This is triggered anytime a chance is made on the `main` branch in the directory for that service OR whenever a pull request is made to add changes to the main branch for that service. 
+  - If it fails, see the output on the [actions tab](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions) and try to fix what went wrong. 
+  - If you need help, just let @millerh1 know!
+2. `deploy.<service>.yml` - deploys the service into production on AWS. 
+  - This is only triggered manually by @millerh1.
 
 Most of these files are boilerplate, so you will not need to edit/write them yourself unless you want to!
 

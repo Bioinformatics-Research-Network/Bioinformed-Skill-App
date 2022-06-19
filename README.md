@@ -3,6 +3,7 @@
 [![Support: BioResNet](https://img.shields.io/badge/Support-BioResNet-purple.svg)](https://www.bioresnet.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](https://opensource.org/licenses/MIT)
 [![Contributions: Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg)](#dev-guide)
+[![Code: of conduct](https://img.shields.io/badge/Code-Of%20Conduct-blue.svg)](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit)
 
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App)

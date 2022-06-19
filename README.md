@@ -257,7 +257,7 @@ aws configure
 5. Get the .env files for all services in the app
 
 ```shell
-aws s3 cp s3://skill-assessment-app/secrets/.env.download.sh .
+aws s3 cp s3://skill-assessment-app/dev-secrets/.env.download.sh .
 bash .env.download.sh
 ```
 

@@ -2,15 +2,10 @@ name: Deploy GH Bot
 
 on: workflow_dispatch
 
-env:
-  EB_PROD_ENVNAME: skill-app-ghbot-prod
-  PROD_DOTENV: ${{ secrets.PROD_DOTENV }}
-  EB_CONFIG: ${{ secrets.EB_CONFIG }}
-  BOT_KEY_PROD: ${{ secrets.BOT_KEY_PROD }}
-  AWS_REGION: us-east-1
 permissions:
   id-token: write
   contents: read
+
 defaults:
   run:
     working-directory: ghbot
@@ -21,32 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        name: Checkout Repository
       - uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.IAM_ROLE_TEST_DEPLOY }}
+          role-to-assume: ${{ secrets.IAMROLE_DEPLOY }}
           role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
-
-      # Set up Python 3.10 environment
+          aws-region: us-east-1
+      - name: Download .env
+        run: |
+          cd ../
+          aws s3 cp s3://skill-assessment-app/prod-secrets/.env.download.sh .
+          bash .env.download.sh
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
           cache: 'pip'
-
-      - name: create .prod.env file, bot key, and EB config file
+      - name: Get EB CLI
         run: |
-          echo "$PROD_DOTENV" > .prod.env
-          echo "$BOT_KEY_PROD" > brn_bot_prod.pem
-          mkdir .elasticbeanstalk
-          echo "$EB_CONFIG" > .elasticbeanstalk/config.yml
-      # Elastic Beanstalk CLI version
-      - name: Get EB CLI version
-        run: |
-          pip install awsebcli --upgrade
-          eb --version
-      # Deploy to the Elastic Beanstalk environment
+          pip install awsebcli
       - name: Deploy to production
         run: |
           zip skill-app-ghbot.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "*vscode*" -x "*.git*" -x "*.ebextensions*" -x "*.elasticbeanstalk/logs*" -x "Dockerfile.dev"

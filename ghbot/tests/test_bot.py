@@ -9,19 +9,46 @@ import os
 os.environ["APP_ENV"] = "testing"
 
 # Import the modules
-from bot import bot, utils, const, auth, schemas
+from bot import bot, utils, dependencies, auth, schemas
+settings = dependencies.get_settings()
+
+seed = random.randint(0, 100000)
+print(f"Seed: {seed}")
+random.seed(seed)
 
 # instantiate the bot
-bot = bot.Bot()
+bot = bot.Bot(settings=settings)
 
 # Get the tokens
 access_tokens = auth.retrieve_access_tokens()
+
+# Create init request
+init_request = schemas.InitBotRequest(
+    name="Test",
+    install_id=26363998,
+    repo_prefix="test--",
+    github_org="brn-test-assessment",
+    latest_release="v0.0.4a",
+    template_repo="Skill-Assessment-Tutorial-Python",
+    username="bioresnet",
+    review_required=True,
+)
+
+random.seed(seed)
+random_string = "".join(
+        random.choice(
+            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        )
+        for i in range(6)
+    )
+repo_name = init_request.repo_prefix + random_string + "--" + init_request.username
+print(repo_name)
 
 # Payload for test repo
 payload = {
     "number": 1,
     "pull_request": {
-        "url": "https://api.github.com/repos/brn-test-assessment/test--bioresnet/pulls/1",
+        "url": f"https://api.github.com/repos/brn-test-assessment/{repo_name}/pulls/1",
         "head": {
             "sha": "OIJSADJSAODJASJDOJASD",
         },
@@ -38,36 +65,24 @@ payload = {
     "issue": {
         "number": 1,
         "pull_request": {
-            "url": "https://api.github.com/repos/brn-test-assessment/test--bioresnet/pulls/1"
+            "url": f"https://api.github.com/repos/brn-test-assessment/{repo_name}/pulls/1"
         },
     },
     "repository": {
         "owner": {
             "login": "brn-test-assessment",
         },
-        "name": "test--bioresnet",
+        "name": repo_name,
     },
 }
 
-
-# Create init request
-init_request = schemas.InitBotRequest(
-    name="Test",
-    install_id=26363998,
-    repo_prefix="test--",
-    github_org="brn-test-assessment",
-    latest_release="v0.0.4a",
-    template_repo="Skill-Assessment-Tutorial-Python",
-    username="bioresnet",
-    review_required=True,
-)
 
 # Delete request
 delete_request = schemas.DeleteBotRequest(
     name="Test",
     username="bioresnet",
     install_id=26363998,
-    repo_prefix="test--",
+    repo_name=repo_name,
     github_org="brn-test-assessment",
 )
 
@@ -91,7 +106,6 @@ def test_init():
     )
     response.raise_for_status()
     access_token = access_tokens["tokens"][str(init_request.install_id)]
-    repo_name = init_request.repo_prefix + init_request.username
     url = f"https://api.github.com/repos/{init_request.github_org}/{repo_name}"
     # Check if repo exists
     response = requests.get(
@@ -104,7 +118,7 @@ def test_init():
             delete_request, access_tokens=access_tokens
         )
 
-    resp = bot.process_init_payload(init_request, access_tokens=access_tokens)
+    resp = bot.process_init_payload(init_request, access_tokens=access_tokens, seed=seed)
 
     assert resp
 
@@ -201,8 +215,6 @@ def test_hello():
     """
     print(access_tokens)
     print(os.environ["APP_ENV"])
-    print(const.settings)
-    print(const.token_fp)
 
     payload["comment"]["body"] = "@brnbot hello"
     kwarg_dict = bot.parse_comment_payload(payload, access_tokens=access_tokens)
@@ -239,18 +251,15 @@ def test_update_on_commit():
     """
 
     # Successful update command
-    if utils.check_api_status():
-        response = bot.process_commit(payload, access_tokens=access_tokens)
-        kwarg_dict = bot.parse_commit_payload(
-            payload, access_tokens=access_tokens
-        )
-        assert response.json()
-        assert response.status_code == 200
-        # Confirm the latest comment is the output of the command
-        response2 = utils.get_recent_comments(**kwarg_dict)
-        assert kwarg_dict["last_commit"] in response2.json()[-1]["body"]
-    else:
-        print("API is down. Skipping test.")
+    response = bot.process_commit(payload, access_tokens=access_tokens)
+    kwarg_dict = bot.parse_commit_payload(
+        payload, access_tokens=access_tokens
+    )
+    assert response.json()
+    assert response.status_code == 200
+    # Confirm the latest comment is the output of the command
+    response2 = utils.get_recent_comments(**kwarg_dict)
+    assert kwarg_dict["last_commit"] in response2.json()[-1]["body"]
 
 
 def test_check():
@@ -294,7 +303,7 @@ def test_review():
         json=body,
     )
     # Set checks as passing
-    request_url = f"{const.settings.CRUD_APP_URL}/api/check"
+    request_url = f"{settings.CRUD_APP_URL}/api/check"
     body = {"latest_commit": latest_commit, "passed": True}
     print(body)
     print(request_url)

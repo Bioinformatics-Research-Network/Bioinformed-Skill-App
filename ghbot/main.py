@@ -1,16 +1,22 @@
-from bot import bot, utils, schemas, auth
+from bot import utils, schemas, auth
+from bot.dependencies import get_settings, get_db, Settings
+from bot.bot import Bot
+from sqlalchemy.orm import Session
 from fastapi import FastAPI, Body, Header, Depends, HTTPException
 
 app = FastAPI()
-brnbot = bot.Bot()
-
 
 @app.post("/")
 def bot(
     payload: dict = Body(...),
     x_github_event: str = Header(...),
     access_tokens: dict = Depends(auth.retrieve_access_tokens),
-):
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> str:
+
+    # Init the bot
+    brnbot = Bot(settings=settings)
 
     try:
         action = payload["action"]
@@ -25,8 +31,8 @@ def bot(
     print(event + ": " + action)
 
     if event == "issue_comment" and action == "created":
-        # Check if comment is for the bot
-        if utils.is_for_bot(payload):
+        # Check if comment is for the bot and the repo is valid
+        if utils.is_for_bot(payload) and utils.is_valid_repo(payload, db=db):
             sender = payload["sender"]["login"]
             message = payload["comment"]["body"]
             print(sender + ": " + message)
@@ -44,7 +50,12 @@ def bot(
 def init(
     init_request: schemas.InitBotRequest,
     access_tokens: dict = Depends(auth.retrieve_access_tokens),
-):
+    settings: Settings = Depends(get_settings),
+) -> dict:
+
+    # Init the bot
+    brnbot = Bot(settings=settings)
+
     print("init")
     gh_url, latest_commit = brnbot.process_init_payload(
         init_request, access_tokens=access_tokens
@@ -59,12 +70,17 @@ def init(
 def delete(
     delete_request: schemas.DeleteBotRequest,
     access_tokens: dict = Depends(auth.retrieve_access_tokens),
-):
+    settings: Settings = Depends(get_settings),
+) -> str:
+
+    # Init the bot
+    brnbot = Bot(settings=settings)
+
     print("delete")
     brnbot.process_delete_repo(delete_request, access_tokens=access_tokens)
     return "ok"
 
 
 @app.get("/")
-def root():
+def root() -> dict:
     return {"message": "Hello World"}

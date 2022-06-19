@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 import json
 import requests
-from bot import const
+from bot import dependencies
 
 
 def get_access_token(installation_id, jwt) -> dict:
@@ -21,7 +21,7 @@ def get_access_token(installation_id, jwt) -> dict:
         "Accept": "application/vnd.github.v3+json",
     }
     request_url = (
-        f"{const.gh_url}/app/installations/{installation_id}/access_tokens"
+        f"{dependencies.gh_url}/app/installations/{installation_id}/access_tokens"
     )
     response = requests.post(request_url, headers=headers)
     response_dict = response.json()
@@ -55,7 +55,7 @@ def get_all_access_tokens(installation_ids, jwt) -> dict:
     }
 
     # Save the access tokens to a file
-    with open(const.token_fp, "w") as f:
+    with open(dependencies.token_fp, "w") as f:
         json.dump(current_tokens, f, indent=4, sort_keys=True, default=str)
 
     # Return the access tokens
@@ -67,12 +67,12 @@ def retrieve_access_tokens():
     Load the access tokens from the file and regenerate if expired
     """
     # Create tokens if file doesn't exist
-    if not os.path.exists(const.token_fp):
+    if not os.path.exists(dependencies.token_fp):
         print("Getting jwt")
-        jwt = const.git_integration.create_jwt()
+        jwt = dependencies.git_integration.create_jwt()
         print("Getting tokens")
-        get_all_access_tokens(const.installation_ids, jwt=jwt)
-    with open(const.token_fp, "r") as f:
+        get_all_access_tokens(dependencies.installation_ids, jwt=jwt)
+    with open(dependencies.token_fp, "r") as f:
         current_tokens = json.load(f)
     exp_time = datetime.strptime(
         current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
@@ -80,11 +80,11 @@ def retrieve_access_tokens():
     if exp_time < datetime.now():
         print("EXPIRED")
         print("Getting jwt")
-        jwt = const.git_integration.create_jwt()
+        jwt = dependencies.git_integration.create_jwt()
         print("Getting tokens")
-        get_all_access_tokens(const.installation_ids, jwt=jwt)
+        get_all_access_tokens(dependencies.installation_ids, jwt=jwt)
     else:
         print("NOT EXPIRED")
-    with open(const.token_fp, "r") as f:
+    with open(dependencies.token_fp, "r") as f:
         current_tokens = json.load(f)
         return current_tokens

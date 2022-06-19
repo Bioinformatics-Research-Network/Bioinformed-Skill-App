@@ -626,7 +626,7 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
             payload = {
                 "name": assessment.name,
                 "install_id": int(assessment.install_id),
-                "repo_prefix": assessment.repo_prefix,
+                "repo_name": at.repo_name,
                 "github_org": assessment.github_org,
                 "username": user.username,
             }
@@ -712,7 +712,7 @@ def delete_assessment_tracker_entry(
     payload = {
         "name": assessment.name,
         "install_id": int(assessment.install_id),
-        "repo_prefix": assessment.repo_prefix,
+        "repo_name": assessment_tracker_entry.repo_name,
         "github_org": assessment.github_org,
         "username": user.username,
     }

@@ -1,12 +1,14 @@
 import requests
-import json
 import time
 import os
 from datetime import datetime, timedelta, timezone
-from bot import const, schemas
+from bot import dependencies, schemas
+from bot.models import AssessmentTracker
 import boto3
 from time import sleep
 import base64
+from sqlalchemy.orm import Session
+from bot.dependencies import Settings
 
 
 def post_comment(text: str, **kwargs) -> requests.Response:
@@ -22,10 +24,10 @@ def post_comment(text: str, **kwargs) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwargs['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
 
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     print("Post comment")
     print(request_url)
     print(headers)
@@ -48,7 +50,7 @@ def assign_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
     response = requests.post(
@@ -65,7 +67,7 @@ def get_reviewer(**kwarg_dict) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
     response = requests.get(
@@ -81,7 +83,7 @@ def remove_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
     response = response = requests.delete(
@@ -98,9 +100,9 @@ def get_comment_by_id(comment_id, **kwargs) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwargs['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments/{comment_id}"
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments/{comment_id}"
     response = requests.get(request_url, headers=headers)
     return response
 
@@ -113,9 +115,9 @@ def get_recent_comments(
     """
     headers = {
         "Authorization": f"Bearer {kwargs['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     one_minute_ago = datetime.now(tz=timezone.utc) - delt
     response = requests.get(
         request_url,
@@ -131,9 +133,9 @@ def get_last_comment(**kwargs) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwargs['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
     response = requests.get(request_url, headers=headers)
     return response
 
@@ -144,9 +146,9 @@ def delete_comment(comment_id, **kwargs) -> requests.Response:
     """
     headers = {
         "Authorization": f"Bearer {kwargs['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
-    request_url = f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/comments/{comment_id}"
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/comments/{comment_id}"
     response = requests.delete(request_url, headers=headers)
     return response
 
@@ -158,7 +160,7 @@ def get_assessment_name(payload: dict) -> str:
     install_id = payload["installation"]["id"]
     assessment = [
         key
-        for key, value in const.installation_ids.items()
+        for key, value in dependencies.installation_ids.items()
         if value == install_id
     ][0]
     if assessment is None:
@@ -178,10 +180,10 @@ def get_last_commit(owner, repo_name, access_token) -> dict:
     Returns:
         The response from the GitHub API with the last commit SHA
     """
-    url = f"{const.gh_url}/repos/{owner}/{repo_name}/commits"
+    url = f"{dependencies.gh_url}/repos/{owner}/{repo_name}/commits"
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     response = requests.get(url, headers=headers)
     commits = response.json()
@@ -206,6 +208,29 @@ def is_for_bot(payload: dict) -> bool:
         return False
 
 
+def is_valid_repo(payload: dict, db: Session) -> bool:
+    """
+    Check if the payload is for the bot
+    """
+    repo_name = payload["repository"]["name"]
+
+    # Query the assessment tracker table for this repo name
+    assessment_tracker = (
+        db.query(AssessmentTracker)
+        .filter(AssessmentTracker.repo_name == repo_name)
+        .first()
+    )
+
+    print("AT")
+
+    if assessment_tracker is None:
+        print("Entry unavailable in the assessment tracker table")
+    else:
+        print(assessment_tracker.id)
+
+    return assessment_tracker is not None
+
+
 def is_pr_commit(payload: dict, event: str) -> bool:
     """
     Check if the payload is a user commit on the PR
@@ -215,7 +240,7 @@ def is_pr_commit(payload: dict, event: str) -> bool:
     if event == "pull_request" and payload["action"] == "synchronize":
         try:
             payload["pull_request"]["head"]["sha"]
-            valid_ids = const.installation_ids.values()
+            valid_ids = dependencies.installation_ids.values()
             return (
                 payload["sender"]["login"] != "github-classroom[bot]"
                 and payload["installation"]["id"] in valid_ids
@@ -233,7 +258,7 @@ def is_assessment_init(payload: dict, event: str) -> bool:
     if event == "pull_request" and payload["action"] == "edited":
         try:
             payload["pull_request"]["head"]["sha"]
-            valid_ids = const.installation_ids.values()
+            valid_ids = dependencies.installation_ids.values()
             return (
                 payload["sender"]["login"] == "github-classroom[bot]"
                 and payload["installation"]["id"] in valid_ids
@@ -258,12 +283,12 @@ def is_workflow_run(payload: dict) -> bool:
 def dispatch_workflow(**kwarg_dict) -> requests.Response:
     # Dispatch workflow file
     request_url = (
-        f"{const.gh_url}/repos/{kwarg_dict['owner']}/"
-        + f"{kwarg_dict['repo_name']}/actions/workflows/{const.workflow_filename}/dispatches"
+        f"{dependencies.gh_url}/repos/{kwarg_dict['owner']}/"
+        + f"{kwarg_dict['repo_name']}/actions/workflows/{dependencies.workflow_filename}/dispatches"
     )
     headers = {
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     print("Dispatching workflow")
     print(request_url)
@@ -272,24 +297,24 @@ def dispatch_workflow(**kwarg_dict) -> requests.Response:
         request_url,
         headers=headers,
         json={
-            "ref": const.git_ref,
+            "ref": dependencies.git_ref,
         },
     )
     return response
 
 
 def delete_repo(
-    delete_request: schemas.DeleteBotRequest, access_token: str, repo_name: str
+    delete_request: schemas.DeleteBotRequest, access_token: str
 ):
     """
     Process a delete repo request
     """
     request_url = (
-        f"{const.gh_url}/repos/{delete_request.github_org}/{repo_name}"
+        f"{dependencies.gh_url}/repos/{delete_request.github_org}/{delete_request.repo_name}"
     )
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     print("delete repo")
     print(request_url)
@@ -308,7 +333,7 @@ def archive_repo(**kwargs: dict):
     Process an archive repo request
     """
     request_url = (
-        f"{const.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
+        f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
     )
     body = {
         "archived": True,
@@ -320,7 +345,7 @@ def archive_repo(**kwargs: dict):
             json=body,
             headers={
                 "Authorization": f"token {kwargs['access_token']}",
-                "Accept": const.accept_header,
+                "Accept": dependencies.accept_header,
             },
         )
         response.raise_for_status()
@@ -334,10 +359,10 @@ def init_create_repo(
     init_request: schemas.InitBotRequest, repo_name: str, access_token: str
 ):
     # Delete the repo if it already exists
-    request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}"
+    request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}"
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Accept": const.accept_header,
+        "Accept": dependencies.accept_header,
     }
     print("delete repo")
     print(request_url)
@@ -351,7 +376,7 @@ def init_create_repo(
         pass
 
     # Create the repo in the database using GitHub API
-    request_url = f"{const.gh_url}/orgs/{init_request.github_org}/repos"
+    request_url = f"{dependencies.gh_url}/orgs/{init_request.github_org}/repos"
     body = {
         "name": repo_name,
         "description": init_request.name
@@ -382,7 +407,7 @@ def init_create_repo(
 
     try:
         # Put an empty README in the repo
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
+        request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
         base64content = base64.b64encode(b".")
         body = {
             "message": "Initial commit",
@@ -405,18 +430,21 @@ def init_create_repo(
 
 
 def init_fill_repo(
-    init_request: schemas.InitBotRequest, repo_name: str, access_token: str
+    init_request: schemas.InitBotRequest, 
+    repo_name: str, 
+    access_token: str,
+    settings: Settings,
 ):
     # Download the code from aws s3 and upload to github
     try:
         # Configure s3 client
         s3 = boto3.resource(
             "s3",
-            aws_access_key_id=const.settings.AWS_ACCESS_KEY,
-            aws_secret_access_key=const.settings.AWS_SECRET_KEY,
-            region_name=const.settings.AWS_REGION,
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            region_name=settings.AWS_REGION,
         )
-        bucket = s3.Bucket(const.settings.AWS_BUCKET)
+        bucket = s3.Bucket(settings.AWS_BUCKET)
         # Object directory on s3
         object_dir = (
             "templates/"
@@ -450,7 +478,7 @@ def init_fill_repo(
                 base64content = base64.b64encode(f.read())
             # Create the file in the repo
             request_url = (
-                f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
+                f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
             )
             body = {
                 "message": "Adding assessment files...",
@@ -478,7 +506,7 @@ def init_create_feedback_branch(
     try:
 
         # Get the SHA of the last commit on the main branch
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs/heads/main"
+        request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs/heads/main"
         response = requests.get(
             request_url,
             headers={"Authorization": f"token {access_token}"},
@@ -488,7 +516,7 @@ def init_create_feedback_branch(
         sha2 = response.json()["object"]["sha"]
 
         # Create the ref
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs"
+        request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/git/refs"
         body = {
             "ref": "refs/heads/feedback",
             "sha": sha2,
@@ -514,7 +542,7 @@ def init_delete_tmp(
 ):
     # Delete the .tmp file from the main branch
     try:
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
+        request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/.tmp"
         body = {
             "message": "Deleted .tmp file",
             "sha": tmp_sha,
@@ -542,7 +570,7 @@ def init_create_pr(
     # Create the pull request from the feedback branch to the main branch
     try:
         request_url = (
-            f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/pulls"
+            f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/pulls"
         )
         if init_request.review_required:
             opt_statement = (
@@ -563,7 +591,7 @@ def init_create_pr(
             opt_statement2 = ""
 
         http_repo = (
-            const.gh_http + "/" + init_request.github_org + "/" + repo_name
+            dependencies.gh_http + "/" + init_request.github_org + "/" + repo_name
         )
         welcome_message = (
             "Hello, @"
@@ -645,7 +673,7 @@ def init_add_collaborator(
 ):
     # Add the collaborator to the repo
     try:
-        request_url = f"{const.gh_url}/repos/{init_request.github_org}/{repo_name}/collaborators/{init_request.username}"
+        request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/collaborators/{init_request.username}"
         sleep(1)
         response = requests.put(
             request_url,
@@ -661,7 +689,7 @@ def init_add_collaborator(
 
 def approve_assessment(**kwarg_dict):
     # Approve the assessment in the database using API
-    request_url = f"{const.settings.CRUD_APP_URL}/api/approve"
+    request_url = f"{kwarg_dict['CRUD_APP_URL']}/api/approve"
     body = {
         "reviewer_username": kwarg_dict["sender"],
         "latest_commit": get_last_commit(
@@ -699,16 +727,3 @@ def approve_assessment(**kwarg_dict):
         )
         post_comment(err, **kwarg_dict)
         raise e
-
-
-def check_api_status():
-    # Check the API status
-    request_url = f"{const.settings.CRUD_APP_URL}/"
-    try:
-        response = requests.get(request_url)
-        response.raise_for_status()
-        return True
-    except Exception as e:  # pragma: no cover
-        err = f"**Error**: {e}"
-        print(err)
-        return False

@@ -1,3 +1,4 @@
+from pydoc import resolve
 import requests
 import time
 import os
@@ -58,6 +59,7 @@ def assign_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
         headers=headers,
         json={"reviewers": [reviewer_username]},
     )
+    response.raise_for_status()
     return response
 
 

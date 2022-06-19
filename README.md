@@ -1,8 +1,12 @@
-# Bioinformed-Skill-App
+# *Bioinformed* Skill Assessment Platform
+
+[![Support: BioResNet](https://img.shields.io/badge/Support-BioResNet-purple.svg)](https://www.bioresnet.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](https://opensource.org/licenses/MIT)
+[![Contributions: Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg)](#dev-guide)
+
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
-Repository for the Bioinformed Skill Assessment App
 
 ## Overview
 

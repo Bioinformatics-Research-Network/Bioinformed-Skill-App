@@ -15,7 +15,7 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
     healthcheck:
       test: mysql -uroot -proot -e 'show databases;'
-      interval: 3s
+      interval: 5s
       timeout: 2s
       retries: 10
     stop_signal: SIGKILL

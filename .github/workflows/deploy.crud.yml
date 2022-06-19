@@ -23,8 +23,8 @@ jobs:
       - name: Download .env
         run: |
           cd ../
-          aws s3 cp s3://skill-assessment-app/prod-secrets/.env.download.sh .
-          bash .env.download.sh
+          aws s3 cp s3://skill-assessment-app/prod-secrets/.env.download.prod.sh .
+          bash .env.download.prod.sh
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:

@@ -228,8 +228,8 @@ def delete(
     try:
         crud.delete_assessment_tracker_entry(
             db=db,
-            user_id=delete_request.user_id,
-            assessment_id=delete_request.assessment_id,
+            delete_request=delete_request,
+            settings=settings,
         )
     except ValueError as e:
         print(str(e))

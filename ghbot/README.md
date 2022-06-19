@@ -78,7 +78,7 @@ uvicorn main:app --reload --port 8001
 ### Other notes and considerations
 
 1. You can add new deps to the poetry env by running `poetry add <package_name>`
-2. The app must be installed by GitHub organizations to be used. As each skill assessment has its own organization (e.g., Python Programming II), the bot has to be installed separately for each. After this is done, the *Install ID* must be registered in `bot/const.py` within the `installation_ids` object. You can obtain the installation ID for an organization by commenting on a PR/Issue in that org and getting the [webhook output from smee.io](https://smee.io/rSiwWHyU4AMt1zn) -- the install ID is in the event payload under `{"installation": {"id": <id_number>}}`
+2. The app must be installed by GitHub organizations to be used. As each skill assessment has its own organization (e.g., Python Programming II), the bot has to be installed separately for each. After this is done, the *Install ID* must be registered in `bot/dependencies.py` within the `installation_ids` object. You can obtain the installation ID for an organization by commenting on a PR/Issue in that org and getting the [webhook output from smee.io](https://smee.io/rSiwWHyU4AMt1zn) -- the install ID is in the event payload under `{"installation": {"id": <id_number>}}`
 
 
 ## Workflow for contributing:

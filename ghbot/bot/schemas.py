@@ -25,6 +25,6 @@ class DeleteBotRequest(BaseModel):
 
     name: str
     install_id: int
-    repo_prefix: str
+    repo_name: str
     github_org: str
     username: str

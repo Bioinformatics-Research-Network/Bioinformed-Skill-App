@@ -15,9 +15,10 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
     healthcheck:
       test: mysql -uroot -proot -e 'show databases;'
-      interval: 10s
+      interval: 3s
       timeout: 2s
       retries: 10
+    stop_signal: SIGKILL
   webui:
     build: webui/
     depends_on:
@@ -29,6 +30,7 @@ services:
       - ./webui:/app
     environment:
       APP_ENV: development
+    stop_signal: SIGKILL
   ghbot:
     build: ghbot/
     depends_on:
@@ -40,6 +42,7 @@ services:
       - ./ghbot:/app
     environment:
       APP_ENV: development
+    stop_signal: SIGKILL
   crud:
     build: crud/
     depends_on:
@@ -51,3 +54,4 @@ services:
       - ./crud:/app
     environment:
       APP_ENV: development
+    stop_signal: SIGKILL

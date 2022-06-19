@@ -9,6 +9,22 @@
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
 
+### Table of contents
+
+- [Overview](#overview)
+- [Dev guide](#dev-guide)
+  * [Contributing](#contributing)
+    + [Issues](#issues)
+    + [CODEOWNERS](#codeowners)
+    + [Code of Conduct](#code-of-conduct)
+  * [Dev environment](#dev-environment)
+    + [Spinning up a local copy of the prod env](#spinning-up-a-local-copy-of-the-prod-env)
+    + [Rebuilding database](#rebuilding-database)
+  * [Testing and coverage](#testing-and-coverage)
+  * [GitHub actions](#github-actions)
+    + [Badges for unit tests and coverage](#badges-for-unit-tests-and-coverage)
+
+
 ## Overview
 
 The *Bioinformed* Skill Assessment Platform enables users to complete BRN skill assessments, earn badges, and demonstrate their skills to potential partners and employers.

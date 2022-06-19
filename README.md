@@ -2,7 +2,7 @@
 
 [![Support: BioResNet](https://img.shields.io/badge/Support-BioResNet-purple.svg)](https://www.bioresnet.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](https://opensource.org/licenses/MIT)
-[![Contributions: Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg)](#dev-guide)
+[![Contributions: Welcome](https://img.shields.io/badge/Contributions-Welcome-forestgreen.svg)](#dev-guide)
 [![Code: of conduct](https://img.shields.io/badge/Code-Of%20Conduct-blue.svg)](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit)
 
 
@@ -11,20 +11,20 @@
 
 ## Overview
 
-The purpose of this app is to enable users to complete BRN skill assessments. 
+The *Bioinformed* Skill Assessment Platform enables users to complete BRN skill assessments, earn badges, and demonstrate their skills to potential partners and employers.
 
-It contains **six services**:
+It comprises **six services** which correspond to the directories in this repo:
 
 1. `webui`
     - A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
 2. `ghbot`
-    - A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
+    - A [GitHub app](https://docs.github.com/en/developers/apps) + [FastAPI](https://fastapi.tiangolo.com/) gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
 3. `slackbot`
-    - A Slack App + FastAPI gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
+    - A [Slack App](https://api.slack.com/start/building) + [FastAPI](https://fastapi.tiangolo.com/) gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
 4. `crud` 
-    - A CRUD app + FastAPI gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
+    - A CRUD app + [FastAPI](https://fastapi.tiangolo.com/) gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
 5. `db`
-    - A MySQL database which holds the data necessary for the platform. 
+    - An [AWS RDS](https://aws.amazon.com/rds/) MySQL database which holds the data necessary for the platform. 
 6. `sync`
     - An [AWS Lambda](https://aws.amazon.com/lambda/) function for synchronizing all data sources used by the app. It is located in the `sync/` directory.
 
@@ -34,11 +34,11 @@ It contains **six services**:
 
 ## Dev guide
 
-For a quickstart watch the first 20 min of this project's [video dev notes](https://www.loom.com/share/10fc59eaeb1b47af8293ac83e9be3bac). The instructions in that video and in the following documentation apply to all services in the app. For additional details, see the `README.md` within each service directory.
+For a quickstart watch the first 20 min of this project's [video dev notes](https://www.loom.com/share/10fc59eaeb1b47af8293ac83e9be3bac). The instructions in that video and in the following documentation apply to all services in the app. For additional details, see the `README.md` within each service's directory.
 
 ### Contributing
 
-The workflow for contributing is as follows:
+The **workflow for contributing**:
 
 1. Assign yourself to an issue.
 2. Create a new branch for this issue (or fork the repo if you are not in BRN).
@@ -59,7 +59,7 @@ New issues should also be labeled so we know what kind of issue it is, and what 
 
 Once a new issue is created, it will go onto the [project board](https://github.com/orgs/Bioinformatics-Research-Network/projects/1). If something is high urgency it will go into "Todo". If it is low urgency, it should go in the "Backlog". 
 
-Anyone can assign themselves to an issue. If, for some reason, we need someone else to work on it instead, then someone will politely ask you to either share if you've already started work, or give up the issue if you haven't started yet.
+Anyone can assign themselves to an issue. If we need someone else to work on it instead, then someone will **politely** ask you to give up the issue.
 
 #### CODEOWNERS
 
@@ -78,6 +78,10 @@ The `CODEOWNERS` file describes these roles:
 ```
 
 For example, the line `/crud    @itchytummy` indicates that only @itchytummy can push commits to `main` if they include changes in the `crud/` dir.
+
+#### Code of Conduct
+
+At all times, contributors are expected to abide by the [BRN Code of Conduct](https://docs.google.com/document/d/1q06RJbIsyIzLC828A7rBEhtfkujkj9kx7Y118AaWASA/edit). Failure to follow these guidelines may result in discplinary action, such as a ban from contributing to this work.
 
 ### Dev environment
 

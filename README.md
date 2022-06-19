@@ -15,11 +15,13 @@
 - [Dev guide](#dev-guide)
   * [Contributing](#contributing)
     + [Issues](#issues)
+    + [Standards](#standards)
     + [CODEOWNERS](#codeowners)
     + [Code of Conduct](#code-of-conduct)
   * [Dev environment](#dev-environment)
     + [Spinning up a local copy of the prod env](#spinning-up-a-local-copy-of-the-prod-env)
     + [Rebuilding database](#rebuilding-database)
+    + [Setting up the dev environment (non-gitpod)](#setting-up-the-dev-environment--non-gitpod-)
   * [Testing and coverage](#testing-and-coverage)
   * [GitHub actions](#github-actions)
     + [Badges for unit tests and coverage](#badges-for-unit-tests-and-coverage)
@@ -76,6 +78,26 @@ New issues should also be labeled so we know what kind of issue it is, and what 
 Once a new issue is created, it will go onto the [project board](https://github.com/orgs/Bioinformatics-Research-Network/projects/1). If something is high urgency it will go into "Todo". If it is low urgency, it should go in the "Backlog". 
 
 Anyone can assign themselves to an issue. If we need someone else to work on it instead, then someone will **politely** ask you to give up the issue.
+
+#### Standards
+
+To keep this project neat, organized, and easy to contribute to, please make sure to do all the following when writing new code:
+
+1. Lint / Style your code
+    - We use [flake8](https://flake8.pycqa.org/en/latest/) for linting.
+    - Run `flake8 .` and fix all warnings / errors
+    - Run `black -l 80 --experimental-string-processing .` to automatically style your code (the `-l 80 --experimental-string-processing` part wraps long lines).
+2. Write unit tests for new features / functions
+    - New features and functions should be covered by unit tests when possible.
+3. Document your code
+    - Use [docstrings](https://peps.python.org/pep-0257/) to document your functions. Please be descriptive so that others can follow / understand your code.
+    - Use comments to describe your code within function
+    - If your code introduces new user behaviors, open an issue for the `webui` so they can be appropriately documented in the user interface
+    - If your code introduces new developer requirements, update the `README.md` files appropriately
+4. Try to follow principles like [YAGNI, KISS, and DRY](https://henriquesd.medium.com/dry-kiss-yagni-principles-1ce09d9c601f) when practical to do so
+    - DRY (don't repeat yourself) 
+    - KISS (keep it simple, stupid)
+    - YAGNI (you ain't gonna need it)
 
 #### CODEOWNERS
 
@@ -152,6 +174,83 @@ docker-compose up --build --force-recreate --no-deps
 ```
 
 This should spin up the db with a full copy of the current prod database.
+
+#### Setting up the dev environment (non-gitpod)
+
+These steps will detail how to set up the dev environment and get started without using gitpod.
+
+1. Clone repo
+
+```shell
+git clone git@github.com:Bioinformatics-Research-Network/Bioinformed-Skill-App.git
+```
+
+2. Switch to your branch
+
+```shell
+git checkout -b <name_of_branch>
+```
+
+3. Install AWS CLI
+
+```shell
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+rm -r aws/
+rm awscliv2.zip
+```
+
+4. Configure AWS CLI with your access credentials (also set default region to `us-east-1`)
+
+```shell
+aws configure
+```
+
+5. Get the .env files for all services in the app
+
+```shell
+aws s3 cp s3://skill-assessment-app/secrets/.env.download.sh .
+bash .env.download.sh
+```
+
+6. Install python 3.10.4 using [pyenv](https://github.com/pyenv/pyenv)
+
+```shell
+pyenv install 3.10.4
+pyenv shell 3.10.4  # Activate pyenv
+```
+
+7. Create venv
+
+```shell
+python -m venv venv
+```
+
+8. Install global deps
+
+```shell
+pip install -r requirements.txt
+```
+
+9. Install service specific deps:
+
+```shell
+cd <service_dir>/
+pip install -r requirements.txt
+```
+
+10. Set environmental variables
+
+```shell
+export APP_ENV="testing"
+```
+
+11. In a new & separate terminal, spin up docker-compose (excluding the service you want to develop for)
+
+```shell
+docker-compose up --scale <service>=0
+```
 
 ### Testing and coverage
 

@@ -20,12 +20,13 @@
     + [Code of Conduct](#code-of-conduct)
   * [Dev environment](#dev-environment)
     + [Spinning up a local copy of the prod env](#spinning-up-a-local-copy-of-the-prod-env)
+      - [Example with WebUI service](#example-with-webui-service)
+    + [ENV variables and security](#env-variables-and-security)
     + [Rebuilding database](#rebuilding-database)
     + [Setting up the dev environment (non-gitpod)](#setting-up-the-dev-environment--non-gitpod-)
   * [Testing and coverage](#testing-and-coverage)
   * [GitHub actions](#github-actions)
     + [Badges for unit tests and coverage](#badges-for-unit-tests-and-coverage)
-
 
 ## Overview
 
@@ -141,13 +142,59 @@ If you want to work on a particular service (e.g., the CRUD app), spin up all ot
 docker-compose up --scale <my_service>=0
 ```
 
-For example, if you wanted to work on the webui:
+Then you can proceed to work on `<my_service>` as desired.
+
+##### Example with WebUI service
+
+For example, if you wanted to work on the webui, launch the following:
 
 ```shell
 docker-compose up --build --scale webui=0
 ```
 
-This will cause all other services to launch except the web application.
+From this point onwards, you can use a separate terminal to work on the webui service:
+
+```shell
+# Set up environment for local development on webui
+export APP_ENV=testing
+cd webui/
+pip install -r requirements.txt
+
+# Launch webui app (use 9630 because this is what docker compose uses)
+flask run -p 9630 --reload --debugger
+```
+
+If you are working remotely, you will need to forward port 9630 (use the port panel in VS Code to do this, for example) -- then you should be able to navigate to http://localhost:9630 in your browser and see the app running.
+
+#### ENV variables and security
+
+All secrets and environmental variables are stored in `.env` files which are loaded into the dev env automatically (if using gitpod). You must have AWS access in order to obtain them -- as @millerh1 if you need this. We use [pydantic[dotenv]](https://pydantic-docs.helpmanual.io/usage/settings/) to load them for each app based on the `APP_ENV` environmental parameter.
+
+```shell
+# App will use .test.env
+export APP_ENV=testing
+
+...
+
+# App will use .dev.env
+export APP_ENV=development
+```
+
+While working locally on a particular service, always use the `testing` env. This will ensure that the service you are working on can correctly network with the other services running in docker-compose. By default, all services in docker-compose will use the `development` env.
+
+All `.env` files should be treated as **strictly confidential**. They should never be shared or pushed to GitHub. By default, the `.gitignore` file will ignore these -- but still be careful that you do not accidentally overwrite the `.gitignore`.
+
+Environmental variables, ssh keys, OAuth tokens, or other secrets should never be committed to the git history or otherwise stored in plain text anywhere. 
+
+For secrets needed during the dev process, store them in gitpod as user variables (preferred), or simply export them in your local terminal:
+
+```shell
+export MY_SECRET=<my_secret_value>
+```
+
+For secrets needed during GitHub actions, notify @millerh1 and he can add them.
+
+Finally, if you notice any secrets/keys in the git repo, notify @millerh1 immediately via Slack (BRN members) or via [email](henry@bioresnet.org) (outside contributors).
 
 #### Rebuilding database
 
@@ -265,6 +312,9 @@ cd webui/
 # Install service deps if you haven't already
 pip install -r requirements.txt
 
+# Set app env
+export APP_ENV=testing
+
 # Run pytest
 pytest
 ```
@@ -281,6 +331,9 @@ cd webui/
 
 # Install service deps if you haven't already
 pip install -r requirements.txt
+
+# Set app env
+export APP_ENV=testing
 
 # Run pytest via coverage
 coverage run -m pytest

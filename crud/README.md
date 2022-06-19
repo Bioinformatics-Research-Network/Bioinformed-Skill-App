@@ -14,7 +14,20 @@ This README contains notes to aid contributors and maintainers for this repo. It
 docker-compose up --scale crud=0
 ```
 
-2. In a separate terminal, start the app using `uvicorn`:
+2. In a separate terminal, enter the `crud/` dir and install requirements
+
+```shell
+cd crud/
+pip install -r requirements.txt
+```
+
+3. Set the app env to `testing`. This will cause the `.test.env` environment file to be used (it must already be present in your repo).
+
+```shell
+export APP_ENV=testing
+```
+
+4. start the app using `uvicorn`. The `--reload` flag means the app will reload when a file is changed and saved. The `--port` flag specifies the port which the app listens on.
 
 ```shell
 uvicorn main:app --reload --port 2000

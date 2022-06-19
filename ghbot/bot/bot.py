@@ -381,7 +381,8 @@ class Bot:
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:  # pragma: no cover
-            err = f"**Error**: {response.json()['detail']}" + "\n"
+            print(str(e))
+            err = f"**Error**: e" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover

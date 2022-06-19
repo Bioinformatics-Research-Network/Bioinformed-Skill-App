@@ -15,17 +15,17 @@ The purpose of this app is to enable users to complete BRN skill assessments.
 It contains **six services**:
 
 1. `webui`
-  - A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
+    - A [flask](https://flask.palletsprojects.com/en/2.1.x/) application for serving the web UI to the users. This enables the user to authenticate with the app, see/edit their info, find assessments, launch assessments, and view their badges. The `webui/` directory contains the code for that part of the app.
 2. `ghbot`
-  - A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
+    - A GitHub app + FastAPI gateway for managing user interactions on GitHub and performing operations required to enable the app features. It is located in the `ghbot/` directory.
 3. `slackbot`
-  - A Slack App + FastAPI gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
+    - A Slack App + FastAPI gateway for managing user interactions on Slack, similar to the GitHub app. It is located in the `slackbot/` directory.
 4. `crud` 
-  - A CRUD app + FastAPI gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
+    - A CRUD app + FastAPI gateway for responding to requests from all other services, updating the database, and returning data to the requesting services. This is the hub of the platform and it also serves to enforce security standards by preventing unauthorized access to the back-end database. It is located in the `crud/` directory.
 5. `db`
-  - A MySQL database which holds the data necessary for the platform. 
+    - A MySQL database which holds the data necessary for the platform. 
 6. `sync`
-  - An [AWS Lambda](https://aws.amazon.com/lambda/) function for synchronizing all data sources used by the app. It is located in the `sync/` directory.
+    - An [AWS Lambda](https://aws.amazon.com/lambda/) function for synchronizing all data sources used by the app. It is located in the `sync/` directory.
 
 **Overview diagram**:
 
@@ -43,8 +43,8 @@ The workflow for contributing is as follows:
 2. Create a new branch for this issue (or fork the repo if you are not in BRN).
 3. Work on the code and complete the requirements of the issue. Please write descriptive commit messages!
 4. Test your code locally to make sure it is working. 
-  - Make sure any new features are covered by unit tests. 
-  - Run `black .` to style your code before final push to github.
+    - Make sure any new features are covered by unit tests. 
+    - Run `black .` to style your code before final push to github.
 5. Submit a pull request (PR) to add your changes to the `main` branch. 
 6. Respond to reviewer critiques until the PR is merged. 
 
@@ -182,11 +182,11 @@ To automate the process of unit tests, code coverage, and deployment, we use [Gi
 For each service, there are two workflows currently defined:
 
 1. `test.<service>.yml` - runs unit tests and code coverage. 
-  - This is triggered anytime a chance is made on the `main` branch in the directory for that service OR whenever a pull request is made to add changes to the main branch for that service. 
-  - If it fails, see the output on the [actions tab](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions) and try to fix what went wrong. 
-  - If you need help, just let @millerh1 know!
+    - This is triggered anytime a chance is made on the `main` branch in the directory for that service OR whenever a pull request is made to add changes to the main branch for that service. 
+    - If it fails, see the output on the [actions tab](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions) and try to fix what went wrong. 
+    - If you need help, just let @millerh1 know!
 2. `deploy.<service>.yml` - deploys the service into production on AWS. 
-  - This is only triggered manually by @millerh1.
+    - This is only triggered manually by @millerh1.
 
 Most of these files are boilerplate, so you will not need to edit/write them yourself unless you want to!
 

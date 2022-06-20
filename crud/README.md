@@ -187,13 +187,13 @@ To enable github actions to assume the proper AWS IAM Role for deployment, we ne
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::346542362226:oidc-provider/token.actions.githubusercontent.com"
+                "Federated": "arn:aws:iam::<your_aws_userid>:oidc-provider/token.actions.githubusercontent.com"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
-                "StringLike": {
-                    "token.actions.githubusercontent.com:sub": "repo:Bioinformatics-Research-Network/Bioinformed-Skill-App:*",
-                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                    "token.actions.githubusercontent.com:sub": "repo:Bioinformatics-Research-Network/Skill-App-CRUD:ref:refs/heads/main"
                 }
             }
         }

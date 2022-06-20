@@ -5,96 +5,42 @@
 
 Primary maintainer: Henry Miller (@millerh1)
 
-This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time. 
+This README contains notes to aid contributors and maintainers for this repo. It's a living document, so feel free to suggest changes any time.
 
-This is a GitHub app which can be installed at the organization level via: https://github.com/apps/brn-bot
+## Running CRUD app locally
 
-## Dev notes
-
-### Quick start
-
-Here are the steps required for setting up and launching the BRN bot
-
-1. Clone repo
+1. After loading the dev env, spin up all services except for the CRUD app
 
 ```shell
-git clone git@github.com:Bioinformatics-Research-Network/BRN-bot.git
+docker-compose up --scale crud=0
 ```
 
-2. Switch to your branch (do not commit / push to main)
+2. In a separate terminal, enter the `crud/` dir and install requirements
 
 ```shell
-git checkout -b <name_of_branch>
-```
-
-3. Install nodejs & smee
-
-```shell
-curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
-sudo bash /tmp/nodesource_setup.sh
-sudo apt install nodejs
-sudo npm install -g smee-client
-```
-
-4. Start smee channel
-
-```shell
-smee -u https://smee.io/rSiwWHyU4AMt1zn --port 2000
-```
-
-5. Use pip, venv, and the `requirements.txt` file (make sure you have python3.10 or higher installed)
-
-```shell
-# Install python3.10-venv if you have not already...
-# sudo apt install python3.10-venv
-
-python3.10 -m venv venv
-source venv/bin/activate
+cd crud/
 pip install -r requirements.txt
 ```
 
-6. Set environment (ask Henry for these)
+3. Set the app env to `testing`. This will cause the `.test.env` environment file to be used (it must already be present in your repo).
 
 ```shell
-export APP_ENV=development
-export BOT_KEY_PATH="brn_bot_dev.pem"
+export APP_ENV=testing
 ```
 
-7. Run unit tests
+4. start the app using `uvicorn`. The `--reload` flag means the app will reload when a file is changed and saved. The `--port` flag specifies the port which the app listens on.
 
 ```shell
-pytest
+uvicorn main:app --reload --port 2000
 ```
 
-8. Launch the app
+To test out the API locally use the Swagger UI docs:
 
-```shell
-uvicorn main:app --reload --port 8001
-```
+Open your prefered web browser and enter following URL `http://127.0.0.1:2000/api/docs`. This will help you in discovering how to use the API.
 
-9. Try it out by navigating to the [test repo PR](https://github.com/Bioinformatics-Research-Network/test-bot/pull/1) and writing "@brnbot hello" in the PR comments. You should see a response from BRN bot which says "Hello <your_gh_username>! 😊". For a list of all available commands, type "@brnbot help".
+To learn more about basics of FastAPI: https://fastapi.tiangolo.com/tutorial/first-steps/
 
-
-### Other notes and considerations
-
-1. You can add new deps to the poetry env by running `poetry add <package_name>`
-2. The app must be installed by GitHub organizations to be used. As each skill assessment has its own organization (e.g., Python Programming II), the bot has to be installed separately for each. After this is done, the *Install ID* must be registered in `bot/dependencies.py` within the `installation_ids` object. You can obtain the installation ID for an organization by commenting on a PR/Issue in that org and getting the [webhook output from smee.io](https://smee.io/rSiwWHyU4AMt1zn) -- the install ID is in the event payload under `{"installation": {"id": <id_number>}}`
-
-
-## Workflow for contributing:
-
-All the work for this project has been modularized into relatively independent [issues](https://github.com/Bioinformatics-Research-Network/Skill-cert-bot/issues). If you see one which you would like to complete and it has no assignees, feel free to just add yourself as an assignee and get started. 
-
-1. You are assigned an issue (or you self-assign)
-2. Set up your dev environment using *** (this part needs to be figured out still)
-3. Switch to your own branch (please do not work on the `main` branch unless you are the primary maintainer)
-4. If developing new modules or functions, start by writing pytest unit tests in the `tests/` folder. It is good practice to write all unit tests prior to writing the modules which they test. That way, the expected behavior is clearly defined prior to writing the module code. 
-5. Commit changes to your branch and push to github. It is recommended to do this at the end of a coding session to avoid potentially losing your progress.
-6. Once your feature / module is ready, submit a pull request to pull your branch into `main`. The maintainer will review your code prior to merging it. 
-
-
-
-### Deployment
+# Deployment
 
 Before the app could be set up for rapid deployment, it first had to be initialized on AWS Elastic Beanstalk. These steps outline what Henry did to accomplish that:
 

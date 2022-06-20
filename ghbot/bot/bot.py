@@ -365,6 +365,7 @@ class Bot:
                 access_token=kwarg_dict["access_token"],
             )["sha"],
         }
+        print(body)
         response = requests.post(
             request_url,
             json=body,
@@ -382,7 +383,7 @@ class Bot:
             return response
         except requests.exceptions.HTTPError as e:  # pragma: no cover
             print(str(e))
-            err = f"**Error**: e" + "\n"
+            err = f"**Error**: {e}" + "\n"
             utils.post_comment(err, **kwarg_dict)
             raise e
         except Exception as e:  # pragma: no cover
@@ -431,5 +432,6 @@ class Bot:
         kwarg_dict = self.parse_comment_payload(
             payload, access_tokens=access_tokens
         )
+        kwarg_dict['CRUD_APP_URL'] = self.CRUD_APP_URL
         resonse = utils.approve_assessment(**kwarg_dict)
         return resonse

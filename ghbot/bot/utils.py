@@ -53,13 +53,17 @@ def assign_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
         "Authorization": f"Bearer {kwarg_dict['access_token']}",
         "Accept": dependencies.accept_header,
     }
+
+    # Add reviewer to the PR
     request_url = f"{kwarg_dict['pr_url']}/requested_reviewers"
+    sleep(1)
     response = requests.post(
         request_url,
         headers=headers,
         json={"reviewers": [reviewer_username]},
     )
     response.raise_for_status()
+    print("Reviewer added")
     return response
 
 

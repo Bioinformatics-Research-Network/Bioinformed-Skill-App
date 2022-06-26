@@ -122,8 +122,8 @@ def init(
 @router.get("/view")
 def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     """
-    Returns the assessment tracker entry for the given user and assessmen
-    t as a json object.
+    Returns the assessment tracker entry for the given user and assessment 
+    as a json object.
 
     :param db: Generator for Session of database
     :param view_request: Pydantic request model schema used by

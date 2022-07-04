@@ -324,8 +324,9 @@ def update_assessment_tracker_entry(
 
 
 def select_reviewer(
-    db: Session, assessment_tracker_entry: models.AssessmentTracker,
-    settings: Settings
+    db: Session,
+    assessment_tracker_entry: models.AssessmentTracker,
+    settings: Settings,
 ):
     """
     Select a reviewer for the assessment tracker entry.
@@ -726,3 +727,28 @@ def delete_assessment_tracker_entry(
     response.raise_for_status()
 
     return True
+
+
+# TODO: create_reviewer_entry, delete_reviewer, update_reviewer_entry
+
+
+def create_reviewer_entry(db: Session, reviewer_username: str):
+
+    try:
+        get_reviewer_by_username(db=db, username=reviewer_username)
+        raise ValueError("Reviewer entry already exists.")
+    except ValueError as e:
+        # Raise the error if it's not about a missing entry
+        if str(e) != "Reviewer entry unavailable.":
+            raise e
+
+        user = get_user_by_username(db=db, username=reviewer_username)
+
+        db_obj = models.Reviewers(
+            user_id=user.id,
+        )
+
+        db.add(db_obj)
+        db.commit()
+
+        return True

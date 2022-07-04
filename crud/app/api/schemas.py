@@ -105,3 +105,11 @@ class ReviewResponse(BaseModel):
 
     reviewer_id: int
     reviewer_username: str
+
+
+class ReviewerRequest(BaseModel):
+    """
+    Pydantic response model schema used by `/api/add_reviewer` endpoint
+    """
+
+    reviewer_username: str

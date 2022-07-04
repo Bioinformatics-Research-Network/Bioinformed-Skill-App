@@ -122,7 +122,7 @@ def init(
 @router.get("/view")
 def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     """
-    Returns the assessment tracker entry for the given user and assessment 
+    Returns the assessment tracker entry for the given user and assessment
     as a json object.
 
     :param db: Generator for Session of database
@@ -299,7 +299,9 @@ def check(
 
 @router.post("/review", response_model=schemas.ReviewResponse)
 def review(
-    *, db: Session = Depends(get_db), review_request: schemas.ReviewRequest,
+    *,
+    db: Session = Depends(get_db),
+    review_request: schemas.ReviewRequest,
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -332,10 +334,11 @@ def review(
         )
         if not verify_check:
             raise ValueError("Automated checks not passed for latest commit")
-        
+
         reviewer = crud.select_reviewer(
-            db=db, assessment_tracker_entry=assessment_tracker_entry,
-            settings=settings
+            db=db,
+            assessment_tracker_entry=assessment_tracker_entry,
+            settings=settings,
         )
         reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
         reviewer_info = {
@@ -522,7 +525,29 @@ def delete_user(
     return {"User deleted": True}
 
 
-# to be done
+# TODO: add revierwer_add, reviewer_delete, reviewer_update
+
+# /api/add_reviewer : slack calls the crud api with the github username and slack id; CRUD adds checks the username with member list, adds the reviewer to db
+# not tested or bug fixed yet
+@router.post("/user/add_reviewer")
+def add_reviewer(
+    *, db: Session = Depends(get_db), reviewer: schemas.ReviewerRequest
+):
+    try:
+        print("adding reviewer ")
+        crud.create_reviewer_entry(reviewer_username=reviewer)
+        print("reviewer added")
+    except ValueError as e:
+        print(e)
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # pragma: no cover
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # member is verified, reviewer is added to the db
+    return True
+
+
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

@@ -2,7 +2,7 @@
 
 [![Test WebUI](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.webui.yml/badge.svg)](https://github.com/Bioinformatics-Research-Network/Bioinformed-Skill-App/actions/workflows/test.webui.yml) [![codecov](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App/branch/main/graph/badge.svg?flag=webui)](https://codecov.io/gh/Bioinformatics-Research-Network/Bioinformed-Skill-App)
 
-**Maintainer**: @millerh1
+**Maintainer**: @millerh1 (Henry)
 
 This is a web application, written in Python-Flask. It provides users with a GUI for interacting with the BRN skill app. The **primary features** are:
 

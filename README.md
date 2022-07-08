@@ -32,6 +32,8 @@
 
 The *Bioinformed* Skill Assessment Platform enables users to complete BRN skill assessments, earn badges, and demonstrate their skills to potential partners and employers.
 
+This app is developed collaboratively by the Bioinformatics Research Network Infrastructure WG. 
+
 It comprises **six services** which correspond to the directories in this repo:
 
 1. `webui`

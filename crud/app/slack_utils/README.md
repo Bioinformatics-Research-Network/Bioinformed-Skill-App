@@ -31,7 +31,7 @@ When a reviewer in the Slack channel clicks `I can do the review!` and then clic
 - The Slack ID of the reviewer who clicked the button: `"user": {"id": "Uxxxxxxxxxx", ...}`
 - The response URL used to update the original Slack message: `"response_url": "https://hooks.slack.com/actions/blahblahblah"`
 
-After a reviewer is assigned, we want to update the Slack message to remove the button. `review_request_update.json` is the template for the payload used to make the update, which needs to be sent to the response URL.
+After a reviewer is assigned, we want to update the Slack message to remove the button. `review_request_update.json` is the template for the payload used to make the update, which needs to be sent to the response URL. Line 3 of the `.json` will be edited to state who clicked the button.
 
 ## TODO
 

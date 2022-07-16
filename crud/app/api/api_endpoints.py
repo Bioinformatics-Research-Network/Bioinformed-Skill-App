@@ -13,7 +13,7 @@ from app.dependencies import get_db, get_settings
 router = APIRouter(prefix="/api", tags=["api"])
 
 
-@router.post("/init")
+@router.post("/init",  response_model=schemas.InitResponse)
 def init(
     *,
     db: Session = Depends(get_db),
@@ -116,7 +116,7 @@ def init(
 
     # bool signifies if the assessment tracker entry was initialized as well as that the
     # member is valid
-    return True
+    return {"Initiated": True}
 
 
 @router.get("/view")
@@ -245,7 +245,7 @@ def delete(
     return {"Entry deleted": True}
 
 
-@router.post("/check")
+@router.post("/check", response_model=schemas.CheckResponse)
 def check(
     *, db: Session = Depends(get_db), check_request: schemas.CheckRequest
 ):
@@ -360,7 +360,7 @@ def review(
     return reviewer_info
 
 
-@router.patch("/approve")
+@router.patch("/approve", response_model=schemas.ApproveResponse)
 def approve(
     *,
     db: Session = Depends(get_db),
@@ -493,7 +493,7 @@ def approve(
 
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Assessment Approved": True}
+    return {"Assessment_Approved": True}
 
 
 @router.post("/user/delete")

@@ -78,15 +78,24 @@ class ReviewRequest(BaseModel):
     latest_commit: str
 
 
+class AddReviewerRequest(BaseModel):
+    """
+    Pydantic response model schema used by `/api/add_reviewer` endpoint
+    """
+
+    reviewer_username: str
+    slack_id: int
+
+
 # Response schemas
 
 
-class RegisterResponse(BaseModel):
-    """
-    Pydantic response model schema used by `/api/register` endpoint
-    """
+# class RegisterResponse(BaseModel):
+#     """
+#     Pydantic response model schema used by `/api/register` endpoint
+#     """
 
-    registered: bool
+#     registered: bool
 
 
 class InitResponse(BaseModel):
@@ -95,7 +104,6 @@ class InitResponse(BaseModel):
     """
 
     Initiated: bool
-    username: str
 
 
 class ReviewResponse(BaseModel):
@@ -107,9 +115,11 @@ class ReviewResponse(BaseModel):
     reviewer_username: str
 
 
-class ReviewerRequest(BaseModel):
-    """
-    Pydantic response model schema used by `/api/add_reviewer` endpoint
-    """
+class CheckResponse(BaseModel):
 
-    reviewer_username: str
+    Check: bool 
+    review_required: int
+
+class ApproveResponse(BaseModel):
+
+    Assessment_Approved: bool

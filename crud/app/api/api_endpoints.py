@@ -531,7 +531,7 @@ def delete_user(
 # not tested or bug fixed yet
 @router.post("/user/add_reviewer")
 def add_reviewer(
-    *, db: Session = Depends(get_db), reviewer: schemas.ReviewerRequest
+    *, db: Session = Depends(get_db), reviewer: schemas.AddReviewerRequest
 ):
     try:
         print("adding reviewer ")

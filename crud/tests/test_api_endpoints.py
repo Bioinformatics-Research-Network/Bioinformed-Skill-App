@@ -13,10 +13,11 @@ def test_init(client: TestClient, db: Session):
 
     # Get assessment where name is Test
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    print(assessment)
 
     # get a user where username is brnbot
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
-
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
+    print(user)
     # Check if the assessment tracker entry exists
     tracker_entry = db.query(models.AssessmentTracker).filter(
         models.AssessmentTracker.assessment_id == assessment.id,
@@ -74,7 +75,7 @@ def test_view(client: TestClient, db: Session):
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
 
     # get a user where username is brnbot
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
 
     # Successful query
     request_json = {
@@ -122,7 +123,7 @@ def test_check(client: TestClient,  db: Session):
 
     # For some reason, we have to retrieve the db session again
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = db.query(models.AssessmentTracker).filter(
         models.AssessmentTracker.assessment_id == assessment.id,
         models.AssessmentTracker.user_id == user.id,
@@ -177,7 +178,7 @@ def test_review(client: TestClient, db: Session):
     # For some reason, we have to retrieve the db session again
     db = next(get_db())
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
     )
@@ -202,7 +203,7 @@ def test_approve(client: TestClient, db: Session):
 
     # For some reason, we have to retrieve the db session again
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
     )
@@ -229,7 +230,7 @@ def test_update(client: TestClient, db: Session):
 
     # For some reason, we have to retrieve the db session again
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    user = db.query(models.Users).filter(models.Users.username == "bioresnet").first()
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
     )

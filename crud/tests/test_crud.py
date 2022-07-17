@@ -190,15 +190,20 @@ def test_init_assessment_tracker(db: Session):
     )
     if tracker_entry is not None:
         # Get any assertions tied to this entry
-        assertions = db.query(models.Assertions).filter(
-            models.Assertions.assessment_tracker_id == tracker_entry.id
-        ).all()
+        tracker_entry = db.query(models.AssessmentTracker)\
+        .filter(models.AssessmentTracker.user_id == user.id)\
+        .filter(models.AssessmentTracker.assessment_id == assessment.id)\
+        .all()
+        for assessments in tracker_entry:
+            assertions = db.query(models.Assertions).filter(
+            models.Assertions.assessment_tracker_id == assessments.id
+            ).all()
         # Delete all assertions tied to this entry
-        for assertion in assertions:
-            db.delete(assertion)
-        db.delete(tracker_entry)
-        db.commit()
+            for assertion in assertions:
+                db.delete(assertion)
+            db.delete(assessments)
 
+        db.commit()
     # Init assessment tracker
     crud.create_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id, commit=commit

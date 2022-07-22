@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
+from datetime import datetime
 
 
 # Request schemas
@@ -89,7 +90,7 @@ class AddReviewerRequest(BaseModel):
 
 # Response schemas
 
-
+# no such api end point
 # class RegisterResponse(BaseModel):
 #     """
 #     Pydantic response model schema used by `/api/register` endpoint
@@ -116,10 +117,61 @@ class ReviewResponse(BaseModel):
 
 
 class CheckResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/check` endpoint
+    """
 
     Check: bool 
     review_required: int
 
+
 class ApproveResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/approve` endpoint
+    """
 
     Assessment_Approved: bool
+
+
+class UpdateResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/update` endpoint
+    """
+
+    Logs_updated: bool
+
+
+class DeleteResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/delete` endpoint
+    """
+
+    Entry_deleted: bool
+
+
+class DeleteUserResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/delete_user` endpoint
+    """
+    
+    User_deleted: bool
+
+
+class ViewResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/view` endpoint
+    """
+
+    id: int
+    user_id: int
+    assessment_id: int
+    status: str
+    last_updated: datetime
+    latest_commit: str
+
+class AddReviewerResponse(BaseModel):
+    """
+    Pydantic response model schema used by `/api/add_reviewer` endpoint
+    """
+    
+    Reviewer_added: bool

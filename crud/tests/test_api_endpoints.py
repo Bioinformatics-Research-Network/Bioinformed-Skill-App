@@ -13,11 +13,10 @@ def test_init(client: TestClient, db: Session):
 
     # Get assessment where name is Test
     assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    print(assessment)
 
     # get a user where username is brnbot
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
-    print(user)
+    
     # Check if the assessment tracker entry exists
     tracker_entry = db.query(models.AssessmentTracker).filter(
         models.AssessmentTracker.assessment_id == assessment.id,
@@ -245,5 +244,5 @@ def test_update(client: TestClient, db: Session):
     }
     response = client.patch("/api/update", json=request_json)
     assert response.status_code == 200
-    assert response.json() == {"Logs Updated": True}
+    assert response.json() == {"Logs_updated": True}
 

@@ -13,7 +13,7 @@ from app.dependencies import get_db, get_settings
 router = APIRouter(prefix="/api", tags=["api"])
 
 
-@router.post("/init",  response_model=schemas.InitResponse)
+@router.post("/init", response_model=schemas.InitResponse)
 def init(
     *,
     db: Session = Depends(get_db),
@@ -119,7 +119,7 @@ def init(
     return {"Initiated": True}
 
 
-@router.get("/view")
+@router.get("/view", response_model=schemas.ViewResponse)
 def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     """
     Returns the assessment tracker entry for the given user and assessment
@@ -153,11 +153,11 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     except Exception as e:  # pragma: no cover
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
-
+    
     return assessment_tracker_entry.__dict__
 
 
-@router.patch("/update")
+@router.patch("/update", response_model=schemas.UpdateResponse)
 def update(
     *, db: Session = Depends(get_db), update_request: schemas.UpdateRequest
 ):
@@ -202,10 +202,10 @@ def update(
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Logs Updated": True}
+    return {"Logs_updated": True}
 
 
-@router.post("/delete")
+@router.post("/delete", response_model=schemas.DeleteResponse)
 def delete(
     *,
     db: Session = Depends(get_db),
@@ -242,7 +242,7 @@ def delete(
         print("rollback")
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"Entry deleted": True}
+    return {"Entry_deleted": True}
 
 
 @router.post("/check", response_model=schemas.CheckResponse)
@@ -496,7 +496,7 @@ def approve(
     return {"Assessment_Approved": True}
 
 
-@router.post("/user/delete")
+@router.post("/user/delete", response_model=schemas.DeleteUserResponse)
 def delete_user(
     *,
     db: Session = Depends(get_db),
@@ -522,7 +522,7 @@ def delete_user(
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"User deleted": True}
+    return {"User_deleted": True}
 
 
 # TODO: add revierwer_add, reviewer_delete, reviewer_update
@@ -545,7 +545,7 @@ def add_reviewer(
         raise HTTPException(status_code=500, detail=str(e))
 
     # member is verified, reviewer is added to the db
-    return True
+    return {"Reviewer_added": True}
 
 
 # /api/assign-reviewers

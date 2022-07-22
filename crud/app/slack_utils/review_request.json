@@ -1,0 +1,52 @@
+{
+	"text": "BRN asessment reviewers needed!",
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "$USER would like $ASSESSMENT to be reviewed!"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "<@Uxxxxxxxxxx>\n@Uxxxxxxxxxx\n@Uxxxxxxxxxx"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "I can do the review!",
+						"emoji": true
+					},
+					"value": "click_me_123",
+					"action_id": "actionId-0",
+					"confirm": {
+						"title": {
+							"type": "plain_text",
+							"text": "Are you sure?"
+						},
+						"text": {
+							"type": "mrkdwn",
+							"text": "Try to have the review done within 7 days."
+						},
+						"confirm": {
+							"type": "plain_text",
+							"text": "OK!"
+						},
+						"deny": {
+							"type": "plain_text",
+							"text": "Maybe not now."
+						}
+					}
+				}
+			]
+		}
+	]
+}

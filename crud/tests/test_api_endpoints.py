@@ -16,7 +16,6 @@ def test_init(client: TestClient, db: Session):
 
     # get a user where username is brnbot
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
-    
     # Check if the assessment tracker entry exists
     tracker_entry = db.query(models.AssessmentTracker).filter(
         models.AssessmentTracker.assessment_id == assessment.id,

@@ -54,7 +54,7 @@ def get_assertion(
         + user_email
         + "&num=1"
     )
-
+    print(url)
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + bearer_token,
@@ -245,8 +245,7 @@ def wrangle_assertion(
 
 def issue_badge(
     user_email: str,
-    user_first: str,
-    user_last: str,
+    user_name: str,
     assessment_name: str,
     bearer_token: str,
     config: Settings,
@@ -255,8 +254,7 @@ def issue_badge(
     Issue a badgr badge to a user
 
     :param user_email: The user's email
-    :param user_first: The user's first name
-    :param user_last: The user's last name
+    :param user_name: The user's name
     :param assessment_name: The assessment name
     :param bearer_token: The bearer token (from the Badgr API)
     :param config: The configuration dictionary for the Badgr API
@@ -276,8 +274,6 @@ def issue_badge(
     print(url)
     print(bearer_token)
     print(user_email)
-    print(user_first)
-    print(user_last)
     print(assessment_name)
     # Prepare the payload with custom text and evidence
     payload = json.dumps(
@@ -288,9 +284,7 @@ def issue_badge(
                 "hashed": True,
             },
             "narrative": "This award certifies that "
-            + user_first
-            + " "
-            + user_last
+            + user_name
             + " has successfully completed the Bioinformatics Research Network "
             + assessment_name
             + " skill assessment.",

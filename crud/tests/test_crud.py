@@ -421,14 +421,14 @@ def test_add_assertion(db: Session):
     issued = utils.issue_badge(
         assessment_name=assessment.name,
         user_email=trainee.email,
-        user_first="BRN",
-        user_last="Bot",
+        user_name="BRN Bot",
         bearer_token=bt,
         config=settings,
     )
     assert issued.status_code in [200, 201]
 
     # Get the assertion from badgr
+    print(bt)
     resp = utils.get_assertion(
         assessment_name=assessment.name,
         user_email=trainee.email,
@@ -436,7 +436,12 @@ def test_add_assertion(db: Session):
         config=settings
     )
     assert resp.status_code in [200, 201]
-    assert resp.json()["status"] == {'description': 'ok', 'success': True}
+    print(resp.json()["status"])
+    assert resp.json()["status"] == {
+        'success': True,
+        'description': 'ok',
+        'fieldErrors': None,
+        'validationErrors': None }
 
     assertion = resp.json()["result"][0]
 
@@ -451,7 +456,7 @@ def test_add_assertion(db: Session):
         fields = {k: str(v) for k, v in badge.items()}
         fields["createdAt"] = datetime.strptime(fields["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
         # Add to db
-        print("Badge does not exist in database")
+        print("Badge does not exist in db")
         badge = models.Badges(**fields)
         db.add(badge)
         db.commit()

@@ -447,10 +447,10 @@ def approve(
         bt = utils.get_bearer_token(settings)
         print("K")
         print(settings.__dict__)
+        print(user.name)
         resp = utils.issue_badge(
             user_email=user.email,
-            user_first=user.first_name,
-            user_last=user.last_name,
+            user_name=user.name,
             assessment_name=assessment.name,
             bearer_token=bt,
             config=settings,

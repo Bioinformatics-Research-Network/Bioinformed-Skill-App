@@ -529,6 +529,7 @@ def add_assertion(
         .filter(models.Badges.entityId == assertion["badgeclass"])
         .first()
     )
+    print(badge)
     # Get the badge name for the assertion
     if badge is None:
         raise ValueError("Badge does not exist in database")

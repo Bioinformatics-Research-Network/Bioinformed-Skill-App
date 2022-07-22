@@ -19,8 +19,7 @@ def test_issue_badge(
     # Issue the badge
     issue_badge_response = badgr_utils.issue_badge(
         user_email="tests@bioresnet.org",
-        user_first="Test",
-        user_last="User",
+        user_name="Test User",
         assessment_name="Test",
         bearer_token=brearer_token,
         config=config,

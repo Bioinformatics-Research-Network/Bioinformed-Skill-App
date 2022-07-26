@@ -4,7 +4,7 @@ import hashlib
 from requests import request
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from app.slack_utils import slack_utils
 from app.dependencies import Settings
 from app import crud, utils
 import app.api.schemas as schemas
@@ -546,6 +546,16 @@ def add_reviewer(
 
     # member is verified, reviewer is added to the db
     return {"Reviewer_added": True}
+
+@router.post("/slack_test")
+def slack_interface_test(
+    *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
+    reviewer_id: int
+): 
+    slack_utils.confirm_reviewer(db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
+    reviewer_id=reviewer_id)
+
+    return {"Reviewers_informed": True}
 
 
 # /api/assign-reviewers

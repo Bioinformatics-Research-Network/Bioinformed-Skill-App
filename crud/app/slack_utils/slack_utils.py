@@ -39,18 +39,3 @@ def confirm_reviewer(
             )
 
 
-# user_name="xxx"
-# assessment_name="yyy"
-# test2_slack_id = "U026THRFP5Z" # james
-# test1_slack_id = "U01SCJKF6CD" # anmol
-# filename = 'review_request.json'        
-# with open(filename, 'r') as f:
-#         data = json.load(f)
-#         payload = copy.deepcopy(data)
-#         payload['blocks'][0]['text']['text']=(f"{user_name} would like {assessment_name} to be reviewed")
-#         payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n<@{test2_slack_id}>\n<@Uxxxxxxxxxx>")
-
-#         response = requests.post(
-#                 url= "https://hooks.slack.com/services/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", json=payload
-#             )
-        

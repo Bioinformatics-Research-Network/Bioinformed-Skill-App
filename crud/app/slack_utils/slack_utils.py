@@ -35,7 +35,7 @@ def confirm_reviewer(
         payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
 
         response = requests.post(
-            url= "https://hooks.slack.com/services/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", json=payload
+            url= "https://hooks.slack.com/services/blahblah", json=payload
             )
 
 

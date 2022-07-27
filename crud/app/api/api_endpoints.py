@@ -550,10 +550,12 @@ def add_reviewer(
 @router.post("/slack_test")
 def slack_interface_test(
     *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
-    reviewer_id: int
+    reviewer_id: int,
+    settings: Settings = Depends(get_settings),
 ): 
-    slack_utils.confirm_reviewer(db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
-    reviewer_id=reviewer_id)
+    slack_utils.confirm_reviewer(
+        db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
+        reviewer_id=reviewer_id, settings=settings)
 
     return {"Reviewers_informed": True}
 

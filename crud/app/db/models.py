@@ -73,7 +73,7 @@ class Users(Base):
     email_verification_code_expiry = Column(DateTime)
     onboarded = Column(Boolean)
     reviewer = Column(Boolean)
-    # slack_id = Column(Integer, unique=True)
+    slack_id = Column(String(250), unique=True)
 
     def __repr__(self):  # pragma: no cover
         return f"<Users: {self.username}>"

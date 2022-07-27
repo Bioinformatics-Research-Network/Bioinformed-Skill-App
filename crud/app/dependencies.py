@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     BADGE_IDs: dict = BADGE_IDs
     GITHUB_BOT_URL: str
     APP_ENV_NAME: str
+    SLACK_BOT_URL: str
 
 
 @lru_cache()

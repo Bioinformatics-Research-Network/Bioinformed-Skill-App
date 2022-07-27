@@ -5,12 +5,14 @@ from sqlalchemy.orm import Session
 import copy
 import requests
 from datetime import datetime
+from app.dependencies import Settings
 
 
 def confirm_reviewer(
     db: Session,
     assessment_tracker_entry_id: int,
     reviewer_id: int,
+    settings: Settings,
 ):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db=db, entry_id=assessment_tracker_entry_id)
     assessment_tracker_entry.reviewer_id = reviewer_id
@@ -25,17 +27,17 @@ def confirm_reviewer(
     assessment = crud.get_assessment_by_id(db=db, assessment_id=assessment_tracker_entry.assessment_id)
     assessment_name = assessment.name
     test2_slack_id = "U026THRFP5Z" # james
-    test1_slack_id = "U01SCJKF6CD" # anmol
+    test1_slack_id = "U03QAFEVB63" # anmol
     filename = 'app/slack_utils/review_request.json'
     with open(filename, 'r') as f:
         data = json.load(f)
         payload = copy.deepcopy(data)
         payload['blocks'][0]['text']['text']=(f"{user_name} would like {assessment_name} to be reviewed")
-        # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n<@{test2_slack_id}>\n<@Uxxxxxxxxxx>")
-        payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
+        payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n<@Uxxxxxxxxxx>")
+        # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
 
         response = requests.post(
-            url= "https://hooks.slack.com/services/blahblah", json=payload
+            url= settings.SLACK_BOT_URL, json=payload
             )
 
 

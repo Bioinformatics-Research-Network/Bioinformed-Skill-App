@@ -2,13 +2,14 @@ import copy
 from datetime import datetime
 import hashlib
 from requests import request
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.slack_utils import slack_utils
 from app.dependencies import Settings
 from app import crud, utils
 import app.api.schemas as schemas
 from app.dependencies import get_db, get_settings
+
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -558,6 +559,15 @@ def slack_interface_test(
         reviewer_id=reviewer_id, settings=settings)
 
     return {"Reviewers_informed": True}
+
+@router.post("/slack_smee")
+def slack_interface_test(
+    *, db: Session = Depends(get_db), 
+    request: str,
+    settings: Settings = Depends(get_settings),
+): 
+    
+    return request
 
 
 # /api/assign-reviewers

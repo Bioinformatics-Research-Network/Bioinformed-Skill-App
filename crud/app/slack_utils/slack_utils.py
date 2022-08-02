@@ -15,14 +15,17 @@ def confirm_reviewer(
     settings: Settings,
 ):
     assessment_tracker_entry = crud.get_assessment_tracker_entry_by_id(db=db, entry_id=assessment_tracker_entry_id)
-    assessment_tracker_entry.reviewer_id = reviewer_id
-    assessment_tracker_entry.status = "Assigning Reviewer"
-    assessment_tracker_entry.last_updated = datetime.utcnow()
+    # assessment_tracker_entry.reviewer_id = reviewer_id
+    # assessment_tracker_entry.status = "Assigning Reviewer"
+    # assessment_tracker_entry.last_updated = datetime.utcnow()
     # db.add(assessment_tracker_entry)
-    db.commit()
+    # db.commit()
 
     user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
     user_name = user.name
+
+    reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=reviewer_id)
+    reviewer = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
 
     assessment = crud.get_assessment_by_id(db=db, assessment_id=assessment_tracker_entry.assessment_id)
     assessment_name = assessment.name
@@ -33,7 +36,7 @@ def confirm_reviewer(
         data = json.load(f)
         payload = copy.deepcopy(data)
         payload['blocks'][0]['text']['text']=(f"{user_name} would like {assessment_name} to be reviewed")
-        payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n<@Uxxxxxxxxxx>")
+        payload['blocks'][1]['text']['text']=(f"<@{reviewer.slack_id}>\n<@Uxxxxxxxxxx>")
         # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
 
         response = requests.post(

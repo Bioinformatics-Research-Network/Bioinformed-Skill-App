@@ -1,6 +1,7 @@
 import copy
 from datetime import datetime
 import hashlib
+from json import JSONDecoder
 from requests import request
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -9,6 +10,8 @@ from app.dependencies import Settings
 from app import crud, utils
 import app.api.schemas as schemas
 from app.dependencies import get_db, get_settings
+from urllib.parse import unquote
+import json
 
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -548,26 +551,32 @@ def add_reviewer(
     # member is verified, reviewer is added to the db
     return {"Reviewer_added": True}
 
-@router.post("/slack_test")
+@router.post("/reviewer/ask_review_slack")
 def slack_interface_test(
     *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
     reviewer_id: int,
     settings: Settings = Depends(get_settings),
 ): 
-    slack_utils.confirm_reviewer(
+    rev = slack_utils.confirm_reviewer(
         db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
         reviewer_id=reviewer_id, settings=settings)
 
     return {"Reviewers_informed": True}
 
-@router.post("/slack_smee")
-def slack_interface_test(
+@router.post("/reviewer/assign_reviewer_slack")
+async def slack_interface_test(
     *, db: Session = Depends(get_db), 
-    request: str,
+    payload: Request,
     settings: Settings = Depends(get_settings),
-): 
-    
-    return request
+):  
+    body = unquote(await payload.body())
+    print(type(body))
+    # print(json.loads(body))
+    body = """{""" +"""" """ + body[:7]+"""":"""+ body[8:] +""""}]}}""" # this is done to sucessfully convert str to json
+    print(body)
+    body = json.loads(body)
+    print(body[" payload"]["user"]["id"])
+    return {}
 
 
 # /api/assign-reviewers

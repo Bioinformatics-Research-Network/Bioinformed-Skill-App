@@ -25,8 +25,8 @@ def confirm_reviewer(
     user_name = user.name
 
     reviewer = crud.get_reviewer_by_id(db=db, reviewer_id=reviewer_id)
-    reviewer = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
-
+    reviewer_slack = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
+    
     assessment = crud.get_assessment_by_id(db=db, assessment_id=assessment_tracker_entry.assessment_id)
     assessment_name = assessment.name
     test2_slack_id = "U026THRFP5Z" # james
@@ -36,7 +36,7 @@ def confirm_reviewer(
         data = json.load(f)
         payload = copy.deepcopy(data)
         payload['blocks'][0]['text']['text']=(f"{user_name} would like {assessment_name} to be reviewed")
-        payload['blocks'][1]['text']['text']=(f"<@{reviewer.slack_id}>\n<@Uxxxxxxxxxx>")
+        payload['blocks'][1]['text']['text']=(f"<@{str(reviewer_slack.slack_id)}>\n<@Uxxxxxxxxxx>")
         # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
 
         response = requests.post(

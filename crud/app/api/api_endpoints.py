@@ -566,7 +566,7 @@ def slack_interface_test(
     return {"Reviewers_informed": True}
 
 @router.post("/reviewer/assign_reviewer_slack")
-async def slack_interface_test(
+async def slack_smee_test(
     *, db: Session = Depends(get_db), 
     payload: Request,
     settings: Settings = Depends(get_settings),
@@ -578,15 +578,17 @@ async def slack_interface_test(
     print(body)
     body = json.loads(body)
     reviewer_slack_id = body["payload"]["user"]["id"]
-    print(body["payload"]["message"]["blocks"][0]["text"]["text"].split("\n"))
-    # if reviewer_slack_id in body["payload"]["message"]["blocks"][3]["text"]["text"]:
-    #     slack_utils.confirm_reviewer( 
-    #         db=db,
-    #         assessment_name=body["payload"]["message"]["blocks"][2]["text"]["text"][11:],
-    #         reviewer_slack_id=reviewer_slack_id,
-    #         response_url=body["payload"]["response_url"],
-    #         trainee_name=body["payload"]["message"]["blocks"][1]["text"]["text"][13:],
-            # )
+    assessment_details = body["payload"]["message"]["blocks"][0]["text"]["text"].split("\n")
+    print(assessment_details[2][12:])
+    print(assessment_details[1][13:])
+    if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
+        slack_utils.confirm_reviewer( 
+            db=db,
+            assessment_name=assessment_details[2][12:],
+            slack_id=reviewer_slack_id,
+            response_url=body["payload"]["response_url"],
+            trainee_name=assessment_details[1][14:],
+            )
 
 
     return {"Reviewer_assigned": True}

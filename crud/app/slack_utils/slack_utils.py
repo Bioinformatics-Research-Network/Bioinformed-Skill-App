@@ -46,7 +46,7 @@ def confirm_reviewer(
     trainee_name: str,
     slack_id: str,
 ):  
-    trainee = crud.get_user_by_name(db=db, name=trainee_name)
+    trainee = crud.get_user_by_name(db=db, user_name=trainee_name)
     assessment_entry = crud.get_assessment_tracker_entry_by_user_assessment_name(db=db,
                 user_id=trainee.id,
                 assessment_name=assessment_name
@@ -62,14 +62,14 @@ def confirm_reviewer(
     # user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
     # user_name = user.name
 
-    reviewer = crud.get_user_by_id(db=db, reviewer_id=reviewer.user_id)
+    reviewer = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
     
     assessment = crud.get_assessment_by_id(db=db, assessment_id=assessment_tracker_entry.assessment_id)
     assessment_name = assessment.name
 
     payload = {
     "replace_original": "true",
-    "text": f"Assigned reviewer:{reviewer.name} <@{str(slack_id)}>",
+    "text": f"Assigned reviewer:{reviewer.name} <@{str(slack_id)}>\nTrainee Name: {trainee.name}\nAssessment: {assessment.name}",
     }
 
     response = requests.post(

@@ -5,7 +5,7 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "$USER would like $ASSESSMENT to be reviewed!"
+				"text": "Please confirm if you would like to review the assessment for: Trainee Name: $USER Assessment: $ASSESSMENT"
 			}
 		},
 		{

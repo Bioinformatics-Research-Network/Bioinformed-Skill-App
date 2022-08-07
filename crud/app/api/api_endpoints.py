@@ -14,6 +14,7 @@ from urllib.parse import unquote
 import json
 
 
+
 router = APIRouter(prefix="/api", tags=["api"])
 
 
@@ -557,9 +558,10 @@ def slack_interface_test(
     reviewer_id: int,
     settings: Settings = Depends(get_settings),
 ): 
-    rev = slack_utils.confirm_reviewer(
+    slack_utils.ask_reviewers(
         db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
-        reviewer_id=reviewer_id, settings=settings)
+        reviewer_id=reviewer_id, settings=settings
+        )
 
     return {"Reviewers_informed": True}
 
@@ -572,13 +574,37 @@ async def slack_interface_test(
     body = unquote(await payload.body())
     print(type(body))
     # print(json.loads(body))
-    body = """{""" +"""" """ + body[:7]+"""":"""+ body[8:] +""""}]}}""" # this is done to sucessfully convert str to json
+    body = """{""" +""""p""" + body[1:7]+"""":"""+ body[8:-1] +"""""}]}}""" # this is done to sucessfully convert str to json
     print(body)
     body = json.loads(body)
-    print(body[" payload"]["user"]["id"])
-    return {}
+    reviewer_slack_id = body["payload"]["user"]["id"]
+    print(body["payload"]["message"]["blocks"][0]["text"]["text"].split("\n"))
+    # if reviewer_slack_id in body["payload"]["message"]["blocks"][3]["text"]["text"]:
+    #     slack_utils.confirm_reviewer( 
+    #         db=db,
+    #         assessment_name=body["payload"]["message"]["blocks"][2]["text"]["text"][11:],
+    #         reviewer_slack_id=reviewer_slack_id,
+    #         response_url=body["payload"]["response_url"],
+    #         trainee_name=body["payload"]["message"]["blocks"][1]["text"]["text"][13:],
+            # )
 
 
+    return {"Reviewer_assigned": True}
+
+# {"payload":
+# {"type":"block_actions",
+# "user":{"id":"U03QAFEVB63","username":"broanmol17","name":"broanmol17","team_id":"T033H741PJ4"},
+# "api_app_id":"A03QQ459PAT","token":"VbramsEsljDws29hGM2thrpE",
+# "container":{"type":"message","message_ts":"1659879789.885549","channel_id":"C03R4K92VTM","is_ephemeral":false},
+# "trigger_id":"3906759846882.3119242057616.e1432503f7a1682d01826fb6a092fa16","team":{"id":"T033H741PJ4","domain":"bioresnet"},
+# "enterprise":null,"is_enterprise_install":false,
+# "channel":{"id":"C03R4K92VTM","name":"privategroup"},"message":{"type":"message","subtype":"bot_message","text":"BRN asessment reviewers needed!","ts":"1659879789.885549","bot_id":"B03RUDFPCRE",
+# "blocks":[{"type":"section","block_id":"0Tu6r",
+#     "text":{"type":"mrkdwn","text":"Please confirm if you would like to review the assessment for:\nTrainee Name: BRN Bot\nAssessment: Test","verbatim":false}},
+#     {"type":"section","block_id":"e3l5","text":{"type":"mrkdwn","text":"<@U03QAFEVB63>","verbatim":false}},
+#     {"type":"actions","block_id":"Z10vg","elements":[{"type":"button","action_id":"actionId-0","text":{"type":"plain_text","text":"I can do the review!","emoji":true},"value":"click_me_123","confirm":{"title":{"type":"plain_text","text":"Are you sure?","emoji":true},"text":{"type":"mrkdwn","text":"Try to have the review done within 7 days.","verbatim":false},"confirm":{"type":"plain_text","text":"OK!","emoji":true},"deny":{"type":"plain_text","text":"Maybe not now.","emoji":true}}}]}]},
+#     "state":{"values":{}},"response_url":"https:\/\/hooks.slack.com\/actions\/T033H741PJ4\/3909201380532\/pTpdn7QUI9Ja2M5uTLL6Bbbg",
+#     "actions":[{"confirm":{"title":{"type":"plain_text","text":"Are you sure?","emoji":true},"text":{"type":"mrkdwn","text":"Try to have the review done within 7 days.","verbatim":false},"confirm":{"type":"plain_text","text":"OK!","emoji":true},"deny":{"type":"plain_text","text":"Maybe not now.","emoji":true}},"action_id":"actionId-0","block_id":"Z10vg","text":{"type":"plain_text","text":"I can do the review!","emoji":true},"value":%}]}}
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

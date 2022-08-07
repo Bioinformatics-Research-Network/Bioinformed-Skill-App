@@ -31,6 +31,20 @@ def get_user_by_username(db: Session, username: str):
     return user
 
 
+def get_user_by_name(db: Session, user_name: str):
+    """
+    Return the user entry based on user name.
+    """
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.name == user_name)
+        .first()
+    )
+    if user is None:
+        raise ValueError("User name does not exist")
+    return user
+
+
 def get_user_by_id(db: Session, user_id: int):
     """
     Return the user entry based on user id.
@@ -45,6 +59,27 @@ def get_user_by_id(db: Session, user_id: int):
     user = db.query(models.Users).filter(models.Users.id == user_id).first()
     if user is None:
         raise ValueError("User ID does not exist")
+    return user
+
+
+def get_user_by_slack_id(db: Session, slack_id: str):
+    """
+    Return the user entry based on slack id.
+
+    :param db: Generator for Session of database
+    :param slack_id: slack id
+
+    :returns: Entry in Users table as a sqlalchemy query object.
+
+    :raises: ValueError if user does not exist.
+    """
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.slack_id == slack_id)
+        .first()
+    )
+    if user is None:
+        raise ValueError("User slack id does not exist")
     return user
 
 
@@ -102,6 +137,26 @@ def get_reviewer_by_user_id(db: Session, user_id: int) -> models.Reviewers:
     To get reviewer by user id.
     """
     reviewer = db.query(models.Reviewers).filter_by(user_id=user_id).first()
+    return reviewer
+
+
+def get_reviewer_by_slack_id(db: Session, slack_id: str):
+    """
+    Return the reviewer entry based on slack id.
+
+    :param db: Generator for Session of database
+    :param slack_id: slack id
+
+    :returns: Entry in Reviewers table as a sqlalchemy query object.
+    """
+    user = get_user_by_slack_id(db=db, slack_id=slack_id)
+    reviewer = (
+        db.query(models.Reviewers)
+        .filter(models.Reviewers.user_id == user.id)
+        .first()
+    )
+    if reviewer is None:
+        raise ValueError("Reviewer slack id does not exist")
     return reviewer
 
 
@@ -208,6 +263,30 @@ def get_assessment_tracker_entry_by_commit(db: Session, commit: str):
     assessment_tracker = (
         db.query(models.AssessmentTracker)
         .filter(models.AssessmentTracker.latest_commit == commit)
+        .first()
+    )
+    if assessment_tracker is None:
+        raise ValueError("Assessment tracker entry unavailable.")
+
+    return assessment_tracker
+
+
+def get_assessment_tracker_entry_by_user_assessment_name(db: Session, user_id: int, assessment_name: str):
+    """
+    Return the assessment tracker entry by user id and assessment name.
+
+    :param db: Generator for Session of database
+    :param user_id: user id
+    :param assessment_name: assessment name
+
+    :returns: Assessment tracker entry as an sqlalchemy query object.
+
+    :raises: ValueError if assessment tracker entry does not exist.
+    """
+    assessment_tracker = (
+        db.query(models.AssessmentTracker)
+        .filter(models.AssessmentTracker.user_id == user_id)
+        .filter(models.AssessmentTracker.assessment_id == get_assessment_by_name(db=db, assessment_name=assessment_name).id)
         .first()
     )
     if assessment_tracker is None:

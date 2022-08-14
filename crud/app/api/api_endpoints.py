@@ -1,18 +1,14 @@
 import copy
 from datetime import datetime
 import hashlib
-from json import JSONDecoder
 from requests import request
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from app.slack_utils import slack_utils
 from app.dependencies import Settings
-from app import crud, utils
+from app import crud, utils, slack_utils
 import app.api.schemas as schemas
 from app.dependencies import get_db, get_settings
 from urllib.parse import unquote
-import json
-
 
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -158,14 +154,12 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
     except Exception as e:  # pragma: no cover
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
-    
+
     return assessment_tracker_entry.__dict__
 
 
 @router.patch("/update", response_model=schemas.UpdateResponse)
-def update(
-    *, db: Session = Depends(get_db), update_request: schemas.UpdateRequest
-):
+def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
     """
     Updates the assessment tracker entry for the given user and assessment with the
     given commit and log.
@@ -182,9 +176,7 @@ def update(
     """
     try:
 
-        user = crud.get_user_by_username(
-            db=db, username=update_request.username
-        )
+        user = crud.get_user_by_username(db=db, username=update_request.username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=update_request.assessment_name
         )
@@ -251,9 +243,7 @@ def delete(
 
 
 @router.post("/check", response_model=schemas.CheckResponse)
-def check(
-    *, db: Session = Depends(get_db), check_request: schemas.CheckRequest
-):
+def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
     """
     Run automated checks on the assessment tracker entry for the
     given user and assessment.
@@ -414,9 +404,7 @@ def approve(
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
     try:
         # Get the trainee info
-        user = crud.get_user_by_id(
-            db=db, user_id=assessment_tracker_entry.user_id
-        )
+        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         print(user.__dict__)
         print("D")
         # Get the assessment info
@@ -520,9 +508,7 @@ def delete_user(
         - User does not exist
     """
     try:
-        crud.delete_user(
-            db=db, user_id=delete_request.user_id, settings=settings
-        )
+        crud.delete_user(db=db, user_id=delete_request.user_id, settings=settings)
     except Exception as e:  # pragma: no cover
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
@@ -538,6 +524,12 @@ def delete_user(
 def add_reviewer(
     *, db: Session = Depends(get_db), reviewer: schemas.AddReviewerRequest
 ):
+    """
+    Adds a reviewer to the database.
+
+    :param db: Generator for Session of database
+    :param reviewer: Pydantic request model schema used by `/api/add_reviewer` endpoint
+    """
     try:
         print("adding reviewer ")
         crud.create_reviewer_entry(reviewer_username=reviewer)
@@ -552,46 +544,45 @@ def add_reviewer(
     # member is verified, reviewer is added to the db
     return {"Reviewer_added": True}
 
-@router.post("/reviewer/ask_review_slack")
-def slack_interface_test(
-    *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
-    reviewer_id: int,
-    settings: Settings = Depends(get_settings),
-): 
-    slack_utils.ask_reviewers(
-        db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
-        reviewer_id=reviewer_id, settings=settings
-        )
 
-    return {"Reviewers_informed": True}
+# @router.post("/reviewer/ask_review_slack") # testing endpoint for asking reviewers for review through slack
+# def slack_interface_test(
+#     *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
+#     reviewer_id: int,
+#     settings: Settings = Depends(get_settings),
+# ):
+#     slack_utils.ask_reviewers(
+#         db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
+#         reviewer_id=reviewer_id, settings=settings
+#         )
+
+#     return {"Reviewers_informed": True}
+
 
 @router.post("/reviewer/assign_reviewer_slack")
-async def slack_smee_test(
-    *, db: Session = Depends(get_db), 
+async def assign_reviewer_slack(
+    *,
+    db: Session = Depends(get_db),
     payload: Request,
-    settings: Settings = Depends(get_settings),
-):  
-    body = unquote(await payload.body())
-    print(type(body))
-    # print(json.loads(body))
-    body = """{""" +""""p""" + body[1:7]+"""":"""+ body[8:-1] +"""""}]}}""" # this is done to sucessfully convert str to json
-    print(body)
-    body = json.loads(body)
-    reviewer_slack_id = body["payload"]["user"]["id"]
-    assessment_details = body["payload"]["message"]["blocks"][0]["text"]["text"].split("\n")
-    print(assessment_details[2][12:])
-    print(assessment_details[1][13:])
-    if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
-        slack_utils.confirm_reviewer( 
-            db=db,
-            assessment_name=assessment_details[2][12:],
-            slack_id=reviewer_slack_id,
-            response_url=body["payload"]["response_url"],
-            trainee_name=assessment_details[1][14:],
-            )
+):
+    """
+    Slack interface for confirming that a reviewer has accepted to review an assessment.
 
+    :param db: Generator for Session of database
+    :param payload: payload sent from slack api
+    """
+    body = unquote(await payload.body())
+    try:
+        crud.confirm_reviewer(db=db, body=body)
+    except ValueError as e:
+        print(e)
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # pragma: no cover
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {"Reviewer_assigned": True}
+
 
 # /api/assign-reviewers
 # /api/confirm-reviewer

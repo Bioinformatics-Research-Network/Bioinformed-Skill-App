@@ -26,4 +26,3 @@ def client() -> Generator:
     app.dependency_overrides[get_settings] = get_settings_override
     with TestClient(app) as client:
         yield client
-

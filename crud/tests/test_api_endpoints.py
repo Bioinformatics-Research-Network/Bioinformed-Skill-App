@@ -12,20 +12,28 @@ from app.dependencies import Settings, get_db
 def test_init(client: TestClient, db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # get a user where username is brnbot
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     # Check if the assessment tracker entry exists
-    tracker_entry = db.query(models.AssessmentTracker).filter(
-        models.AssessmentTracker.assessment_id == assessment.id,
-        models.AssessmentTracker.user_id == user.id,
-    ).first()
+    tracker_entry = (
+        db.query(models.AssessmentTracker)
+        .filter(
+            models.AssessmentTracker.assessment_id == assessment.id,
+            models.AssessmentTracker.user_id == user.id,
+        )
+        .first()
+    )
     if tracker_entry is not None:
         # Get any assertions tied to this entry
-        assertions = db.query(models.Assertions).filter(
-            models.Assertions.assessment_tracker_id == tracker_entry.id
-        ).all()
+        assertions = (
+            db.query(models.Assertions)
+            .filter(models.Assertions.assessment_tracker_id == tracker_entry.id)
+            .all()
+        )
         # Delete all assertions tied to this entry
         for assertion in assertions:
             db.delete(assertion)
@@ -44,9 +52,7 @@ def test_init(client: TestClient, db: Session):
     # Error on initializing for a second time
     response = client.post("/api/init", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": "Assessment tracker entry already exists."
-    }
+    assert response.json() == {"detail": "Assessment tracker entry already exists."}
 
     # Error for initializing with an incorrect user
     request_json = {
@@ -70,7 +76,9 @@ def test_init(client: TestClient, db: Session):
 def test_view(client: TestClient, db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # get a user where username is brnbot
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
@@ -89,7 +97,7 @@ def test_view(client: TestClient, db: Session):
 
     # Error on invalid username
     request_json = {
-        "assessment_name":  assessment.name,
+        "assessment_name": assessment.name,
         "username": "error",
     }
     response = client.get("/api/view", json=request_json)
@@ -115,17 +123,23 @@ def test_view(client: TestClient, db: Session):
     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
 
 
-def test_check(client: TestClient,  db: Session):
+def test_check(client: TestClient, db: Session):
 
     db = next(get_db())
 
     # For some reason, we have to retrieve the db session again
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
-    assessment_tracker_entry = db.query(models.AssessmentTracker).filter(
-        models.AssessmentTracker.assessment_id == assessment.id,
-        models.AssessmentTracker.user_id == user.id,
-    ).first()
+    assessment_tracker_entry = (
+        db.query(models.AssessmentTracker)
+        .filter(
+            models.AssessmentTracker.assessment_id == assessment.id,
+            models.AssessmentTracker.user_id == user.id,
+        )
+        .first()
+    )
     print(assessment_tracker_entry.__dict__)
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
@@ -175,7 +189,9 @@ def test_review(client: TestClient, db: Session):
 
     # For some reason, we have to retrieve the db session again
     db = next(get_db())
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
@@ -200,7 +216,9 @@ def test_approve(client: TestClient, db: Session):
     db = next(get_db())
 
     # For some reason, we have to retrieve the db session again
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
@@ -220,14 +238,16 @@ def test_approve(client: TestClient, db: Session):
     # Produces error because badge is for testenv but does not exist in db
     # TODO: Fix this so that it can fully pass
     assert response.status_code == 422
-    assert response.json() == {'detail': 'Badge does not exist in database'}
+    assert response.json() == {"detail": "Badge does not exist in database"}
 
 
 def test_update(client: TestClient, db: Session):
     db = next(get_db())
 
     # For some reason, we have to retrieve the db session again
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
@@ -244,4 +264,3 @@ def test_update(client: TestClient, db: Session):
     response = client.patch("/api/update", json=request_json)
     assert response.status_code == 200
     assert response.json() == {"Logs_updated": True}
-

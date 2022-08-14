@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 import random
 import requests
 import copy
-from app import utils
+from app import utils, slack_utils
 import app.db.models as models
 from app.dependencies import Settings
+import json
+
 
 # Reproducibility for randomly selecting reviewers
 random.seed(42)
@@ -23,9 +25,7 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
-    user = (
-        db.query(models.Users).filter(models.Users.username == username).first()
-    )
+    user = db.query(models.Users).filter(models.Users.username == username).first()
     if user is None:
         raise ValueError("User name does not exist")
     return user
@@ -35,11 +35,7 @@ def get_user_by_name(db: Session, user_name: str):
     """
     Return the user entry based on user name.
     """
-    user = (
-        db.query(models.Users)
-        .filter(models.Users.name == user_name)
-        .first()
-    )
+    user = db.query(models.Users).filter(models.Users.name == user_name).first()
     if user is None:
         raise ValueError("User name does not exist")
     return user
@@ -73,11 +69,7 @@ def get_user_by_slack_id(db: Session, slack_id: str):
 
     :raises: ValueError if user does not exist.
     """
-    user = (
-        db.query(models.Users)
-        .filter(models.Users.slack_id == slack_id)
-        .first()
-    )
+    user = db.query(models.Users).filter(models.Users.slack_id == slack_id).first()
     if user is None:
         raise ValueError("User slack id does not exist")
     return user
@@ -98,9 +90,7 @@ def get_reviewer_by_username(db: Session, username: str):
     user_id = get_user_by_username(db=db, username=username).id
     print("F")
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.user_id == user_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.user_id == user_id).first()
     )
     print("G")
     if reviewer is None:
@@ -121,9 +111,7 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     :raises: ValueError if reviewer does not exist.
     """
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.id == reviewer_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.id == reviewer_id).first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -151,9 +139,7 @@ def get_reviewer_by_slack_id(db: Session, slack_id: str):
     """
     user = get_user_by_slack_id(db=db, slack_id=slack_id)
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.user_id == user.id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.user_id == user.id).first()
     )
     if reviewer is None:
         raise ValueError("Reviewer slack id does not exist")
@@ -271,7 +257,9 @@ def get_assessment_tracker_entry_by_commit(db: Session, commit: str):
     return assessment_tracker
 
 
-def get_assessment_tracker_entry_by_user_assessment_name(db: Session, user_id: int, assessment_name: str):
+def get_assessment_tracker_entry_by_user_assessment_name(
+    db: Session, user_id: int, assessment_name: str
+):
     """
     Return the assessment tracker entry by user id and assessment name.
 
@@ -286,7 +274,10 @@ def get_assessment_tracker_entry_by_user_assessment_name(db: Session, user_id: i
     assessment_tracker = (
         db.query(models.AssessmentTracker)
         .filter(models.AssessmentTracker.user_id == user_id)
-        .filter(models.AssessmentTracker.assessment_id == get_assessment_by_name(db=db, assessment_name=assessment_name).id)
+        .filter(
+            models.AssessmentTracker.assessment_id
+            == get_assessment_by_name(db=db, assessment_name=assessment_name).id
+        )
         .first()
     )
     if assessment_tracker is None:
@@ -445,13 +436,9 @@ def select_reviewer(
     try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_id = valid_reviewers[
-            random.randint(0, len(valid_reviewers) - 1)
-        ][0]
+        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
     except Exception:  # pragma: no cover
-        raise ValueError(
-            "No reviewer available. Please contact the administrator."
-        )
+        raise ValueError("No reviewer available. Please contact the administrator.")
 
     try:
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
@@ -459,8 +446,7 @@ def select_reviewer(
     except Exception as e:  # pragma: no cover
         raise Exception(
             "Error selecting reviewer. Contact the administrators. Error"
-            " string: "
-            + str(e)
+            " string: " + str(e)
         )
 
 
@@ -482,12 +468,88 @@ def assign_reviewer(
     :raises: None (hopefully)
     """
     # Update the assessment tracker entry
-    assessment_tracker_entry.reviewer_id = reviewer_info["reviewer_id"]
-    assessment_tracker_entry.status = "Under review"
+    assessment_tracker_entry.reviewer_id = reviewer_info.reviewer_id
+    assessment_tracker_entry.status = "Assigning Reviewer"
     assessment_tracker_entry.last_updated = datetime.utcnow()
     db.add(assessment_tracker_entry)
     db.commit()
 
+    slack_utils.ask_reviewer(
+        db=db,
+        assessment_tracker_entry=assessment_tracker_entry,
+        reviewer_info=reviewer_info,
+    )
+    # Update the assessment tracker entry log
+    update_assessment_log(
+        db=db,
+        entry_id=assessment_tracker_entry.id,
+        latest_commit=assessment_tracker_entry.latest_commit,
+        update_logs=copy.deepcopy(reviewer_info),
+    )  # Update logs
+
+    return True
+
+
+def confirm_reviewer(
+    db: Session,
+    body: str,
+):
+    """
+    Confirm that the reviewer has accepted to review the assessment.
+
+    :param db: Generator for Session of database
+    :param body: body containing the slack payload
+    :returns: True
+
+    """
+    body = (
+        """{""" + """"p""" + body[1:7] + """":""" + body[8:-1] + """""}]}}"""
+    )  # this is done to sucessfully convert str to json
+    body = json.loads(body)
+    reviewer_slack_id = body["payload"]["user"]["id"]
+    assessment_details = body["payload"]["message"]["blocks"][0]["text"]["text"].split(
+        "\n"
+    )
+    trainee_name = assessment_details[1][14:]
+
+    trainee = get_user_by_name(db=db, user_name=trainee_name)
+    assessment_entry = get_assessment_tracker_entry_by_user_assessment_name(
+        db=db, user_id=trainee.id, assessment_name=assessment_details[2][12:]
+    )
+    assessment_tracker_entry = get_assessment_tracker_entry_by_id(
+        db=db, entry_id=assessment_entry.id
+    )
+    reviewer = get_reviewer_by_slack_id(db=db, slack_id=reviewer_slack_id)
+    assessment_tracker_entry.reviewer_id = reviewer.id
+    assessment_tracker_entry.status = "Under Review"
+    assessment_tracker_entry.last_updated = datetime.utcnow()
+    db.add(assessment_tracker_entry)
+    db.commit()
+
+    reviewer_user = get_user_by_id(db=db, user_id=reviewer.user_id)
+    assessment = get_assessment_by_id(
+        db=db, assessment_id=assessment_tracker_entry.assessment_id
+    )
+    assessment_name = assessment.name
+
+    slack_payload = {
+        "trainee_name": trainee_name,
+        "assessment_name": assessment_name,
+        "reviewer_name": reviewer_user.name,
+        "response_url": body["payload"]["response_url"],
+        "reviewer_slack_id": reviewer_slack_id,
+    }
+
+    if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
+        slack_utils.confirm_reviewer(
+            db=db,
+            slack_payload=slack_payload,
+        )
+
+    reviewer_info = {
+        "reviewer_id": reviewer.id,
+        "reviewer_username": reviewer_user.username,
+    }
     # Update the assessment tracker entry log
     update_assessment_log(
         db=db,
@@ -536,9 +598,7 @@ def approve_assessment(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
 
-    if not utils.verify_check(
-        assessment_tracker_entry=assessment_tracker_entry
-    ):
+    if not utils.verify_check(assessment_tracker_entry=assessment_tracker_entry):
         raise ValueError("Last commit checks failed.")
 
     # Verify that the reviewer is the same as the reviewer assigned in the
@@ -556,9 +616,7 @@ def approve_assessment(
         reviewer_real = get_reviewer_by_id(
             db=db, reviewer_id=assessment_tracker_entry.reviewer_id
         )
-        reviewer_real_user = get_user_by_id(
-            db=db, user_id=reviewer_real.user_id
-        )
+        reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
         # Verify the approval request is from the reviewer
         if reviewer_real_user.username != reviewer_username:
             raise ValueError(
@@ -700,9 +758,7 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
     if assessment_tracker:
         for at in assessment_tracker:
             assessment = (
-                db.query(models.Assessments)
-                .filter_by(id=at.assessment_id)
-                .first()
+                db.query(models.Assessments).filter_by(id=at.assessment_id).first()
             )
             payload = {
                 "name": assessment.name,
@@ -782,9 +838,7 @@ def delete_assessment_tracker_entry(
         user_id=delete_request.user_id,
         assessment_id=delete_request.assessment_id,
     )
-    assessment = get_assessment_by_id(
-        db=db, assessment_id=delete_request.assessment_id
-    )
+    assessment = get_assessment_by_id(db=db, assessment_id=delete_request.assessment_id)
     user = get_user_by_id(db=db, user_id=delete_request.user_id)
     db.delete(assessment_tracker_entry)
     db.commit()

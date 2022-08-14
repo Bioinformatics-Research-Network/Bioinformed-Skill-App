@@ -121,7 +121,7 @@ class CheckResponse(BaseModel):
     Pydantic response model schema used by `/api/check` endpoint
     """
 
-    Check: bool 
+    Check: bool
     review_required: int
 
 
@@ -153,7 +153,7 @@ class DeleteUserResponse(BaseModel):
     """
     Pydantic response model schema used by `/api/delete_user` endpoint
     """
-    
+
     User_deleted: bool
 
 
@@ -169,9 +169,10 @@ class ViewResponse(BaseModel):
     last_updated: datetime
     latest_commit: str
 
+
 class AddReviewerResponse(BaseModel):
     """
     Pydantic response model schema used by `/api/add_reviewer` endpoint
     """
-    
+
     Reviewer_added: bool

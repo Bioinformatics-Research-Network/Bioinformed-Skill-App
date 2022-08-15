@@ -27,7 +27,7 @@ pip install -r requirements.txt
 export APP_ENV=testing
 ```
 
-4. start the app using `uvicorn`. The `--reload` flag means the app will reload when a file is changed and saved. The `--port` flag specifies the port which the app listens on.
+4. Start the app using `uvicorn`. The `--reload` flag means the app will reload when a file is changed and saved. The `--port` flag specifies the port which the app listens on.
 
 ```shell
 uvicorn main:app --reload --port 2000
@@ -38,6 +38,29 @@ To test out the API locally use the Swagger UI docs:
 Open your prefered web browser and enter following URL `http://127.0.0.1:2000/api/docs`. This will help you in discovering how to use the API.
 
 To learn more about basics of FastAPI: https://fastapi.tiangolo.com/tutorial/first-steps/
+
+## Slack Integration: 
+
+The SLack API sends payloads to [Smee.io](https://smee.io/), thus you need a localhost-webhook interface to work on it. Ask @itchytummy or @jmsdao for the webhooks regarding SLack Api.
+To test and work on slack-crud integration follow the steps given below:
+
+1. To work on slack integration we need a webhook, we use smee.io for this. To work on smee webhooks from local host we need to install the smee-client which can be done by the following commands: 
+
+```shell
+sudo su
+curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
+bash /tmp/nodesource_setup.sh && \
+apt install nodejs -y && \
+npm install -g smee-client
+```
+2. Then setup the smee-local host interface using the following command:
+Replace the link with the one given and api endpoint with the one you are working on. 
+```shell
+smee -u smee.io/webhook -p 2000 -P /api/reviewers/confirm_reviewer
+```
+3. Set up the docker-compose and crud FASTApi as mentioned above and in the main README. 
+
+Now you are good to go to test and work on Slack-CRUD integration. Ask @itchytummy if you have any doubts.
 
 # Deployment
 
@@ -65,7 +88,7 @@ zip skill-app-crud.zip -r * .[^.]* -x "*cache*" -x "*venv*" -x "*instance*" -x "
 ```
 
 6. Installed the awsebcli package: [link](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install-advanced.html)
-7. then created a new environment ("skill-app-production") within that application. Uploaded code in the ZIP file and added version tag v0.0.1. Also added custom configuration to enable an Application load balancer (modify capacity to allow load balancing, then add application load balancer) similar to [this guide](https://docs.amazonaws.cn/en_us/elasticbeanstalk/latest/dg/environments-cfg-nlb.html). 
+7. Then created a new environment ("skill-app-production") within that application. Uploaded code in the ZIP file and added version tag v0.0.1. Also added custom configuration to enable an Application load balancer (modify capacity to allow load balancing, then add application load balancer) similar to [this guide](https://docs.amazonaws.cn/en_us/elasticbeanstalk/latest/dg/environments-cfg-nlb.html). 
 
 7. Initialize an elastic beanstalk application with the appropriate settings (`--profile brn` is only necessary if you have multiple AWS CLI profiles):
 
@@ -210,3 +233,4 @@ And that should be it! After this, the github action should work. If you run int
 
 
 With the previous steps complete, one can now deploy the app by navigating to the github actions panel and triggering the **Deploy CRUD app** action manually. This should push the latest version into production.
+

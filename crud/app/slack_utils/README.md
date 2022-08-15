@@ -35,7 +35,7 @@ After a reviewer is assigned, we want to update the Slack message to remove the 
 
 ## TODO
 
-First thing is to update the Slackbot's request URL to point to CRUD's endpoint. Right now, when a user clicks `I can do the review! -> OK!`, the post request gets sent to https://smee.io/vgy5BMklenTdqsEw. This can be changed by going to https://api.slack.com/apps/ and navigating to "Interactivity & Shortcuts" in the sidebar. (This is @jmsdao's job, once he is given the CRUD app's endpoint URL)
+First thing is to update the Slackbot's request URL to point to CRUD's endpoint. Right now, when a user clicks `I can do the review! -> OK!`, the post request gets sent to [Smee.io](https://smee.io/) webhook. This can be changed by going to https://api.slack.com/apps/ and navigating to "Interactivity & Shortcuts" in the sidebar. (This is @jmsdao's job, once he is given the CRUD app's endpoint URL)
 
 The CRUD app needs an endpoint to handle reviewers clicking the button to assign themselves. It needs to:
 - Update the relevant databases with who is reviewing which assessment

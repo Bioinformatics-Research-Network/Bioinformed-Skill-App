@@ -351,7 +351,8 @@ class Bot:
 
     def review(self, payload: dict, access_tokens: dict):
         """
-        Find a reviewer for the assessment via API
+        Find a reviewer for the assessment via API and ask them to review the
+        assessment.
         """
         kwarg_dict = self.parse_comment_payload(
             payload, access_tokens=access_tokens
@@ -372,13 +373,17 @@ class Bot:
         )
         try:
             response.raise_for_status()
-            reviewer = response.json()["reviewer_username"]
-            utils.assign_reviewer(reviewer, **kwarg_dict)
             text = (
-                "Reviewer assigned 🔥. Welcome @"
-                + response.json()["reviewer_username"]
-                + "!"
+                "I have asked a reviewer to review the assessment."+ 
+                "You will be notified when the reviewer is assigned."
             )
+            # reviewer = response.json()["reviewer_username"]
+            # utils.assign_reviewer(reviewer, **kwarg_dict)
+            # text = (
+            #     "Reviewer assigned 🔥. Welcome @"
+            #     + response.json()["reviewer_username"]
+            #     + "!"
+            # )
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:  # pragma: no cover
@@ -394,6 +399,24 @@ class Bot:
             )
             utils.post_comment(err, **kwarg_dict)
             raise e
+
+    def review_assigned(self, payload: dict, access_tokens: dict):
+        """
+        Reviewer has been assigned
+        """
+        kwarg_dict = self.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
+        reviewer = payload["comment"]["user"]["login"]
+        utils.assign_reviewer(reviewer, **kwarg_dict)
+        text = (
+            "Reviewer assigned 🔥. Welcome @"
+            + reviewer
+            + "!"
+        )
+        utils.post_comment(text, **kwarg_dict)
+        return True
+
 
     def unreview(self, payload: dict, access_tokens: dict):
         """

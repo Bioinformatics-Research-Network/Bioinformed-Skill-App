@@ -450,7 +450,7 @@ def select_reviewer(
         )
 
 
-def assign_reviewer(
+def ask_reviewer(
     db: Session,
     assessment_tracker_entry: models.AssessmentTracker,
     reviewer_info: dict,

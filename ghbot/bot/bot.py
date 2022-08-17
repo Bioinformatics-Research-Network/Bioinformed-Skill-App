@@ -352,7 +352,7 @@ class Bot:
     def review(self, payload: dict, access_tokens: dict):
         """
         Find a reviewer for the assessment via API and ask them to review the
-        assessment.
+        assessment. If the reviewer has accepted to review then assign them on github.
         """
         kwarg_dict = self.parse_comment_payload(
             payload, access_tokens=access_tokens
@@ -375,7 +375,7 @@ class Bot:
             response.raise_for_status()
             text = (
                 "I have asked a reviewer to review the assessment."+ 
-                "You will be notified when the reviewer is assigned."
+                "Please run @brnbot review again after few days to check if the reviewer has accepted the request."
             )
             # reviewer = response.json()["reviewer_username"]
             # utils.assign_reviewer(reviewer, **kwarg_dict)
@@ -400,7 +400,7 @@ class Bot:
             utils.post_comment(err, **kwarg_dict)
             raise e
 
-    def review_assigned(self, payload: dict, access_tokens: dict):
+    def checkreviewer(self, payload: dict, access_tokens: dict):
         """
         Reviewer has been assigned
         """
@@ -416,7 +416,6 @@ class Bot:
         )
         utils.post_comment(text, **kwarg_dict)
         return True
-
 
     def unreview(self, payload: dict, access_tokens: dict):
         """

@@ -340,7 +340,7 @@ def review(
             "reviewer_id": reviewer.id,
             "reviewer_username": reviewer_user.username,
         }
-        crud.assign_reviewer(
+        crud.ask_reviewer(
             db=db,
             assessment_tracker_entry=assessment_tracker_entry,
             reviewer_info=reviewer_info,
@@ -583,7 +583,8 @@ async def assign_reviewer_slack(
 
     return {"Reviewer_assigned": True}
 
-
+# @router.post("/reviewer/check_review_status")
+# def check_review_status()
 # /api/assign-reviewers
 # /api/confirm-reviewer
 # /api/deny-reviewer

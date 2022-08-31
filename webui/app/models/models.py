@@ -96,9 +96,7 @@ class Reviewers(Base):
     user_id = Column(Integer, ForeignKey("users.id", name="fk_reviewers_users"))
     assessment_reviewing_id = Column(
         Integer,
-        ForeignKey(
-            "assessments.id", use_alter=True, name="fk_reviewers_assessments"
-        ),
+        ForeignKey("assessments.id", use_alter=True, name="fk_reviewers_assessments"),
     )
 
 
@@ -145,9 +143,7 @@ class AssessmentTracker(Base):
     id = Column(Integer, primary_key=True, unique=True, index=True)
     user_id = Column(
         Integer,
-        ForeignKey(
-            "users.id", use_alter=True, name="fk_assessment_tracker_users"
-        ),
+        ForeignKey("users.id", use_alter=True, name="fk_assessment_tracker_users"),
     )
     assessment_id = Column(
         Integer,
@@ -217,9 +213,7 @@ class Assertions(Base):
     createdBy = Column(String(250))
     badgeclass = Column(
         String(250),
-        ForeignKey(
-            "badges.entityId", use_alter=True, name="fk_assertions_badges"
-        ),
+        ForeignKey("badges.entityId", use_alter=True, name="fk_assertions_badges"),
     )
     recipient_identity = Column(String(500))
     recipient_hashed = Column(Boolean)

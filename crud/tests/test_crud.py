@@ -50,9 +50,7 @@ def test_get_reviewer_by_username(db: Session):
     reviewer = db.query(models.Reviewers).first()
     # Success
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.id == reviewer.id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.id == reviewer.id).first()
     )
     username = (
         db.query(models.Users)
@@ -74,9 +72,7 @@ def test_get_reviewer_by_username(db: Session):
     # Then, get a random user who is not in the list of reviewers
     user = (
         db.query(models.Users)
-        .filter(
-            models.Users.id.notin_([reviewer.user_id for reviewer in reviewers])
-        )
+        .filter(models.Users.id.notin_([reviewer.user_id for reviewer in reviewers]))
         .first()
     )
     # Raise an error when attempting to get a reviewer by username
@@ -104,12 +100,12 @@ def test_get_reviewer_by_id(db: Session):
 def test_get_assessment_by_name(db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Success
-    assessment_q = crud.get_assessment_by_name(
-        db=db, assessment_name=assessment.name
-    )
+    assessment_q = crud.get_assessment_by_name(db=db, assessment_name=assessment.name)
     assert assessment_q.id == assessment.id
     assert assessment_q.name == assessment.name
 
@@ -122,7 +118,9 @@ def test_get_assessment_by_name(db: Session):
 def test_get_assessment_by_id(db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Success
     assessment_q = crud.get_assessment_by_id(db=db, assessment_id=assessment.id)
@@ -138,7 +136,9 @@ def test_get_assessment_by_id(db: Session):
 def test_get_assessment_tracker_entry(db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Get a valid user
     user = db.query(models.Users).first()
@@ -151,7 +151,11 @@ def test_get_assessment_tracker_entry(db: Session):
         )
     except Exception:
         assessment_tracker_entry = models.AssessmentTracker(
-            assessment_id=assessment.id, user_id=user.id, latest_commit='sdjad8j', log={}, status="init"
+            assessment_id=assessment.id,
+            user_id=user.id,
+            latest_commit="sdjad8j",
+            log={},
+            status="init",
         )
         db.add(assessment_tracker_entry)
         db.commit()
@@ -175,14 +179,14 @@ def test_get_assessment_tracker_entry(db: Session):
 def test_init_assessment_tracker(db: Session):
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # get a user where username is brnbot
     user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
 
-    commit = "".join(
-        random.choices(string.ascii_uppercase + string.digits, k=20)
-    )
+    commit = "".join(random.choices(string.ascii_uppercase + string.digits, k=20))
 
     # Check if the assessment tracker entry exists
     tracker_entry = crud.get_assessment_tracker_entry(
@@ -190,9 +194,11 @@ def test_init_assessment_tracker(db: Session):
     )
     if tracker_entry is not None:
         # Get any assertions tied to this entry
-        assertions = db.query(models.Assertions).filter(
-            models.Assertions.assessment_tracker_id == tracker_entry.id
-        ).all()
+        assertions = (
+            db.query(models.Assertions)
+            .filter(models.Assertions.assessment_tracker_id == tracker_entry.id)
+            .all()
+        )
         # Delete all assertions tied to this entry
         for assertion in assertions:
             db.delete(assertion)
@@ -238,13 +244,24 @@ def test_approve_assessment(
     revuser = db.query(models.Users).filter(models.Users.username == "brnbot2").first()
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Get the reviewer info for brnbot2
-    reviewer = db.query(models.Reviewers).filter(models.Reviewers.user_id == revuser.id).first()
+    reviewer = (
+        db.query(models.Reviewers)
+        .filter(models.Reviewers.user_id == revuser.id)
+        .first()
+    )
 
     # Get reviewer username
-    reviewer_username = db.query(models.Users).filter(models.Users.id == reviewer.user_id).first().username
+    reviewer_username = (
+        db.query(models.Users)
+        .filter(models.Users.id == reviewer.user_id)
+        .first()
+        .username
+    )
 
     # Ensure checks are passed
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
@@ -405,7 +422,9 @@ def test_add_assertion(db: Session):
     trainee = db.query(models.Users).filter(models.Users.username == "brnbot").first()
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Get assessment tracker entry
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
@@ -427,34 +446,42 @@ def test_add_assertion(db: Session):
     resp = utils.get_assertion(
         assessment_name=assessment.name,
         user_email=trainee.email,
-        bearer_token=bt, 
-        config=settings
+        bearer_token=bt,
+        config=settings,
     )
     assert resp.status_code in [200, 201]
-    assert resp.json()["status"] == {'description': 'ok', 'success': True}
+    assert resp.json()["status"] == {"description": "ok", "success": True}
 
     assertion = resp.json()["result"][0]
 
     # Query for a badge where entityId is settings.BADGE_IDs['Test']
-    print(settings.BADGE_IDs['Test'])
-    badge = db.query(models.Badges).filter(models.Badges.entityId == settings.BADGE_IDs['Test']).first()
+    print(settings.BADGE_IDs["Test"])
+    badge = (
+        db.query(models.Badges)
+        .filter(models.Badges.entityId == settings.BADGE_IDs["Test"])
+        .first()
+    )
     if badge is None:
         print("Adding test badge to db")
         badges = utils.get_all_badges(bearer_token=bt, config=settings)
         badge = badges.json()["result"][0]
         # Convert all the fields to strings using dict comprehension and format time
         fields = {k: str(v) for k, v in badge.items()}
-        fields["createdAt"] = datetime.strptime(fields["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        fields["createdAt"] = datetime.strptime(
+            fields["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
         # Add to db
         print("Badge does not exist in database")
         badge = models.Badges(**fields)
         db.add(badge)
         db.commit()
-    
+
     # Get assertion from db and delete if it exists
-    assertion_db = db.query(models.Assertions).filter(
-        models.Assertions.assessment_tracker_id == assessment_tracker_entry.id
-    ).first()
+    assertion_db = (
+        db.query(models.Assertions)
+        .filter(models.Assertions.assessment_tracker_id == assessment_tracker_entry.id)
+        .first()
+    )
     if assertion_db is not None:
         # Delete assertion from db
         db.delete(assertion_db)
@@ -479,7 +506,9 @@ def test_update_assessment_log(db: Session):
     trainee = db.query(models.Users).filter(models.Users.username == "brnbot").first()
 
     # Get assessment where name is Test
-    assessment = db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
 
     # Get assessment tracker entry
     assessment_tracker_entry = crud.get_assessment_tracker_entry(

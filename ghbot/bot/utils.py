@@ -309,15 +309,11 @@ def dispatch_workflow(**kwarg_dict) -> requests.Response:
     return response
 
 
-def delete_repo(
-    delete_request: schemas.DeleteBotRequest, access_token: str
-):
+def delete_repo(delete_request: schemas.DeleteBotRequest, access_token: str):
     """
     Process a delete repo request
     """
-    request_url = (
-        f"{dependencies.gh_url}/repos/{delete_request.github_org}/{delete_request.repo_name}"
-    )
+    request_url = f"{dependencies.gh_url}/repos/{delete_request.github_org}/{delete_request.repo_name}"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": dependencies.accept_header,
@@ -338,9 +334,7 @@ def archive_repo(**kwargs: dict):
     """
     Process an archive repo request
     """
-    request_url = (
-        f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
-    )
+    request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}"
     body = {
         "archived": True,
     }
@@ -436,8 +430,8 @@ def init_create_repo(
 
 
 def init_fill_repo(
-    init_request: schemas.InitBotRequest, 
-    repo_name: str, 
+    init_request: schemas.InitBotRequest,
+    repo_name: str,
     access_token: str,
     settings: Settings,
 ):
@@ -459,18 +453,13 @@ def init_fill_repo(
             + init_request.latest_release
         )
         local_dir = (
-            "botdata/"
-            + init_request.template_repo
-            + "/"
-            + init_request.latest_release
+            "botdata/" + init_request.template_repo + "/" + init_request.latest_release
         )
         for obj in bucket.objects.filter(Prefix=object_dir):
             target = (
                 obj.key
                 if local_dir is None
-                else os.path.join(
-                    local_dir, os.path.relpath(obj.key, object_dir)
-                )
+                else os.path.join(local_dir, os.path.relpath(obj.key, object_dir))
             )
             if not os.path.exists(os.path.dirname(target)):
                 os.makedirs(os.path.dirname(target))
@@ -483,9 +472,7 @@ def init_fill_repo(
             with open(target, "rb") as f:
                 base64content = base64.b64encode(f.read())
             # Create the file in the repo
-            request_url = (
-                f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
-            )
+            request_url = f"{dependencies.gh_url}/repos/{init_request.github_org}/{repo_name}/contents/{os.path.relpath(target, local_dir)}"
             body = {
                 "message": "Adding assessment files...",
                 "content": base64content.decode("utf-8"),
@@ -604,8 +591,7 @@ def init_create_pr(
             + init_request.username
             + " :wave:!\n\n"
             + "My name is BRN Bot :robot: and I'm here to help you complete"
-            " this "
-            + "skill assessment!\n\nWe will use this Pull Request (PR) as a"
+            " this " + "skill assessment!\n\nWe will use this Pull Request (PR) as a"
             " place to talk :speech_balloon:"
             + "(so please **do not** close or merge the"
             " PR).\n\n<details>\n\n<summary>Instructions</summary>\n\n\n"
@@ -712,8 +698,7 @@ def approve_assessment(**kwarg_dict):
     try:
         response.raise_for_status()
         text = (
-            "Skill assessment approved 🎉. Please check your email for your"
-            " badge 😎."
+            "Skill assessment approved 🎉. Please check your email for your" " badge 😎."
         )
         post_comment(text, **kwarg_dict)
         archive_repo(**kwarg_dict)

@@ -12,10 +12,15 @@
   function startAssessment() {
     // Get the button element
     var button = document.getElementById("start-assessment-button");
+
+    var progressBar = document.getElementById("progress");
+    var display = document.getElementById("display");
+
+
     // Disable the button
     button.disabled = true;
     // Set the button's text to "Please wait..."
-    button.innerHTML = "Please wait...";
+    button.innerHTML = "Loading...";
     // Get the message element
     var message = document.getElementById("assessment-message");
     // Set the message's text to "Please wait while we are loading your
@@ -27,11 +32,24 @@
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "{{url_for('routes.assessment', id=assessment.id)}}");
     xhr.setRequestHeader("Content-Type", "application/json");
+   
+
+  
     xhr.send();
     // on response, reload the page
-    xhr.onreadystatechange = function() {
+
+ 
+
+
+    xhr.onreadystatechange = function(e) {
       if (xhr.readyState == 4 && xhr.status == 200) {
+
+
         window.location.reload();
+
+
+
+        
       } else if (xhr.readyState == 4 && xhr.status != 200) {
         // If the request failed, display an error message to the user
         message.innerHTML = "Error: " + xhr.status + " " + xhr.statusText +
@@ -48,6 +66,17 @@
     // };
   }
 
+
+  function buildFormData() {
+  var fd = new FormData();
+
+  for (var i = 0; i < 3000; i += 1) {
+    fd.append('data[]', Math.floor(Math.random() * 999999));
+  }
+
+  return fd;
+}
+ 
   // Start the function when the user clicks the button
   // But the document should be ready before the user clicks the button
   // so we'll use the window.onload event.
@@ -99,6 +128,8 @@
                 <button type="submit" class="btn btn-primary" id="start-assessment-button">
                   Start Assessment
                 </button>
+                <progress id="progress" value="0"></progress>
+                <span id="display"></span>
               </div>
               <div class="col-auto align-self-center">
                 <div id="assessment-message" class="text-center"></div>

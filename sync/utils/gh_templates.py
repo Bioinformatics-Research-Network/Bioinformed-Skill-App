@@ -12,9 +12,7 @@ from sqlalchemy.orm import Session
 def download_releases_from_github(settings: Settings, db_session: Session):
     # Get list of releases from the assessments database table using sqlalchemy
     # Filter the query to only include rows where the latest_release is not null
-    releases = db_session.query(Assessments).filter(
-        Assessments.latest_release != None
-    )
+    releases = db_session.query(Assessments).filter(Assessments.latest_release != None)
     appdatadir = settings.APPDATA_DIR
     # Delete the "{appdatadir}/" directory if it exists
     if os.path.exists(f"{appdatadir}/"):
@@ -28,9 +26,7 @@ def download_releases_from_github(settings: Settings, db_session: Session):
         download_folder = (
             f"{appdatadir}/tmp/{release.template_repo}/{release.latest_release}"
         )
-        output_folder = (
-            f"{appdatadir}/{release.template_repo}/{release.latest_release}"
-        )
+        output_folder = f"{appdatadir}/{release.template_repo}/{release.latest_release}"
         if not os.path.exists(download_folder):
             os.makedirs(download_folder)
         if not os.path.exists(output_folder):

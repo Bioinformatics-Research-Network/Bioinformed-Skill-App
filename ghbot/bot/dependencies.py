@@ -125,9 +125,7 @@ except KeyError:  # pragma: no cover
 
 
 # Create a GitHub integration instance
-git_integration = GithubIntegration(
-    integration_id=settings.APP_ID, private_key=app_key
-)
+git_integration = GithubIntegration(integration_id=settings.APP_ID, private_key=app_key)
 
 
 # URL for database, can be changed as per requirements
@@ -160,5 +158,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-

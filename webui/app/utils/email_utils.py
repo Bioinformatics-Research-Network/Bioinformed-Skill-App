@@ -9,9 +9,7 @@ import mailchimp_transactional as MailchimpTransactional
 from mailchimp_transactional.api_client import ApiClientError
 
 
-def send_email(
-    email_address: str, recipient_name: str, subject: str, message: str
-):
+def send_email(email_address: str, recipient_name: str, subject: str, message: str):
     """
     Sends an email via Mandrill
     """

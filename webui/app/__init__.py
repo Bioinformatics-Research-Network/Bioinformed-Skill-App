@@ -21,9 +21,7 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
-    app.secret_key = (
-        settings.FLASK_APP_SECRET_KEY
-    )  # Replace this with your own secret!
+    app.secret_key = settings.FLASK_APP_SECRET_KEY  # Replace this with your own secret!
     app.register_blueprint(auth.oauth.github_blueprint, url_prefix="/login")
     app.config["SQLALCHEMY_DATABASE_URI"] = db.SQLALCHEMY_DATABASE_URI
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False

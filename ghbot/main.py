@@ -6,6 +6,7 @@ from fastapi import FastAPI, Body, Header, Depends, HTTPException
 
 app = FastAPI()
 
+
 @app.post("/")
 def bot(
     payload: dict = Body(...),

@@ -8,8 +8,7 @@ load_dotenv()
 
 # Initializes your app with your bot token and signing secret
 app = App(
-    token=os.getenv('SLACK_BOT_TOKEN'),
-    signing_secret=os.getenv('SLACK_SIGNING_SECRET')
+    token=os.getenv("SLACK_BOT_TOKEN"), signing_secret=os.getenv("SLACK_SIGNING_SECRET")
 )
 
 
@@ -19,6 +18,5 @@ if __name__ == "__main__":
 
     # One off message
     app.client.chat_postMessage(
-        channel=os.getenv('SLACK_CHANNEL_ID'),
-        text="Hello World!"
+        channel=os.getenv("SLACK_CHANNEL_ID"), text="Hello World!"
     )

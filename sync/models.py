@@ -94,9 +94,7 @@ class Assertions(Base):
     createdBy = Column(String(250))
     badgeclass = Column(
         String(250),
-        ForeignKey(
-            "badges.entityId", use_alter=True, name="fk_assertions_badges"
-        ),
+        ForeignKey("badges.entityId", use_alter=True, name="fk_assertions_badges"),
     )
     recipient_identity = Column(String(500))
     recipient_hashed = Column(Boolean)

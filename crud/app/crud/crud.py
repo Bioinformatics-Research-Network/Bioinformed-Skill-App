@@ -23,9 +23,7 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
-    user = (
-        db.query(models.Users).filter(models.Users.username == username).first()
-    )
+    user = db.query(models.Users).filter(models.Users.username == username).first()
     if user is None:
         raise ValueError("User name does not exist")
     return user
@@ -63,9 +61,7 @@ def get_reviewer_by_username(db: Session, username: str):
     user_id = get_user_by_username(db=db, username=username).id
     print("F")
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.user_id == user_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.user_id == user_id).first()
     )
     print("G")
     if reviewer is None:
@@ -86,9 +82,7 @@ def get_reviewer_by_id(db: Session, reviewer_id: int):
     :raises: ValueError if reviewer does not exist.
     """
     reviewer = (
-        db.query(models.Reviewers)
-        .filter(models.Reviewers.id == reviewer_id)
-        .first()
+        db.query(models.Reviewers).filter(models.Reviewers.id == reviewer_id).first()
     )
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
@@ -324,8 +318,7 @@ def update_assessment_tracker_entry(
 
 
 def select_reviewer(
-    db: Session, assessment_tracker_entry: models.AssessmentTracker,
-    settings: Settings
+    db: Session, assessment_tracker_entry: models.AssessmentTracker, settings: Settings
 ):
     """
     Select a reviewer for the assessment tracker entry.
@@ -365,13 +358,9 @@ def select_reviewer(
     try:
         # Get a random reviewer from the list of valid reviewers
         # Will be replaced with Slack integration
-        random_id = valid_reviewers[
-            random.randint(0, len(valid_reviewers) - 1)
-        ][0]
+        random_id = valid_reviewers[random.randint(0, len(valid_reviewers) - 1)][0]
     except Exception:  # pragma: no cover
-        raise ValueError(
-            "No reviewer available. Please contact the administrator."
-        )
+        raise ValueError("No reviewer available. Please contact the administrator.")
 
     try:
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
@@ -379,8 +368,7 @@ def select_reviewer(
     except Exception as e:  # pragma: no cover
         raise Exception(
             "Error selecting reviewer. Contact the administrators. Error"
-            " string: "
-            + str(e)
+            " string: " + str(e)
         )
 
 
@@ -456,9 +444,7 @@ def approve_assessment(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
 
-    if not utils.verify_check(
-        assessment_tracker_entry=assessment_tracker_entry
-    ):
+    if not utils.verify_check(assessment_tracker_entry=assessment_tracker_entry):
         raise ValueError("Last commit checks failed.")
 
     # Verify that the reviewer is the same as the reviewer assigned in the
@@ -476,9 +462,7 @@ def approve_assessment(
         reviewer_real = get_reviewer_by_id(
             db=db, reviewer_id=assessment_tracker_entry.reviewer_id
         )
-        reviewer_real_user = get_user_by_id(
-            db=db, user_id=reviewer_real.user_id
-        )
+        reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
         # Verify the approval request is from the reviewer
         if reviewer_real_user.username != reviewer_username:
             raise ValueError(
@@ -619,9 +603,7 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
     if assessment_tracker:
         for at in assessment_tracker:
             assessment = (
-                db.query(models.Assessments)
-                .filter_by(id=at.assessment_id)
-                .first()
+                db.query(models.Assessments).filter_by(id=at.assessment_id).first()
             )
             payload = {
                 "name": assessment.name,
@@ -701,9 +683,7 @@ def delete_assessment_tracker_entry(
         user_id=delete_request.user_id,
         assessment_id=delete_request.assessment_id,
     )
-    assessment = get_assessment_by_id(
-        db=db, assessment_id=delete_request.assessment_id
-    )
+    assessment = get_assessment_by_id(db=db, assessment_id=delete_request.assessment_id)
     user = get_user_by_id(db=db, user_id=delete_request.user_id)
     db.delete(assessment_tracker_entry)
     db.commit()

@@ -10,6 +10,7 @@ os.environ["APP_ENV"] = "testing"
 
 # Import the modules
 from bot import bot, utils, dependencies, auth, schemas
+
 settings = dependencies.get_settings()
 
 seed = random.randint(0, 100000)
@@ -36,11 +37,9 @@ init_request = schemas.InitBotRequest(
 
 random.seed(seed)
 random_string = "".join(
-        random.choice(
-            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        )
-        for i in range(6)
-    )
+    random.choice("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    for i in range(6)
+)
 repo_name = init_request.repo_prefix + random_string + "--" + init_request.username
 print(repo_name)
 
@@ -114,11 +113,11 @@ def test_init():
     )
     if response.status_code == 200:
         print("Repo exists... deleting")
-        assert bot.process_delete_repo(
-            delete_request, access_tokens=access_tokens
-        )
+        assert bot.process_delete_repo(delete_request, access_tokens=access_tokens)
 
-    resp = bot.process_init_payload(init_request, access_tokens=access_tokens, seed=seed)
+    resp = bot.process_init_payload(
+        init_request, access_tokens=access_tokens, seed=seed
+    )
 
     assert resp
 
@@ -252,9 +251,7 @@ def test_update_on_commit():
 
     # Successful update command
     response = bot.process_commit(payload, access_tokens=access_tokens)
-    kwarg_dict = bot.parse_commit_payload(
-        payload, access_tokens=access_tokens
-    )
+    kwarg_dict = bot.parse_commit_payload(payload, access_tokens=access_tokens)
     assert response.json()
     assert response.status_code == 200
     # Confirm the latest comment is the output of the command

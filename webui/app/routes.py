@@ -83,9 +83,7 @@ def email_verification():
                     "verify_code_from_email.html", email=current_user.email
                 )
         utils.send_verification_email(db=db_session, user=current_user)
-        return render_template(
-            "verify_code_from_email.html", email=current_user.email
-        )
+        return render_template("verify_code_from_email.html", email=current_user.email)
 
 
 @routes.route("/email-verification/resend", methods=["POST"])
@@ -93,9 +91,7 @@ def email_verification():
 @auth.onboarding_required
 def resend_email_verification():
     utils.send_verification_email(db=db_session, user=current_user)
-    flash(
-        "A new verification code has been sent to " + current_user.email, "info"
-    )
+    flash("A new verification code has been sent to " + current_user.email, "info")
     return redirect(url_for("routes.email_verification"))
 
 
@@ -193,18 +189,14 @@ def delete_profile():
     }
     print("DELETE USER")
     # Initialize the repo
-    response = requests.post(
-        f"{settings.BRN_API_URL}/user/delete", json=payload
-    )
+    response = requests.post(f"{settings.BRN_API_URL}/user/delete", json=payload)
     print(response.json())
     if response.status_code == 200:
         logout_user()
         flash("Your account has been deleted.", "success")
         return redirect(url_for("routes.homepage"))
     else:
-        flash(
-            "Something went wrong. Please contact the administrator.", "danger"
-        )
+        flash("Something went wrong. Please contact the administrator.", "danger")
         return redirect(url_for("routes.profile"))
 
 
@@ -268,9 +260,7 @@ def assessment(id, status=None):
     print(status)
     # If long_description is not empty, render the markdown to HTML
     if assessment.long_description:
-        assessment.long_description = markdown.markdown(
-            assessment.long_description
-        )
+        assessment.long_description = markdown.markdown(assessment.long_description)
     # Get the badge for the assessment
     badge = crud.get_badge_by_assessment_id(db_session, assessment_id=id)
     # Get the assessment tracker entry
@@ -279,9 +269,7 @@ def assessment(id, status=None):
     )
     # Get all from the assessment tracker entry
     if tracker and tracker.repo_owner:
-        gh_repo = (
-            f"https://www.github.com/{tracker.repo_owner}/{tracker.repo_name}"
-        )
+        gh_repo = f"https://www.github.com/{tracker.repo_owner}/{tracker.repo_name}"
         status = tracker.status
     elif tracker:
         gh_repo = None
@@ -316,9 +304,7 @@ def assessment_start(id):
         flash("Assessment initiated.", "success")
         return redirect(url_for("routes.assessment", id=id))
     else:
-        flash(
-            "Something went wrong. Please contact the administrator.", "danger"
-        )
+        flash("Something went wrong. Please contact the administrator.", "danger")
         # Return 500 error
         abort(500)
         return redirect(url_for("routes.assessment", id=id))
@@ -341,9 +327,7 @@ def assessment_delete(id):
         flash("Assessment deleted.", "success")
         return redirect(url_for("routes.assessment", id=id))
     else:
-        flash(
-            "Something went wrong. Please contact the administrator.", "danger"
-        )
+        flash("Something went wrong. Please contact the administrator.", "danger")
         return redirect(url_for("routes.assessment", id=id))
 
 

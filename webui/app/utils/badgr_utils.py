@@ -110,11 +110,7 @@ def issue_badge(
             + assessment_name
             + " skill assessment.",
             "evidence": [
-                {
-                    "narrative": (
-                        "Link to a place where someone can see the results???"
-                    )
-                }
+                {"narrative": ("Link to a place where someone can see the results???")}
             ],
             "notify": True,
         }
@@ -162,10 +158,7 @@ def get_all_assertions(bearer_token: str, config: Settings):
     :return: The assertion as a response object
     """
     url = (
-        config.BADGR_BASE_URL
-        + "/v2/issuers/"
-        + config.BADGR_ISSUER_ID
-        + "/assertions"
+        config.BADGR_BASE_URL + "/v2/issuers/" + config.BADGR_ISSUER_ID + "/assertions"
     )
     headers = {
         "Content-Type": "application/json",
@@ -189,9 +182,7 @@ def wrangle_assertion(assertion: dict):
     fields["recipient_identity"] = assertion["recipient"]["identity"]
     fields["recipient_hashed"] = assertion["recipient"]["hashed"]
     fields["recipient_type"] = assertion["recipient"]["type"]
-    fields["recipient_plaintextIdentity"] = assertion["recipient"][
-        "plaintextIdentity"
-    ]
+    fields["recipient_plaintextIdentity"] = assertion["recipient"]["plaintextIdentity"]
     if "salt" in assertion["recipient"].keys():
         fields["recipient_salt"] = assertion["recipient"]["salt"]
 
@@ -234,9 +225,7 @@ def wrangle_assertion(assertion: dict):
         + f'%0A%0A{fields["openBadgeId"]}'
     )
     twitter_share_url = (
-        f"https://twitter.com/intent/tweet?text={tweet_text}".replace(
-            " ", "%20"
-        )
+        f"https://twitter.com/intent/tweet?text={tweet_text}".replace(" ", "%20")
         .replace("#", "%23")
         .replace('"', "%22")
     )
@@ -249,7 +238,9 @@ def wrangle_assertion(assertion: dict):
     fields["facebook_share_url"] = facebook_share_url
 
     # Share to linkedin feed
-    linkedin_share_url = f'https://www.linkedin.com/sharing/share-offsite/?url={fields["openBadgeId"]}'
+    linkedin_share_url = (
+        f'https://www.linkedin.com/sharing/share-offsite/?url={fields["openBadgeId"]}'
+    )
     fields["linkedin_share_url"] = linkedin_share_url
 
     # Check for identity email
@@ -308,9 +299,7 @@ def wrangle_assertion(assertion: dict):
 
     # Filter to only include the fields that are in the Assertions model
     fields = {
-        k: v
-        for k, v in fields.items()
-        if k in Assertions.__table__.columns.keys()
+        k: v for k, v in fields.items() if k in Assertions.__table__.columns.keys()
     }
 
     return fields

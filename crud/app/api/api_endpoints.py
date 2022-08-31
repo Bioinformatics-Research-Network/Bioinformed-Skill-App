@@ -158,9 +158,7 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
 
 
 @router.patch("/update")
-def update(
-    *, db: Session = Depends(get_db), update_request: schemas.UpdateRequest
-):
+def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateRequest):
     """
     Updates the assessment tracker entry for the given user and assessment with the
     given commit and log.
@@ -177,9 +175,7 @@ def update(
     """
     try:
 
-        user = crud.get_user_by_username(
-            db=db, username=update_request.username
-        )
+        user = crud.get_user_by_username(db=db, username=update_request.username)
         assessment = crud.get_assessment_by_name(
             db=db, assessment_name=update_request.assessment_name
         )
@@ -246,9 +242,7 @@ def delete(
 
 
 @router.post("/check")
-def check(
-    *, db: Session = Depends(get_db), check_request: schemas.CheckRequest
-):
+def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest):
     """
     Run automated checks on the assessment tracker entry for the
     given user and assessment.
@@ -299,7 +293,9 @@ def check(
 
 @router.post("/review", response_model=schemas.ReviewResponse)
 def review(
-    *, db: Session = Depends(get_db), review_request: schemas.ReviewRequest,
+    *,
+    db: Session = Depends(get_db),
+    review_request: schemas.ReviewRequest,
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -332,10 +328,9 @@ def review(
         )
         if not verify_check:
             raise ValueError("Automated checks not passed for latest commit")
-        
+
         reviewer = crud.select_reviewer(
-            db=db, assessment_tracker_entry=assessment_tracker_entry,
-            settings=settings
+            db=db, assessment_tracker_entry=assessment_tracker_entry, settings=settings
         )
         reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
         reviewer_info = {
@@ -406,9 +401,7 @@ def approve(
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
     try:
         # Get the trainee info
-        user = crud.get_user_by_id(
-            db=db, user_id=assessment_tracker_entry.user_id
-        )
+        user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         print(user.__dict__)
         print("D")
         # Get the assessment info
@@ -512,9 +505,7 @@ def delete_user(
         - User does not exist
     """
     try:
-        crud.delete_user(
-            db=db, user_id=delete_request.user_id, settings=settings
-        )
+        crud.delete_user(db=db, user_id=delete_request.user_id, settings=settings)
     except Exception as e:  # pragma: no cover
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))

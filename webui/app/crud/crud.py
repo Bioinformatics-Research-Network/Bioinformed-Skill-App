@@ -27,15 +27,11 @@ def get_assessments(
     )
     if language:
         assessments = [
-            assessment
-            for assessment in assessments
-            if assessment.languages in language
+            assessment for assessment in assessments if assessment.languages in language
         ]
     if types:
         assessments = [
-            assessment
-            for assessment in assessments
-            if assessment.types in types
+            assessment for assessment in assessments if assessment.types in types
         ]
     if not completed == "true":
         # Get the user's assessments from the assertions
@@ -70,9 +66,7 @@ def get_assessment_by_id(db: Session, id: int) -> models.Assessments:
     return assessment
 
 
-def get_badge_by_assessment_id(
-    db: Session, assessment_id: int
-) -> models.Badges:
+def get_badge_by_assessment_id(db: Session, assessment_id: int) -> models.Badges:
     """
     To get badge by assessment id.
     """
@@ -137,9 +131,7 @@ def get_assertions_by_user(db: Session, user: models.Users) -> list:
     for at in assessment_tracker:
         # Get the assertions for the assessment tracker entry
         at_assertions = (
-            db.query(models.Assertions)
-            .filter_by(assessment_tracker_id=at.id)
-            .all()
+            db.query(models.Assertions).filter_by(assessment_tracker_id=at.id).all()
         )
         # Add the assertions to the list
         assertions.extend(at_assertions)
@@ -161,9 +153,7 @@ def get_assessment_tracker_entry(
     return at
 
 
-def get_assessment_tracker_entries_by_user(
-    db: Session, user: models.Users
-) -> list:
+def get_assessment_tracker_entries_by_user(db: Session, user: models.Users) -> list:
     """
     To get assessment tracker entries by user.
     """

@@ -74,9 +74,7 @@ def retrieve_access_tokens():
         get_all_access_tokens(dependencies.installation_ids, jwt=jwt)
     with open(dependencies.token_fp, "r") as f:
         current_tokens = json.load(f)
-    exp_time = datetime.strptime(
-        current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f"
-    )
+    exp_time = datetime.strptime(current_tokens["expires"], "%Y-%m-%d %H:%M:%S.%f")
     if exp_time < datetime.now():
         print("EXPIRED")
         print("Getting jwt")

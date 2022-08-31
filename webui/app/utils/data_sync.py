@@ -28,9 +28,7 @@ def sync_badges(settings: Settings):
             print(badge["name"])
 
             # Check if the badge already exists in the database
-            current_badge = db_session.query(Badges).filter_by(
-                name=badge["name"]
-            )
+            current_badge = db_session.query(Badges).filter_by(name=badge["name"])
 
             # Convert all the fields to strings using dict comprehension
             fields = {k: str(v) for k, v in badge.items()}
@@ -153,9 +151,7 @@ import shutil
 def download_releases_from_github(settings: Settings):
     # Get list of releases from the assessments database table using sqlalchemy
     # Filter the query to only include rows where the latest_release is not null
-    releases = db_session.query(Assessments).filter(
-        Assessments.latest_release != None
-    )
+    releases = db_session.query(Assessments).filter(Assessments.latest_release != None)
     # Delete the "../appdata/" directory if it exists
     if os.path.exists("../appdata/"):
         shutil.rmtree("../appdata/")
@@ -169,9 +165,7 @@ def download_releases_from_github(settings: Settings):
         download_folder = (
             f"../appdata/tmp/{release.template_repo}/{release.latest_release}"
         )
-        output_folder = (
-            f"../appdata/{release.template_repo}/{release.latest_release}"
-        )
+        output_folder = f"../appdata/{release.template_repo}/{release.latest_release}"
         print(download_folder)
         print(output_folder)
         if not os.path.exists(download_folder):

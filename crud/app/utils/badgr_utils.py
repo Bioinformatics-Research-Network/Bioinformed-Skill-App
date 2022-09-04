@@ -60,7 +60,6 @@ def get_assertion(
         "Authorization": "Bearer " + bearer_token,
     }
 
-    print(url)
     response = requests.request("GET", url, headers=headers)
     return response
 
@@ -119,8 +118,6 @@ def wrangle_assertion(
         try:
             if type(v) == str:
                 fields[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ")
-            else:
-                print("Could not convert to date time: " + str(v))
         except ValueError:
             # Try different format
             try:
@@ -130,7 +127,7 @@ def wrangle_assertion(
                 pass
 
     # Convert createdAt to a datetime object from ISO8601
-    ca = fields["createdAt"]
+    ca = fields["issuedOn"]
 
     # Get the badge name that the assertion is for by querying the badges table
     orgname = "Bioinformatics Research Network"
@@ -264,22 +261,14 @@ def issue_badge(
     :return: The assertion as a response object
     """
     # Get the URL for the badge, based on assessment name
-    print(1)
-    print(config.BADGE_IDs[assessment_name])
     url = (
         config.BADGR_BASE_URL
         + "/v2/badgeclasses/"
         + config.BADGE_IDs[assessment_name]
         + "/assertions"
     )
-    print(2)
-    print(url)
-    print(bearer_token)
-    print(user_email)
-    print(user_first)
-    print(user_last)
-    print(assessment_name)
     # Prepare the payload with custom text and evidence
+    # TODO: Have a way to add in custom URL and evidence for the assertion
     payload = json.dumps(
         {
             "recipient": {
@@ -296,6 +285,7 @@ def issue_badge(
             + " skill assessment.",
             "evidence": [
                 {
+                    "url": "https://bioresnet.org/",
                     "narrative": (
                         "Link to a place where someone can see the results???"
                     )
@@ -304,13 +294,9 @@ def issue_badge(
             "notify": True,
         }
     )
-    print(3)
-    print(payload)
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + bearer_token,
     }
-    print(4)
     response = requests.request("POST", url, headers=headers, data=payload)
-    print(5)
     return response

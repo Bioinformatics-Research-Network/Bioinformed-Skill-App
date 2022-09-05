@@ -93,6 +93,8 @@ def test_init():
     """
 
     # Set the assessment tracker entry to initiated state
+    # NOTE: This requires that the assessment tracker entry already exists
+    #       in the database. It may be necessary to manually create the entry.
     body = {
         "username": "bioresnet",
         "assessment_name": "Test",

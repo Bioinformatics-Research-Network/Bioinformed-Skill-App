@@ -1,9 +1,7 @@
-# Getting Started
-Before you launch the app, you need to have a `.env` file in this directory with the following contents:
+# SLACK-BOT:
 
-```
-SLACK_CLIENT_SECRET=<client_secret>
-SLACK_SIGNING_SECRET=<signing_secret>
-SLACK_BOT_TOKEN=xoxb-<rest_of_token>
-SLACK_CHANNEL_ID=C<rest_of_channel_id>
-```
+
+## SLACKBOT-CRUD integration for automating reviewing. 
+This is to help to get started with the slackbot integration with CRUD.
+
+Please refer to `crud/slack_utils/README.md` and `crud/README.md` to learn more about SLACKBOT-CRUD integration. 

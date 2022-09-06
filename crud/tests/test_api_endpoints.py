@@ -127,7 +127,6 @@ def test_check(client: TestClient,  db: Session):
         models.AssessmentTracker.assessment_id == assessment.id,
         models.AssessmentTracker.user_id == user.id,
     ).first()
-    print(assessment_tracker_entry.__dict__)
     assessment_tracker_entry = crud.get_assessment_tracker_entry(
         db=db, user_id=user.id, assessment_id=assessment.id
     )
@@ -218,10 +217,9 @@ def test_approve(client: TestClient, db: Session):
     }
     response = client.patch("/api/approve", json=request_json)
 
-    # Produces error because badge is for testenv but does not exist in db
-    # TODO: Fix this so that it can fully pass
+    # Badge is missing
+    # TODO: Fix this so that it produces a 200 response
     assert response.status_code == 422
-    assert response.json() == {'detail': 'Badge does not exist in database'}
 
 
 def test_update(client: TestClient, db: Session):

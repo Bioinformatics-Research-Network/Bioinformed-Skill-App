@@ -474,9 +474,11 @@ def init_fill_repo(
             )
             if not os.path.exists(os.path.dirname(target)):
                 os.makedirs(os.path.dirname(target))
+                os.chmod(os.path.dirname(target), 0o777)
             if obj.key[-1] == "/":
                 continue
             bucket.download_file(obj.key, target)
+            os.chmod(target, 0o777)
 
             # Upload the code to github
             # Get the base64 content of the file

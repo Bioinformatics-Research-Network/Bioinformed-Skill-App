@@ -142,7 +142,6 @@ def test_get_assessment_tracker_entry(db: Session):
 
     # Get a valid user
     user = db.query(models.Users).first()
-    print(user.id)
 
     # Create an assessment tracker entry if it doesnt' exist
     try:
@@ -431,12 +430,11 @@ def test_add_assertion(db: Session):
         config=settings
     )
     assert resp.status_code in [200, 201]
-    assert resp.json()["status"] == {'description': 'ok', 'success': True}
+    assert resp.json()["status"] == {'success': True, 'description': 'ok', 'fieldErrors': None, 'validationErrors': None}
 
     assertion = resp.json()["result"][0]
 
     # Query for a badge where entityId is settings.BADGE_IDs['Test']
-    print(settings.BADGE_IDs['Test'])
     badge = db.query(models.Badges).filter(models.Badges.entityId == settings.BADGE_IDs['Test']).first()
     if badge is None:
         print("Adding test badge to db")

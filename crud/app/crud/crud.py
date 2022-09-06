@@ -59,15 +59,12 @@ def get_reviewer_by_username(db: Session, username: str):
 
     :raises: ValueError if reviewer does not exist.
     """
-    print("E")
     user_id = get_user_by_username(db=db, username=username).id
-    print("F")
     reviewer = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.user_id == user_id)
         .first()
     )
-    print("G")
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
 
@@ -522,7 +519,6 @@ def add_assertion(
     :param entry_id: Assessment tracker entry id
     :param assertion: Assertion to add
     """
-    print(assertion["badgeclass"])
     badge = (
         db.query(models.Badges)
         .filter(models.Badges.entityId == assertion["badgeclass"])
@@ -554,7 +550,6 @@ def add_assertion(
         db.commit()
         return True
     except Exception as e:
-        print(fields)
         print(str(e))
         db.rollback()
         raise e
@@ -630,7 +625,6 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
                 "github_org": assessment.github_org,
                 "username": user.username,
             }
-            print(payload)
             print("Sending request to bot init")
             response = requests.post(
                 url=f"{settings.GITHUB_BOT_URL}/delete", json=payload
@@ -648,10 +642,7 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
             db.delete(reviewer)
             db.commit()
         # OAuth
-        print(user.id)
         oauth = db.query(models.OAuth).filter_by(user_id=user.id).first()
-        print("OAUTH")
-        print(oauth.__dict__)
         if oauth:
             db.delete(oauth)
             db.commit()
@@ -716,7 +707,6 @@ def delete_assessment_tracker_entry(
         "github_org": assessment.github_org,
         "username": user.username,
     }
-    print(payload)
     print("Sending request to bot init")
     response = requests.post(
         url=f"{settings.GITHUB_BOT_URL}/delete",

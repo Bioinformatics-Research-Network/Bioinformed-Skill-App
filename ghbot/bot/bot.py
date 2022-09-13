@@ -377,13 +377,7 @@ class Bot:
                 "I have asked a reviewer to review the assessment."+ 
                 "Please run @brnbot review again after few days to check if the reviewer has accepted the request."
             )
-            # reviewer = response.json()["reviewer_username"]
-            # utils.assign_reviewer(reviewer, **kwarg_dict)
-            # text = (
-            #     "Reviewer assigned 🔥. Welcome @"
-            #     + response.json()["reviewer_username"]
-            #     + "!"
-            # )
+            
             utils.post_comment(text, **kwarg_dict)
             return response
         except requests.exceptions.HTTPError as e:  # pragma: no cover

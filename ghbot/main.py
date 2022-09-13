@@ -84,3 +84,25 @@ def delete(
 @app.get("/")
 def root() -> dict:
     return {"message": "Hello World"}
+
+@app.post("/crud/reviewer_assigned")
+def reviewer_assigned(
+    payload: dict = Body(...),
+    access_tokens: dict = Depends(auth.retrieve_access_tokens),
+    settings: Settings = Depends(get_settings),
+    ) -> dict:
+    brnbot = Bot(settings=settings)
+    kwarg_dict = brnbot.parse_comment_payload(
+            payload, access_tokens=access_tokens
+        )
+    text = (
+                "Reviewer assigned 🔥. Welcome @"
+                + response.json()["reviewer_username"]
+                + "!"
+            )
+    utils.post_comment(text, **kwarg_dict)
+    # reviewer = 
+    utils.assign_reviewer(reviewer, **kwarg_dict)
+            
+    return{"Reviewer Assigned": True}
+

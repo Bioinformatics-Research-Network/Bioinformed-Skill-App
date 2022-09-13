@@ -43,13 +43,19 @@ def ask_reviewer(
         # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
 
         response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
-
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e: 
+            raise e
+        except Exception as e:
+            raise e
     return response
 
 
 def confirm_reviewer(
     db: Session,
     slack_payload: dict,
+    settings: Settings,
 ):
     """
     Confirms that the reviewer has agreed to review the trainee's assessment.
@@ -72,4 +78,42 @@ def confirm_reviewer(
         "text": f"Assigned reviewer:{slack_payload.reviewer_name} <@{str(slack_payload.reviewer_slack_id)}>\nTrainee Name: {slack_payload.trainee_name}\nAssessment: {slack_payload.assessment_name}",
     }
 
-    response = requests.post(url=slack_payload.response_url, json=payload)
+    response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
+    try:
+        response.raise_for_status()
+        payload = {
+            "number": 1,
+            "pull_request": {
+            "url": f"https://api.github.com/repos/brn-test-assessment/{repo_name}/pulls/1",
+            "head": {
+                "sha": "OIJSADJSAODJASJDOJASD",
+                },
+            },
+        "sender": {
+            "login": ,
+        },
+        "comment": {
+            "body": "@brnbot confirmReviewer",
+        },
+        "installation": {
+            "id": 26363998,
+        },
+        "issue": {
+            "number": 1,
+            "pull_request": {
+                "url": f"https://api.github.com/repos/{brn_org_name}/{repo_name}/pulls/1"
+            },
+        },
+        "repository": {
+            "owner": {
+                "login": "brn-test-assessment",
+            },
+            "name": repo_name,
+        },
+    }
+        response_ghbot = requests.post(url=settings.GITHUB_BOT_URL, json=)
+    except requests.exceptions.HTTPError as e: 
+            raise e
+    except Exception as e:
+            raise e
+    return response

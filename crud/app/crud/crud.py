@@ -593,7 +593,7 @@ def confirm_reviewer(
             },
         }
     response_ghbot = requests.post(
-                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assigned", json=payload
+                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign", json=payload
             )
     response_ghbot.raise_for_status()
 

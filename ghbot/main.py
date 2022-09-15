@@ -85,7 +85,7 @@ def delete(
 def root() -> dict:
     return {"message": "Hello World"}
 
-@app.post("/crud/reviewer_assigned")
+@app.post("/crud/reviewer_assign")
 def reviewer_assigned(
     payload: dict = Body(...),
     access_tokens: dict = Depends(auth.retrieve_access_tokens),

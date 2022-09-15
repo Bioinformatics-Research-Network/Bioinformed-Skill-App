@@ -320,7 +320,7 @@ def review(
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=review_request.latest_commit
         )
-        if assessment_tracker_entry.status != "Initiated":
+        if assessment_tracker_entry.status != "Assigning Reviewer" and assessment_tracker_entry.status != "Initiated":
             raise ValueError(
                 "Assessment tracker entry already under review or approved"
             )
@@ -335,15 +335,18 @@ def review(
             assessment_tracker_entry=assessment_tracker_entry,
             settings=settings,
         )
+        print(reviewer.id)
         reviewer_user = crud.get_user_by_id(db=db, user_id=reviewer.user_id)
         reviewer_info = {
             "reviewer_id": reviewer.id,
             "reviewer_username": reviewer_user.username,
         }
+        print(reviewer_info)
         crud.ask_reviewer(
             db=db,
             assessment_tracker_entry=assessment_tracker_entry,
             reviewer_info=reviewer_info,
+            settings=settings,
         )
     except ValueError as e:
         print(str(e))
@@ -564,6 +567,7 @@ async def assign_reviewer_slack(
     *,
     db: Session = Depends(get_db),
     payload: Request,
+    settings: Settings = Depends(get_settings),
 ):
     """
     Slack interface for confirming that a reviewer has accepted to review an assessment.
@@ -571,9 +575,10 @@ async def assign_reviewer_slack(
     :param db: Generator for Session of database
     :param payload: payload sent from slack api
     """
+    print("confirm rev api")
     body = unquote(await payload.body())
     try:
-        crud.confirm_reviewer(db=db, body=body)
+        crud.confirm_reviewer(db=db, body=body, settings=settings)
     except ValueError as e:
         print(e)
         raise HTTPException(status_code=422, detail=str(e))

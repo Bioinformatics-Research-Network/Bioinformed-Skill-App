@@ -411,8 +411,8 @@ def select_reviewer(
     (should not happen).
     """
     if settings.APP_ENV_NAME == "testing":
-        return get_reviewer_by_username(db=db, username="brnbot2")
-
+        return get_reviewer_by_username(db=db, username="itchytummy")
+    
     invalid_rev = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.user_id == assessment_tracker_entry.user_id)
@@ -454,6 +454,7 @@ def ask_reviewer(
     db: Session,
     assessment_tracker_entry: models.AssessmentTracker,
     reviewer_info: dict,
+    settings: Settings,
 ):
     """
     Assign a reviewer to the assessment tracker entry.
@@ -467,17 +468,17 @@ def ask_reviewer(
 
     :raises: None (hopefully)
     """
+    print("crud ask rev")
     # Update the assessment tracker entry
-    assessment_tracker_entry.reviewer_id = reviewer_info.reviewer_id
-    assessment_tracker_entry.status = "Assigning Reviewer"
-    assessment_tracker_entry.last_updated = datetime.utcnow()
-    db.add(assessment_tracker_entry)
-    db.commit()
-
+    print(assessment_tracker_entry.reviewer_id)
+    print(reviewer_info)
+    
+    print("ask reviewer crud")
     slack_utils.ask_reviewer(
         db=db,
         assessment_tracker_entry=assessment_tracker_entry,
         reviewer_info=reviewer_info,
+        settings=settings,
     )
     # Update the assessment tracker entry log
     update_assessment_log(
@@ -486,13 +487,18 @@ def ask_reviewer(
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
-
+    assessment_tracker_entry.reviewer_id = reviewer_info["reviewer_id"]
+    assessment_tracker_entry.status = "Assigning Reviewer"
+    assessment_tracker_entry.last_updated = datetime.utcnow()
+    db.add(assessment_tracker_entry)
+    db.commit()
     return True
 
 
 def confirm_reviewer(
     db: Session,
     body: str,
+    settings: Settings,
 ):
     """
     Confirm that the reviewer has accepted to review the assessment.
@@ -502,6 +508,7 @@ def confirm_reviewer(
     :returns: True
 
     """
+    print("crud confirm reviewer")
     body = (
         """{""" + """"p""" + body[1:7] + """":""" + body[8:-1] + """""}]}}"""
     )  # this is done to sucessfully convert str to json
@@ -511,7 +518,7 @@ def confirm_reviewer(
         "\n"
     )
     trainee_name = assessment_details[1][14:]
-
+    print("A")
     trainee = get_user_by_name(db=db, user_name=trainee_name)
     assessment_entry = get_assessment_tracker_entry_by_user_assessment_name(
         db=db, user_id=trainee.id, assessment_name=assessment_details[2][12:]
@@ -519,19 +526,16 @@ def confirm_reviewer(
     assessment_tracker_entry = get_assessment_tracker_entry_by_id(
         db=db, entry_id=assessment_entry.id
     )
+    print("B")
     reviewer = get_reviewer_by_slack_id(db=db, slack_id=reviewer_slack_id)
-    assessment_tracker_entry.reviewer_id = reviewer.id
-    assessment_tracker_entry.status = "Under Review"
-    assessment_tracker_entry.last_updated = datetime.utcnow()
-    db.add(assessment_tracker_entry)
-    db.commit()
+    
 
     reviewer_user = get_user_by_id(db=db, user_id=reviewer.user_id)
     assessment = get_assessment_by_id(
         db=db, assessment_id=assessment_tracker_entry.assessment_id
     )
     assessment_name = assessment.name
-
+    print("C")
     slack_payload = {
         "trainee_name": trainee_name,
         "assessment_name": assessment_name,
@@ -539,13 +543,13 @@ def confirm_reviewer(
         "response_url": body["payload"]["response_url"],
         "reviewer_slack_id": reviewer_slack_id,
     }
-
+    print("going to slack utils now")
     if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
         slack_utils.confirm_reviewer(
-            db=db,
             slack_payload=slack_payload,
+            settings=settings
         )
-
+    
     reviewer_info = {
         "reviewer_id": reviewer.id,
         "reviewer_username": reviewer_user.username,
@@ -557,7 +561,47 @@ def confirm_reviewer(
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
+    payload = {
+            "number": 1,
+            "pull_request": {
+            "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
+            "head": {
+                "sha": "OIJSADJSAODJASJDOJASD",
+                },
+            },
+            "sender": {
+            "login": trainee.username,
+            },
+            "reviewer_username":reviewer_user.username,
+            "comment": {
+            "body": "@brnbot assignreviewer",
+            },
+            "installation": {
+                "id": 26363998,
+            },
+            "issue": {
+                "number": 1,
+                "pull_request": {
+                    "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
+                    },
+            },
+            "repository": {
+                "owner": {
+                    "login": assessment_tracker_entry.repo_owner,
+                },
+                "name": assessment_tracker_entry.repo_name,
+            },
+        }
+    response_ghbot = requests.post(
+                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assigned", json=payload
+            )
+    response_ghbot.raise_for_status()
 
+    assessment_tracker_entry.reviewer_id = reviewer.id
+    assessment_tracker_entry.status = "Under Review"
+    assessment_tracker_entry.last_updated = datetime.utcnow()
+    db.add(assessment_tracker_entry)
+    db.commit()
     return True
 
 

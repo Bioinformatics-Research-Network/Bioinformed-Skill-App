@@ -97,12 +97,12 @@ def reviewer_assigned(
         )
     text = (
                 "Reviewer assigned 🔥. Welcome @"
-                + response.json()["reviewer_username"]
+                + payload["reviewer_username"]
                 + "!"
             )
     utils.post_comment(text, **kwarg_dict)
     # reviewer = 
-    utils.assign_reviewer(reviewer, **kwarg_dict)
+    utils.assign_reviewer(payload["reviewer_username"], **kwarg_dict)
             
     return{"Reviewer Assigned": True}
 

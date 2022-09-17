@@ -592,9 +592,16 @@ def confirm_reviewer(
                 "name": assessment_tracker_entry.repo_name,
             },
         }
+    print("going to ghbot now")
+    # response_ghbot = requests.get(
+    #             url=f"http://github_bot_url/reviewer"
+    #         )
+    # response_ghbot.raise_for_status()
+    print("ghbot test passed")
     response_ghbot = requests.post(
-                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign", json=payload
+                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign", json=payload # use localhost port 2000 instead for local testing
             )
+    print("ghbot return")
     response_ghbot.raise_for_status()
 
     assessment_tracker_entry.reviewer_id = reviewer.id

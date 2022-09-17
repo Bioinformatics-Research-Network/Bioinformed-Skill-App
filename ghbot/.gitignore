@@ -24,3 +24,5 @@ botdata/*
 *.sql
 
 htmlcov
+
+core.*

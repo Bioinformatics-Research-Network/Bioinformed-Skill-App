@@ -80,9 +80,8 @@ def delete(
     brnbot.process_delete_repo(delete_request, access_tokens=access_tokens)
     return "ok"
 
-
-@app.get("/")
-def root() -> dict:
+@app.get("/reviewer")
+def test() -> dict:
     return {"message": "Hello World"}
 
 @app.post("/crud/reviewer_assign")
@@ -105,4 +104,10 @@ def reviewer_assigned(
     utils.assign_reviewer(payload["reviewer_username"], **kwarg_dict)
             
     return{"Reviewer Assigned": True}
+
+@app.get("/")
+def root() -> dict:
+    return {"message": "Hello World"}
+
+
 

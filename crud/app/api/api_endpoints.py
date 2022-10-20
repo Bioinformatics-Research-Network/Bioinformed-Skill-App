@@ -320,7 +320,10 @@ def review(
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=review_request.latest_commit
         )
-        if assessment_tracker_entry.status != "Assigning Reviewer" and assessment_tracker_entry.status != "Initiated":
+        if (
+            assessment_tracker_entry.status != "Assigning Reviewer"
+            and assessment_tracker_entry.status != "Initiated"
+        ):
             raise ValueError(
                 "Assessment tracker entry already under review or approved"
             )
@@ -587,6 +590,7 @@ async def assign_reviewer_slack(
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Reviewer_assigned": True}
+
 
 # @router.post("/reviewer/check_review_status")
 # def check_review_status()

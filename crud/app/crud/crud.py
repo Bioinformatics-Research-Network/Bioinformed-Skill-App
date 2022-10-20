@@ -412,7 +412,7 @@ def select_reviewer(
     """
     if settings.APP_ENV_NAME == "testing":
         return get_reviewer_by_username(db=db, username="itchytummy")
-    
+
     invalid_rev = (
         db.query(models.Reviewers)
         .filter(models.Reviewers.user_id == assessment_tracker_entry.user_id)
@@ -472,7 +472,7 @@ def ask_reviewer(
     # Update the assessment tracker entry
     print(assessment_tracker_entry.reviewer_id)
     print(reviewer_info)
-    
+
     print("ask reviewer crud")
     slack_utils.ask_reviewer(
         db=db,
@@ -528,7 +528,6 @@ def confirm_reviewer(
     )
     print("B")
     reviewer = get_reviewer_by_slack_id(db=db, slack_id=reviewer_slack_id)
-    
 
     reviewer_user = get_user_by_id(db=db, user_id=reviewer.user_id)
     assessment = get_assessment_by_id(
@@ -545,11 +544,8 @@ def confirm_reviewer(
     }
     print("going to slack utils now")
     if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
-        slack_utils.confirm_reviewer(
-            slack_payload=slack_payload,
-            settings=settings
-        )
-    
+        slack_utils.confirm_reviewer(slack_payload=slack_payload, settings=settings)
+
     reviewer_info = {
         "reviewer_id": reviewer.id,
         "reviewer_username": reviewer_user.username,
@@ -562,36 +558,36 @@ def confirm_reviewer(
         update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
     payload = {
-            "number": 1,
-            "pull_request": {
+        "number": 1,
+        "pull_request": {
             "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
             "head": {
                 "sha": "OIJSADJSAODJASJDOJASD",
-                },
             },
-            "sender": {
+        },
+        "sender": {
             "login": trainee.username,
-            },
-            "reviewer_username":reviewer_user.username,
-            "comment": {
+        },
+        "reviewer_username": reviewer_user.username,
+        "comment": {
             "body": "@brnbot assignreviewer",
+        },
+        "installation": {
+            "id": 26363998,
+        },
+        "issue": {
+            "number": 1,
+            "pull_request": {
+                "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
             },
-            "installation": {
-                "id": 26363998,
+        },
+        "repository": {
+            "owner": {
+                "login": assessment_tracker_entry.repo_owner,
             },
-            "issue": {
-                "number": 1,
-                "pull_request": {
-                    "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
-                    },
-            },
-            "repository": {
-                "owner": {
-                    "login": assessment_tracker_entry.repo_owner,
-                },
-                "name": assessment_tracker_entry.repo_name,
-            },
-        }
+            "name": assessment_tracker_entry.repo_name,
+        },
+    }
     print("going to ghbot now")
     # response_ghbot = requests.get(
     #             url=f"http://github_bot_url/reviewer"
@@ -599,8 +595,9 @@ def confirm_reviewer(
     # response_ghbot.raise_for_status()
     print("ghbot test passed")
     response_ghbot = requests.post(
-                url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign", json=payload # use localhost port 2000 instead for local testing
-            )
+        url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign",
+        json=payload,  # use localhost port 2000 instead for local testing
+    )
     print("ghbot return")
     response_ghbot.raise_for_status()
 

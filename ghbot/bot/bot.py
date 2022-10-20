@@ -373,13 +373,16 @@ class Bot:
         )
         try:
             response.raise_for_status()
-            text = (
-                "I have asked a reviewer to review the assessment. Waiting for them to accept the request"+ 
-                "Please run @brnbot review again if the reviewer is not assigned within 4-5 days."
-            )
+            if response.json():
+                text = (
+                    "I have asked a reviewer to review the assessment. Waiting for them to accept the request"+ 
+                    "Please run @brnbot review again if the reviewer is not assigned within 4-5 days."
+                )
             
-            utils.post_comment(text, **kwarg_dict)
-            return response
+                utils.post_comment(text, **kwarg_dict)
+                return response
+            else:
+                return response
         except requests.exceptions.HTTPError as e:  # pragma: no cover
             print(str(e))
             err = f"**Error**: {e}" + "\n"

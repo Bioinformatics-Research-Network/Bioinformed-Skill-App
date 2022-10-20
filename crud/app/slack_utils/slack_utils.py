@@ -45,7 +45,7 @@ def ask_reviewer(
         response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
         try:
             response.raise_for_status()
-        except requests.exceptions.HTTPError as e: 
+        except requests.exceptions.HTTPError as e:
             raise e
         except Exception as e:
             raise e
@@ -83,8 +83,8 @@ def confirm_reviewer(
     response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError as e: 
-            raise e
+    except requests.exceptions.HTTPError as e:
+        raise e
     except Exception as e:
-            raise e
+        raise e
     return response

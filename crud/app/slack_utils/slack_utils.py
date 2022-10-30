@@ -23,7 +23,9 @@ def ask_reviewer(
     :param settings: Settings object
     :return: response object
     """
+    print(assessment_tracker_entry.user_id)
     user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
+    print(user)
     print("slack utils ask reviewer")
     reviewer_slack = crud.get_user_by_username(
         db=db, username=reviewer_info["reviewer_username"]
@@ -32,13 +34,14 @@ def ask_reviewer(
     assessment = crud.get_assessment_by_id(
         db=db, assessment_id=assessment_tracker_entry.assessment_id
     )
+    print(assessment)
     filename = "app/slack_utils/review_request.json"
     with open(filename, "r") as f:
         data = json.load(f)
         payload = copy.deepcopy(data)
         payload["blocks"][0]["text"][
             "text"
-        ] = f"Please confirm if you would like to review the assessment for:\nTrainee Name: {user.name}\nAssessment: {assessment.name}"
+        ] = f"Please confirm if you would like to review the assessment for:\nTrainee Username: {user.username}\nAssessment: {assessment.name}"
         payload["blocks"][1]["text"]["text"] = f"<@{str(reviewer_slack.slack_id)}>"
         # payload['blocks'][1]['text']['text']=(f"<@{test1_slack_id}>\n")
         print("slack url")
@@ -71,15 +74,16 @@ def confirm_reviewer(
     # user_name = user.name
 
     print(slack_payload)
-    reviewer_name = slack_payload["reviewer_name"]
+    reviewer_username = slack_payload["reviewer_username"]
     reviewer_slack_id = slack_payload["reviewer_slack_id"]
-    trainee_name = slack_payload["trainee_name"]
+    trainee_username = slack_payload["trainee_username"]
     assessment_name = slack_payload["assessment_name"]
+    print(reviewer_slack_id)
     payload = {
         "replace_original": "true",
-        "text": f"Assigned reviewer:{reviewer_name} <@{str(reviewer_slack_id)}>\nTrainee Name: {trainee_name}\nAssessment: {assessment_name}",
+        "text": f"Assigned reviewer:{reviewer_username} <@{str(reviewer_slack_id)}>\nTrainee User: {trainee_username}\nAssessment: {assessment_name}",
     }
-
+    print("ok")
     response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
     try:
         response.raise_for_status()

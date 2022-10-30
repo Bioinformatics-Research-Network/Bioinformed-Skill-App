@@ -25,9 +25,10 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
+    print(username)
     user = db.query(models.Users).filter(models.Users.username == username).first()
     if user is None:
-        raise ValueError("User name does not exist")
+        raise ValueError("Username does not exist")
     return user
 
 
@@ -271,15 +272,16 @@ def get_assessment_tracker_entry_by_user_assessment_name(
 
     :raises: ValueError if assessment tracker entry does not exist.
     """
+    print("ok")
     assessment_tracker = (
         db.query(models.AssessmentTracker)
         .filter(models.AssessmentTracker.user_id == user_id)
         .filter(
             models.AssessmentTracker.assessment_id
             == get_assessment_by_name(db=db, assessment_name=assessment_name).id
-        )
-        .first()
+        ).first()
     )
+    print("ok")
     if assessment_tracker is None:
         raise ValueError("Assessment tracker entry unavailable.")
 
@@ -442,12 +444,12 @@ def select_reviewer(
 
     try:
         random_reviewer = get_reviewer_by_id(db=db, reviewer_id=random_id)
-        return random_reviewer
     except Exception as e:  # pragma: no cover
         raise Exception(
             "Error selecting reviewer. Contact the administrators. Error"
             " string: " + str(e)
         )
+    return random_reviewer
 
 
 def ask_reviewer(
@@ -517,15 +519,15 @@ def confirm_reviewer(
     assessment_details = body["payload"]["message"]["blocks"][0]["text"]["text"].split(
         "\n"
     )
-    trainee_name = assessment_details[1][14:]
+    print(assessment_details)
+    trainee_username = assessment_details[1][18:]
     print("A")
-    trainee = get_user_by_name(db=db, user_name=trainee_name)
-    assessment_entry = get_assessment_tracker_entry_by_user_assessment_name(
+    print(trainee_username)
+    trainee = get_user_by_username(db=db, username=trainee_username)
+    assessment_tracker_entry = get_assessment_tracker_entry_by_user_assessment_name(
         db=db, user_id=trainee.id, assessment_name=assessment_details[2][12:]
     )
-    assessment_tracker_entry = get_assessment_tracker_entry_by_id(
-        db=db, entry_id=assessment_entry.id
-    )
+
     print("B")
     reviewer = get_reviewer_by_slack_id(db=db, slack_id=reviewer_slack_id)
 
@@ -536,9 +538,9 @@ def confirm_reviewer(
     assessment_name = assessment.name
     print("C")
     slack_payload = {
-        "trainee_name": trainee_name,
+        "trainee_username": trainee_username,
         "assessment_name": assessment_name,
-        "reviewer_name": reviewer_user.name,
+        "reviewer_username": reviewer_user.username,
         "response_url": body["payload"]["response_url"],
         "reviewer_slack_id": reviewer_slack_id,
     }

@@ -106,15 +106,6 @@ def init(
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
-    print(user.id)
-    print(assessment.id)
-    assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.id, assessment_id=assessment.id
-    )
-    print("ABC")
-    print(settings.APP_ENV_NAME)
-    print(assessment_tracker_entry.__dict__)
-
     # bool signifies if the assessment tracker entry was initialized as well as that the
     # member is valid
     return {"Initiated": True}

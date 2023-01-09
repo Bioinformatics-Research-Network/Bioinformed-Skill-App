@@ -375,7 +375,7 @@ class Bot:
             response.raise_for_status()
             if response.json():
                 text = (
-                    "I have asked a reviewer to review the assessment. Waiting for them to accept the request"+ 
+                    "I have asked a reviewer to review the assessment. Waiting for them to accept the request. "+ 
                     "Please run @brnbot review again if the reviewer is not assigned within 4-5 days."
                 )
             

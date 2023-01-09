@@ -90,10 +90,13 @@ def reviewer_assigned(
     access_tokens: dict = Depends(auth.retrieve_access_tokens),
     settings: Settings = Depends(get_settings),
     ) -> dict:
+
     brnbot = Bot(settings=settings)
+
     kwarg_dict = brnbot.parse_comment_payload(
             payload, access_tokens=access_tokens
         )
+    
     text = (
                 "Reviewer assigned 🔥. Welcome @"
                 + payload["reviewer_username"]

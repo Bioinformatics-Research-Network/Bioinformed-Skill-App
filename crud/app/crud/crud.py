@@ -544,6 +544,55 @@ def confirm_reviewer(
         "response_url": body["payload"]["response_url"],
         "reviewer_slack_id": reviewer_slack_id,
     }
+    
+    gh_payload = {
+        "number": 1,
+        "pull_request": {
+            "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
+            "head": {
+                "sha": "OIJSADJSAODJASJDOJASD",
+            },
+        },
+        "sender": {
+            "login": trainee.username,
+        },
+        "reviewer_username": reviewer_user.username,
+        "comment": {
+            "body": "@brnbot assign_reviewer",
+        },
+        "installation": {
+            "id": 25533349,
+        },
+        "issue": {
+            "number": 1,
+            "pull_request": {
+                "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
+            },
+        },
+        "repository": {
+            "owner": {
+                "login": assessment_tracker_entry.repo_owner,
+            },
+            "name": assessment_tracker_entry.repo_name,
+        },
+    }
+    print(gh_payload)
+    print("going to ghbot now")
+    # response_ghbot = requests.get(
+    #             url=f"http://github_bot_url/reviewer"
+    #         )
+    # response_ghbot.raise_for_status()
+    print(settings.GITHUB_BOT_URL)
+    print(settings.APP_ENV_NAME)
+    print("ghbot test passed")
+    response_ghbot = requests.post(
+        url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign",
+        json=gh_payload,  
+    )
+    response_ghbot.raise_for_status()
+    print(response_ghbot.json())
+    print("ghbot return")
+    
     print("going to slack utils now")
     if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
         slack_utils.confirm_reviewer(slack_payload=slack_payload, settings=settings)
@@ -559,49 +608,7 @@ def confirm_reviewer(
         latest_commit=assessment_tracker_entry.latest_commit,
         update_logs=copy.deepcopy(reviewer_info),
     )  # Update logs
-    payload = {
-        "number": 1,
-        "pull_request": {
-            "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
-            "head": {
-                "sha": "OIJSADJSAODJASJDOJASD",
-            },
-        },
-        "sender": {
-            "login": trainee.username,
-        },
-        "reviewer_username": reviewer_user.username,
-        "comment": {
-            "body": "@brnbot assignreviewer",
-        },
-        "installation": {
-            "id": 26363998,
-        },
-        "issue": {
-            "number": 1,
-            "pull_request": {
-                "url": f"https://api.github.com/repos/{assessment_tracker_entry.repo_owner}/{assessment_tracker_entry.repo_name}/pulls/{assessment_tracker_entry.pr_number}",
-            },
-        },
-        "repository": {
-            "owner": {
-                "login": assessment_tracker_entry.repo_owner,
-            },
-            "name": assessment_tracker_entry.repo_name,
-        },
-    }
-    print("going to ghbot now")
-    # response_ghbot = requests.get(
-    #             url=f"http://github_bot_url/reviewer"
-    #         )
-    # response_ghbot.raise_for_status()
-    print("ghbot test passed")
-    response_ghbot = requests.post(
-        url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign",
-        json=payload,  # use localhost port 2000 instead for local testing
-    )
-    print("ghbot return")
-    response_ghbot.raise_for_status()
+    
 
     assessment_tracker_entry.reviewer_id = reviewer.id
     assessment_tracker_entry.status = "Under Review"

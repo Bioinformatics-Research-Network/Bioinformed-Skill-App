@@ -397,6 +397,7 @@ def approve(
         # Issue badge
         bt = utils.get_bearer_token(settings)
         print("badges check")
+        print(bt)
         resp = utils.issue_badge(
             user_email=user.email,
             user_name=str(user.first_name +" "+ user.last_name),

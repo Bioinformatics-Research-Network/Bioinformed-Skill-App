@@ -44,7 +44,7 @@ if (
         "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
         "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
         "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
-        "Test": "OcVxPZEORASs4dBL0h5mOw",
+        "Test": "bR5ORq1kR5SHMm1y_bbpAQ",
     }
     # file for storing temporary access tokens
     token_fp = "access_tokens.json"
@@ -53,7 +53,7 @@ else:
         "Test": 26363998,
     }
     BADGE_IDs = {
-        "Test": "OcVxPZEORASs4dBL0h5mOw",
+        "Test": "bR5ORq1kR5SHMm1y_bbpAQ",
     }
     # file for storing temporary access tokens
     token_fp = "access_tokens.dev.json"

@@ -12,7 +12,7 @@ BADGE_IDs = {
     "Python Programming II": "5xCf5xpRQqOhRCykbITuLA",
     "R Programming I": "v0CU877hR5qI8OtDN7EYTg",
     "R Programming II": "h3lCNmoHRjmqNI5D5Q6a-g",
-    "Test": "OcVxPZEORASs4dBL0h5mOw",
+    "Test": "bR5ORq1kR5SHMm1y_bbpAQ",
 }
 
 INSTALLATION_IDs = {

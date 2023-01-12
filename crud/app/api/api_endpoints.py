@@ -39,7 +39,6 @@ def init(
     # If other error occurs, raise 500 error
     print(init_request)
     try:
-        print("creating assessment tracker")
         crud.create_assessment_tracker_entry(
             db=db,
             user_id=init_request.user_id,
@@ -52,17 +51,13 @@ def init(
                 )
             ).hexdigest(),
         )
-        print("assessment tracker created")
     except ValueError as e:
-        print(e)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     # Use the bot to set up the assessment on GitHub
     try:
-        print("setting up assessment")
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=init_request.assessment_id
         )
@@ -77,22 +72,17 @@ def init(
             "latest_release": assessment.latest_release,
             "review_required": assessment.review_required == 1,
         }
-        print(payload)
-        print("Sending request to bot init")
         response = request(
             "POST",
             f"{settings.GITHUB_BOT_URL}/init",
             json=payload,
         )
-        print("Bot responded")
         response.raise_for_status()
     except Exception as e:  # pragma: no cover
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     # Update the assessment tracker with the GitHub URL
     try:
-        print("Updating assessment tracker")
         crud.update_assessment_tracker_entry(
             db=db,
             user_id=user.id,
@@ -101,9 +91,7 @@ def init(
             status="Initiated",
             commit=response.json()["latest_commit"],
         )
-        print("Assessment tracker updated")
     except Exception as e:  # pragma: no cover
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     # bool signifies if the assessment tracker entry was initialized as well as that the
@@ -140,10 +128,8 @@ def view(*, db: Session = Depends(get_db), view_request: schemas.ViewRequest):
             assessment_id=assessment.id,
         )
     except ValueError as e:
-        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return assessment_tracker_entry.__dict__
@@ -184,10 +170,8 @@ def update(*, db: Session = Depends(get_db), update_request: schemas.UpdateReque
             update_logs=copy.deepcopy(update_request.log),
         )
     except ValueError as e:
-        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Logs_updated": True}
@@ -220,14 +204,10 @@ def delete(
             settings=settings,
         )
     except ValueError as e:
-        print(str(e))
         db.rollback()
-        print("rollback")
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         db.rollback()
-        print("rollback")
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Entry_deleted": True}
@@ -252,7 +232,6 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
         - Assessment tracker entry does not exist
     """
     try:
-        print(check_request.latest_commit)
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=check_request.latest_commit
         )
@@ -270,10 +249,8 @@ def check(*, db: Session = Depends(get_db), check_request: schemas.CheckRequest)
             update_logs=copy.deepcopy(update_logs),
         )
     except ValueError as e:
-        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     # Get the assessment table entry
@@ -343,10 +320,8 @@ def review(
             settings=settings,
         )
     except ValueError as e:
-        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return reviewer_info
@@ -382,49 +357,35 @@ def approve(
         - The reviewer is the same as the user
         - The reviewer is not listed as a reviewer for this assessment
     """
-    print(approve_request)
     try:
-        print("A")
         assessment_tracker_entry = crud.get_assessment_tracker_entry_by_commit(
             db=db, commit=approve_request.latest_commit
         )
-        print("B")
     except ValueError as e:
-        print(str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
-
-    print("C")
-
     orig_status = copy.deepcopy(assessment_tracker_entry.status)
     try:
         # Get the trainee info
         user = crud.get_user_by_id(db=db, user_id=assessment_tracker_entry.user_id)
         print(user.__dict__)
-        print("D")
         # Get the assessment info
         assessment = crud.get_assessment_by_id(
             db=db, assessment_id=assessment_tracker_entry.assessment_id
         )
-        print("E")
         if assessment.review_required == 1:
-            print("F")
             # Get the reviewer info; error if not exists
             reviewer = crud.get_reviewer_by_username(
                 db=db, username=approve_request.reviewer_username
             )
-            print("G")
         else:
-            print("H")
             reviewer = None
         # Approve assessment, update logs, issue badge
         # Error if reviewer is not the one assigned;
         # Error if checks are not passed
         # Error if assessment is already approved;
         # Error if reviewer is same as trainee
-        print("I")
         crud.approve_assessment(
             db=db,
             trainee=user,
@@ -432,55 +393,42 @@ def approve(
             reviewer_username=approve_request.reviewer_username,
             assessment=assessment,
         )
-        print("J")
+        print("assessment approved")
         # Issue badge
         bt = utils.get_bearer_token(settings)
-        print("K")
-        print(settings.__dict__)
-        print(user.name)
+        print("badges check")
         resp = utils.issue_badge(
             user_email=user.email,
-            user_name=user.name,
+            user_name=str(user.first_name +" "+ user.last_name),
             assessment_name=assessment.name,
             bearer_token=bt,
             config=settings,
         )
-        print("L")
         resp.raise_for_status()
-        print("M")
         # Add assertion to database
         crud.add_assertion(
             db=db,
             entry_id=assessment_tracker_entry.id,
             assertion=resp.json()["result"][0],
         )
-        print("N")
     except KeyError as e:  # pragma: no cover
-        print(str(e))
-        print("O")
         msg = "Badgr: Unable to locate assessment: " + str(e)
 
         # If any error, revert status to original
         assessment_tracker_entry.status = orig_status
         db.commit()
-
         raise HTTPException(status_code=500, detail=msg)
+
     except ValueError as e:
-        print(str(e))
-
         # If any error, revert status to original
         assessment_tracker_entry.status = orig_status
         db.commit()
-
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:  # pragma: no cover
-        print(str(e))
-        print("P")
 
+    except Exception as e:  # pragma: no cover
         # If any error, revert status to original
         assessment_tracker_entry.status = orig_status
         db.commit()
-
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Assessment_Approved": True}
@@ -507,7 +455,6 @@ def delete_user(
     try:
         crud.delete_user(db=db, user_id=delete_request.user_id, settings=settings)
     except Exception as e:  # pragma: no cover
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"User_deleted": True}
@@ -528,32 +475,14 @@ def add_reviewer(
     :param reviewer: Pydantic request model schema used by `/api/add_reviewer` endpoint
     """
     try:
-        print("adding reviewer ")
         crud.create_reviewer_entry(reviewer_username=reviewer)
-        print("reviewer added")
     except ValueError as e:
-        print(e)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     # member is verified, reviewer is added to the db
     return {"Reviewer_added": True}
-
-
-# @router.post("/reviewer/ask_review_slack") # testing endpoint for asking reviewers for review through slack
-# def slack_interface_test(
-#     *, db: Session = Depends(get_db), assessment_tracker_entry_id: int,
-#     reviewer_id: int,
-#     settings: Settings = Depends(get_settings),
-# ):
-#     slack_utils.ask_reviewers(
-#         db=db, assessment_tracker_entry_id = assessment_tracker_entry_id,
-#         reviewer_id=reviewer_id, settings=settings
-#         )
-
-#     return {"Reviewers_informed": True}
 
 
 @router.post("/reviewer/assign_reviewer_slack")
@@ -569,15 +498,12 @@ async def assign_reviewer_slack(
     :param db: Generator for Session of database
     :param payload: payload sent from slack api
     """
-    print("confirm rev api")
     body = unquote(await payload.body())
     try:
         crud.confirm_reviewer(db=db, body=body, settings=settings)
     except ValueError as e:
-        print(e)
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:  # pragma: no cover
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"Reviewer_assigned": True}

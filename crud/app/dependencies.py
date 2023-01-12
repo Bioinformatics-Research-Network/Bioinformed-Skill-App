@@ -15,6 +15,15 @@ BADGE_IDs = {
     "Test": "OcVxPZEORASs4dBL0h5mOw",
 }
 
+INSTALLATION_IDs = {
+        "Skill Assessment Tutorial (Python)": 25630785,
+        "Skill Assessment Tutorial (R)": 25901888,
+        "Python Programming I": 25616884,
+        "R Programming I": 25958132,
+        "Python Programming II": 25476585,
+        "R Programming II": 25520792,
+        "Test": 25533349,
+    }
 
 class Settings(BaseSettings):
     RDS_ENDPOINT: str
@@ -33,6 +42,7 @@ class Settings(BaseSettings):
     GITHUB_BOT_URL: str
     APP_ENV_NAME: str
     SLACK_BOT_URL: str
+    INSTALLATION_ID: dict = INSTALLATION_IDs
 
 
 @lru_cache()

@@ -25,7 +25,6 @@ def get_user_by_username(db: Session, username: str):
 
     :raises: ValueError if user does not exist.
     """
-    print(username)
     user = db.query(models.Users).filter(models.Users.username == username).first()
     if user is None:
         raise ValueError("Username does not exist")
@@ -87,13 +86,10 @@ def get_reviewer_by_username(db: Session, username: str):
 
     :raises: ValueError if reviewer does not exist.
     """
-    print("E")
     user_id = get_user_by_username(db=db, username=username).id
-    print("F")
     reviewer = (
         db.query(models.Reviewers).filter(models.Reviewers.user_id == user_id).first()
     )
-    print("G")
     if reviewer is None:
         raise ValueError("Reviewer does not exist")
 
@@ -272,7 +268,6 @@ def get_assessment_tracker_entry_by_user_assessment_name(
 
     :raises: ValueError if assessment tracker entry does not exist.
     """
-    print("ok")
     assessment_tracker = (
         db.query(models.AssessmentTracker)
         .filter(models.AssessmentTracker.user_id == user_id)
@@ -281,7 +276,6 @@ def get_assessment_tracker_entry_by_user_assessment_name(
             == get_assessment_by_name(db=db, assessment_name=assessment_name).id
         ).first()
     )
-    print("ok")
     if assessment_tracker is None:
         raise ValueError("Assessment tracker entry unavailable.")
 
@@ -390,7 +384,6 @@ def update_assessment_tracker_entry(
         db.commit()
         return True
     except Exception as e:
-        print(e)
         db.rollback()
         raise e
 
@@ -470,12 +463,10 @@ def ask_reviewer(
 
     :raises: None (hopefully)
     """
-    print("crud ask rev")
     # Update the assessment tracker entry
     print(assessment_tracker_entry.reviewer_id)
     print(reviewer_info)
 
-    print("ask reviewer crud")
     slack_utils.ask_reviewer(
         db=db,
         assessment_tracker_entry=assessment_tracker_entry,
@@ -510,7 +501,6 @@ def confirm_reviewer(
     :returns: True
 
     """
-    print("crud confirm reviewer")
     body = (
         """{""" + """"p""" + body[1:7] + """":""" + body[8:-1] + """""}]}}"""
     )  # this is done to sucessfully convert str to json
@@ -519,16 +509,12 @@ def confirm_reviewer(
     assessment_details = body["payload"]["message"]["blocks"][0]["text"]["text"].split(
         "\n"
     )
-    print(assessment_details)
     trainee_username = assessment_details[1][18:]
-    print("A")
-    print(trainee_username)
     trainee = get_user_by_username(db=db, username=trainee_username)
     assessment_tracker_entry = get_assessment_tracker_entry_by_user_assessment_name(
         db=db, user_id=trainee.id, assessment_name=assessment_details[2][12:]
     )
 
-    print("B")
     reviewer = get_reviewer_by_slack_id(db=db, slack_id=reviewer_slack_id)
 
     reviewer_user = get_user_by_id(db=db, user_id=reviewer.user_id)
@@ -536,7 +522,6 @@ def confirm_reviewer(
         db=db, assessment_id=assessment_tracker_entry.assessment_id
     )
     assessment_name = assessment.name
-    print("C")
     slack_payload = {
         "trainee_username": trainee_username,
         "assessment_name": assessment_name,
@@ -561,7 +546,7 @@ def confirm_reviewer(
             "body": "@brnbot assign_reviewer",
         },
         "installation": {
-            "id": 25533349,
+            "id": settings.INSTALLATION_ID[assessment_name],
         },
         "issue": {
             "number": 1,
@@ -576,24 +561,13 @@ def confirm_reviewer(
             "name": assessment_tracker_entry.repo_name,
         },
     }
-    print(gh_payload)
-    print("going to ghbot now")
-    # response_ghbot = requests.get(
-    #             url=f"http://github_bot_url/reviewer"
-    #         )
-    # response_ghbot.raise_for_status()
-    print(settings.GITHUB_BOT_URL)
-    print(settings.APP_ENV_NAME)
-    print("ghbot test passed")
+
     response_ghbot = requests.post(
         url=f"{settings.GITHUB_BOT_URL}/crud/reviewer_assign",
         json=gh_payload,  
     )
     response_ghbot.raise_for_status()
-    print(response_ghbot.json())
-    print("ghbot return")
-    
-    print("going to slack utils now")
+
     if reviewer_slack_id in body["payload"]["message"]["blocks"][1]["text"]["text"]:
         slack_utils.confirm_reviewer(slack_payload=slack_payload, settings=settings)
 
@@ -654,7 +628,7 @@ def approve_assessment(
     assessment_tracker_entry = get_assessment_tracker_entry(
         db=db, user_id=trainee.id, assessment_id=assessment.id
     )
-
+    print("verify check")
     if not utils.verify_check(assessment_tracker_entry=assessment_tracker_entry):
         raise ValueError("Last commit checks failed.")
 
@@ -664,17 +638,19 @@ def approve_assessment(
         # Get user ids and confirm they are different
         if reviewer.user_id == trainee.id:
             raise ValueError("Reviewer cannot be the same as the trainee.")
-        if assessment_tracker_entry.reviewer_id is None:
+        elif assessment_tracker_entry.reviewer_id is None:
             raise ValueError("No reviewer is assigned to the assessment.")
-        if assessment_tracker_entry.status != "Under review":
+        elif assessment_tracker_entry.status != "Under Review":
             raise ValueError("Assessment is not under review.")
-
+        print("reviewer by id")
         # Get the reviewer, based on the assessment_tracker entry
         reviewer_real = get_reviewer_by_id(
             db=db, reviewer_id=assessment_tracker_entry.reviewer_id
         )
+        print("real user")
         reviewer_real_user = get_user_by_id(db=db, user_id=reviewer_real.user_id)
         # Verify the approval request is from the reviewer
+        print("Username check")
         if reviewer_real_user.username != reviewer_username:
             raise ValueError(
                 "Reviewer is not the same as the reviewer assigned to the"
@@ -683,7 +659,7 @@ def approve_assessment(
         reviewer = reviewer.id
     else:
         reviewer = "brnbot"
-
+    print("logs status update")
     # Get assessment id and latest commit
     latest_commit = assessment_tracker_entry.latest_commit
 
@@ -717,7 +693,6 @@ def add_assertion(
     :param entry_id: Assessment tracker entry id
     :param assertion: Assertion to add
     """
-    print(assertion["badgeclass"])
     badge = (
         db.query(models.Badges)
         .filter(models.Badges.entityId == assertion["badgeclass"])
@@ -744,14 +719,11 @@ def add_assertion(
 
     # Add the assertion to the Assertions table if it doesn't exist, else update it
     try:
-        print("Assertion does not exist. Adding...")
         assertobj = models.Assertions(**fields)
         db.add(assertobj)
         db.commit()
         return True
     except Exception as e:
-        print(fields)
-        print(str(e))
         db.rollback()
         raise e
 
@@ -824,12 +796,9 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
                 "github_org": assessment.github_org,
                 "username": user.username,
             }
-            print(payload)
-            print("Sending request to bot init")
             response = requests.post(
                 url=f"{settings.GITHUB_BOT_URL}/delete", json=payload
             )
-            print("Bot responded")
             response.raise_for_status()
 
     try:
@@ -844,8 +813,6 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
         # OAuth
         print(user.id)
         oauth = db.query(models.OAuth).filter_by(user_id=user.id).first()
-        print("OAUTH")
-        print(oauth.__dict__)
         if oauth:
             db.delete(oauth)
             db.commit()
@@ -872,14 +839,10 @@ def delete_user(db: Session, user_id: int, settings: dict) -> None:
         db.delete(user)
         db.commit()
     except ValueError as e:
-        print(str(e))
         db.rollback()
-        print("rollback")
         raise e
     except Exception as e:  # pragma: no cover
-        print(str(e))
         db.rollback()
-        print("rollback")
         raise e
 
 
@@ -908,13 +871,11 @@ def delete_assessment_tracker_entry(
         "github_org": assessment.github_org,
         "username": user.username,
     }
-    print(payload)
-    print("Sending request to bot init")
+
     response = requests.post(
         url=f"{settings.GITHUB_BOT_URL}/delete",
         json=payload,
     )
-    print("Bot responded")
     response.raise_for_status()
 
     return True

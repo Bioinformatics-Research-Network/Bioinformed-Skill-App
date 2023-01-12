@@ -271,6 +271,7 @@ def issue_badge(
     print(bearer_token)
     print(user_email)
     print(assessment_name)
+    print(user_name)
     # Prepare the payload with custom text and evidence
     payload = json.dumps(
         {

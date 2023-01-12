@@ -102,11 +102,20 @@ def wrangle_assertion(assertion: dict, db_session: Session):
 
     # Wrangle the evidence field
     if len(assertion["evidence"]) > 0:
-        fields["evidence_url"] = assertion["evidence"][0]["url"]
+        try:
+            fields["evidence_url"] = assertion["evidence"][0]["url"]
+        except KeyError:
+            fields["evidence_url"] = "None"
         fields["evidence_narrative"] = assertion["evidence"][0]["narrative"]
 
     # Convert createdAt to a datetime object from ISO8601
-    ca = datetime.strptime(assertion["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        ca = datetime.strptime(assertion["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+    except KeyError:
+        # Add fake timestamp for assertions that don't have a createdAt field
+        fields["createdAt"] = "2000-01-01T00:00:00Z"
+        ca = datetime.strptime(fields["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+    
 
     # Get the badge name that the assertion is for by querying the badges table
     badge_name = (

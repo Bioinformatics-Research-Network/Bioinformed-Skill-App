@@ -24,6 +24,7 @@ def download_releases_from_github(settings: Settings, db_session: Session):
     for release in releases:
         print("Downloading release: " + release.name)
         release_url = f"https://api.github.com/repos/Bioinformatics-Research-Network/{release.template_repo}/zipball/{release.latest_release}"
+        print(release_url)
         # Creat the download folder if it doesn't exist
         download_folder = (
             f"{appdatadir}/tmp/{release.template_repo}/{release.latest_release}"
@@ -34,6 +35,9 @@ def download_releases_from_github(settings: Settings, db_session: Session):
         if not os.path.exists(download_folder):
             os.makedirs(download_folder)
         if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+        else:
+            shutil.rmtree(output_folder)
             os.makedirs(output_folder)
         # Download the release from github and save it to the downloads folder using urllib
         urllib.request.urlretrieve(release_url, f"{download_folder}/tmp.zip")

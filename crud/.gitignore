@@ -16,10 +16,7 @@ s3_data/
 *.zip
 
 *cache*
-# sh files to run repetitive commands
-smee_client.sh
-smee_run.sh
-uvicorn_run.sh
+
 
 
 # Elastic Beanstalk Files

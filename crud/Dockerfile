@@ -1,6 +1,11 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.10-slim-buster
+FROM python:3.10
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
+bash /tmp/nodesource_setup.sh && \
+apt install nodejs -y && \
+npm install -g smee-client
 
 ENV APP_ENV production
 
@@ -14,4 +19,4 @@ COPY . /app
 
 EXPOSE 2000
 
-CMD ["gunicorn", "main:app", "--capture-output", "--log-level", "debug", "--error-logfile", "-", "--access-logfile", "-", "--bind", ":2000", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker"]
+CMD ./smee_run.sh

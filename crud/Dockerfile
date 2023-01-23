@@ -2,6 +2,10 @@
 
 FROM python:3.10
 
+ARG CRUD_SLACK_SMEE
+
+ENV CRUD_SLACK_SMEE ${CRUD_SLACK_SMEE}
+
 RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
 bash /tmp/nodesource_setup.sh && \
 apt install nodejs -y && \

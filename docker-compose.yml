@@ -32,7 +32,10 @@ services:
       APP_ENV: development
     stop_signal: SIGKILL
   ghbot:
-    build: ghbot/
+    build:
+      context: ghbot/
+      args:
+        GHBOT_SMEE: ${GHBOT_SMEE}
     depends_on:
       db:
         condition: service_healthy
@@ -44,7 +47,10 @@ services:
       APP_ENV: development
     stop_signal: SIGKILL
   crud:
-    build: crud/
+    build: 
+      context: crud/
+      args:
+        CRUD_SLACK_SMEE: ${CRUD_SLACK_SMEE}
     depends_on:
       db:
         condition: service_healthy

@@ -93,7 +93,6 @@ class Bot:
             payload, access_tokens=access_tokens
         )
         log = {"type": "commit"}
-        print(kwarg_dict["sender"])
         # Update the assessment in the database using API
         request_url = f"{self.CRUD_APP_URL}/api/update"
         body = {
@@ -219,7 +218,6 @@ class Bot:
             payload, access_tokens=access_tokens
         )
         text = f"Hello, @{kwarg_dict['sender']}! 😊"
-        print("Hello")
         utils.post_comment(text, **kwarg_dict)
         return True
 
@@ -277,7 +275,7 @@ class Bot:
             payload, access_tokens=access_tokens
         )
         actions_url = f"{self.gh_http}/{kwarg_dict['owner']}/{kwarg_dict['repo_name']}/actions/"
-        print(kwarg_dict)
+        
 
         # Confirm that latest commit is the same as the one in the database
         latest_commit = utils.get_last_commit(
@@ -366,7 +364,6 @@ class Bot:
                 access_token=kwarg_dict["access_token"],
             )["sha"],
         }
-        print(body)
         response = requests.post(
             request_url,
             json=body,

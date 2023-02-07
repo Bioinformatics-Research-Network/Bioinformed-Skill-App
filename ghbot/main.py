@@ -100,7 +100,7 @@ def reviewer_assigned(
     text = (
                 "Reviewer assigned 🔥. Welcome @"
                 + payload["reviewer_username"]
-                + "!"
+                + "! Please use the command `@brnbot approve` to approve this assessment after reviewing."
             )
     utils.post_comment(text, **kwarg_dict)
     # reviewer = 

@@ -25,9 +25,7 @@ def get_access_token(installation_id, jwt) -> dict:
     )
     response = requests.post(request_url, headers=headers)
     response_dict = response.json()
-    print(response_dict)
     response.raise_for_status()
-    print(response_dict)
     return response_dict
 
 
@@ -38,7 +36,6 @@ def get_all_access_tokens(installation_ids, jwt) -> dict:
 
     print("Getting access tokens")
     # Get the access tokens for the installations
-    print(installation_ids.items())
     try:
         token_dict = {
             installation_id: get_access_token(installation_id, jwt)["token"]

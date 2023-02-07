@@ -29,13 +29,7 @@ def post_comment(text: str, **kwargs) -> requests.Response:
     }
 
     request_url = f"{dependencies.gh_url}/repos/{kwargs['owner']}/{kwargs['repo_name']}/issues/{kwargs['issue_number']}/comments"
-    print("Post comment")
-    print(request_url)
-    print(headers)
     time.sleep(1)  # Sleep for 1 second to avoid rate limiting
-    print(f"Posting comment: {text}")
-    print(kwargs["access_token"])
-    print(request_url)
     response = requests.post(
         request_url,
         headers=headers,
@@ -63,7 +57,6 @@ def assign_reviewer(reviewer_username: str, **kwarg_dict) -> requests.Response:
         json={"reviewers": [reviewer_username]},
     )
     response.raise_for_status()
-    print("Reviewer added")
     return response
 
 
@@ -227,7 +220,6 @@ def is_valid_repo(payload: dict, db: Session) -> bool:
         .first()
     )
 
-    print("AT")
 
     if assessment_tracker is None:
         print("Entry unavailable in the assessment tracker table")
@@ -297,8 +289,6 @@ def dispatch_workflow(**kwarg_dict) -> requests.Response:
         "Accept": dependencies.accept_header,
     }
     print("Dispatching workflow")
-    print(request_url)
-    print(headers)
     response = requests.post(
         request_url,
         headers=headers,
@@ -323,8 +313,6 @@ def delete_repo(
         "Accept": dependencies.accept_header,
     }
     print("delete repo")
-    print(request_url)
-    print(headers)
     try:
         response = requests.delete(request_url, headers=headers)
         response.raise_for_status()
@@ -371,8 +359,6 @@ def init_create_repo(
         "Accept": dependencies.accept_header,
     }
     print("delete repo")
-    print(request_url)
-    print(headers)
     try:
         response = requests.delete(request_url, headers=headers)
         response.raise_for_status()
@@ -396,8 +382,6 @@ def init_create_repo(
         "is_template": False,
     }
     print("Create repo")
-    print(request_url)
-    print(headers)
     try:
         sleep(1)
         response = requests.post(
@@ -498,7 +482,6 @@ def init_fill_repo(
                 headers={"Authorization": f"token {access_token}"},
             )
             response_files.raise_for_status()
-            print(f"{target} uploaded")
         print("Code downloaded and uploaded to github")
     except Exception as e:  # pragma: no cover
         print(e)
@@ -704,7 +687,6 @@ def approve_assessment(**kwarg_dict):
             access_token=kwarg_dict["access_token"],
         )["sha"],
     }
-    print(body)
     response = requests.patch(
         request_url,
         json=body,

@@ -3,6 +3,10 @@
 # Set up the app
 FROM python:3.10
 
+ARG GHBOT_SMEE
+
+ENV GHBOT_SMEE ${GHBOT_SMEE}
+
 # Get the smee client for proxying webhook payloads
 RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
 bash /tmp/nodesource_setup.sh && \

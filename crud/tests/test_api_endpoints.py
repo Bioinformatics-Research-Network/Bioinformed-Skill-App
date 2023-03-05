@@ -102,7 +102,7 @@ def test_view(client: TestClient, db: Session):
     }
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 422
-    assert response.json() == {"detail": "User name does not exist"}
+    assert response.json() == {"detail": "Username does not exist"}
 
     # Error on invalid assessment name
     request_json = {
@@ -121,6 +121,37 @@ def test_view(client: TestClient, db: Session):
     response = client.get("/api/view", json=request_json)
     assert response.status_code == 422
     assert response.json() == {"detail": "Assessment tracker entry unavailable."}
+
+
+def test_update(client: TestClient, db: Session):
+    db = next(get_db())
+
+    # For some reason, we have to retrieve the db session again
+    assessment = (
+        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
+    )
+    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
+    assessment_tracker_entry = crud.get_assessment_tracker_entry(
+        db=db, user_id=user.id, assessment_id=assessment.id
+    )
+
+    # Successful query
+    log = {"Test": "Tested"}
+    request_json = {
+        "username": user.username,
+        "assessment_name": assessment.name,
+        "latest_commit": assessment_tracker_entry.latest_commit,
+        "log": log,
+    }
+    response = client.patch("/api/update", json=request_json)
+    assert response.status_code == 200
+    assert response.json() == {"Logs_updated": True}
+
+
+def test_delete(client: TestClient, db: Session):
+    db = next(get_db())
+
+    return 0
 
 
 def test_check(client: TestClient, db: Session):
@@ -238,29 +269,15 @@ def test_approve(client: TestClient, db: Session):
     # Produces error because badge is for testenv but does not exist in db
     # TODO: Fix this so that it can fully pass
     assert response.status_code == 422
+    print(response.json())
     assert response.json() == {"detail": "Badge does not exist in database"}
 
 
-def test_update(client: TestClient, db: Session):
-    db = next(get_db())
+def test_delete_user(client: TestClient, db: Session):
 
-    # For some reason, we have to retrieve the db session again
-    assessment = (
-        db.query(models.Assessments).filter(models.Assessments.name == "Test").first()
-    )
-    user = db.query(models.Users).filter(models.Users.username == "brnbot").first()
-    assessment_tracker_entry = crud.get_assessment_tracker_entry(
-        db=db, user_id=user.id, assessment_id=assessment.id
-    )
+    db=next(get_db())
+    return 0
 
-    # Successful query
-    log = {"Test": "Tested"}
-    request_json = {
-        "username": user.username,
-        "assessment_name": assessment.name,
-        "latest_commit": assessment_tracker_entry.latest_commit,
-        "log": log,
-    }
-    response = client.patch("/api/update", json=request_json)
-    assert response.status_code == 200
-    assert response.json() == {"Logs_updated": True}
+def test_assign_reviewer_slack(client: TestClient, db: Session):
+    db=next(get_db())
+    return 0

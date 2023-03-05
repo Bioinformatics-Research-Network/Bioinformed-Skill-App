@@ -465,25 +465,25 @@ def delete_user(
 
 # /api/add_reviewer : slack calls the crud api with the github username and slack id; CRUD adds checks the username with member list, adds the reviewer to db
 # not tested or bug fixed yet
-@router.post("/user/add_reviewer")
-def add_reviewer(
-    *, db: Session = Depends(get_db), reviewer: schemas.AddReviewerRequest
-):
-    """
-    Adds a reviewer to the database.
+# @router.post("/user/add_reviewer")
+# def add_reviewer(
+#     *, db: Session = Depends(get_db), reviewer: schemas.AddReviewerRequest
+# ):
+#     """
+#     Adds a reviewer to the database.
 
-    :param db: Generator for Session of database
-    :param reviewer: Pydantic request model schema used by `/api/add_reviewer` endpoint
-    """
-    try:
-        crud.create_reviewer_entry(reviewer_username=reviewer)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:  # pragma: no cover
-        raise HTTPException(status_code=500, detail=str(e))
+#     :param db: Generator for Session of database
+#     :param reviewer: Pydantic request model schema used by `/api/add_reviewer` endpoint
+#     """
+#     try:
+#         crud.create_reviewer_entry(reviewer_username=reviewer)
+#     except ValueError as e:
+#         raise HTTPException(status_code=422, detail=str(e))
+#     except Exception as e:  # pragma: no cover
+#         raise HTTPException(status_code=500, detail=str(e))
 
-    # member is verified, reviewer is added to the db
-    return {"Reviewer_added": True}
+#     # member is verified, reviewer is added to the db
+#     return {"Reviewer_added": True}
 
 
 @router.post("/reviewer/assign_reviewer_slack")

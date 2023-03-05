@@ -83,7 +83,7 @@ def confirm_reviewer(
         "replace_original": "true",
         "text": f"Assigned reviewer:{reviewer_username} <@{str(reviewer_slack_id)}>\nTrainee User: {trainee_username}\nAssessment: {assessment_name}",
     }
-    print("ok")
+    
     response = requests.post(url=settings.SLACK_BOT_URL, json=payload)
     try:
         response.raise_for_status()

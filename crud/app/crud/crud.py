@@ -37,7 +37,7 @@ def get_user_by_name(db: Session, user_name: str):
     """
     user = db.query(models.Users).filter(models.Users.name == user_name).first()
     if user is None:
-        raise ValueError("User name does not exist")
+        raise ValueError("Username does not exist")
     return user
 
 
@@ -122,6 +122,8 @@ def get_reviewer_by_user_id(db: Session, user_id: int) -> models.Reviewers:
     To get reviewer by user id.
     """
     reviewer = db.query(models.Reviewers).filter_by(user_id=user_id).first()
+    if reviewer is None:
+        raise ValueError("Reviewer does not exist")
     return reviewer
 
 

@@ -16,7 +16,7 @@ s3_data/
 *.zip
 
 *cache*
-
+testing.sh
 
 
 # Elastic Beanstalk Files

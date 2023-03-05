@@ -1,7 +1,7 @@
 from app.utils import badgr_utils
 from app.dependencies import get_settings
 from fastapi.testclient import TestClient
-
+from sqlalchemy.orm import Session
 
 def test_issue_badge(
     client: TestClient,
